@@ -256,6 +256,7 @@ input,select,textarea{font-size:16px}
 .drag-ghost{position:fixed;z-index:1000;pointer-events:none;opacity:.96;transform:scale(1.035);filter:drop-shadow(0 14px 18px #0005);border-radius:15px}
 .task.drag-source{opacity:.28;outline:1px dashed var(--accent);outline-offset:3px}
 .task.dragging{opacity:.25}
+.schedule-list .task,.schedule-list .task *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 @media(max-width:600px){.schedule-board{grid-template-columns:55px minmax(0,1fr);gap:5px}.schedule-list .task{grid-template-columns:36px 40px minmax(0,1fr) auto;gap:4px}.schedule-list .taskbody{padding:9px 8px}.schedule-list .tasktitle{font-size:13px}.schedule-list .tasktools button{min-width:30px;padding:4px}.duration-bead{min-width:38px;height:24px;padding:0 5px;font-size:9px}.tag{font-size:10px}.category-dot{width:7px;height:7px}}
 </style></head>
 <body><div class="app">
