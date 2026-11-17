@@ -282,6 +282,28 @@ input,select,textarea{font-size:16px}
 #taskModal .task-modal-form .field>.time-clear-wrap{display:block;width:100%;min-width:0}
 #taskModal .task-modal-form .time-clear-wrap input{display:block;width:100%;height:52px;padding:0 72px 0 14px;border:1px solid var(--line);border-radius:13px;background:var(--panel2);color:var(--text);box-sizing:border-box;font-size:16px;line-height:normal}
 [data-theme=dark] #taskModal .task-modal-form .time-clear-wrap input{background:#1d2230;border-color:#303746;color:#f2f3f5}
+
+/* Compact day timeline: keep task content primary */
+.schedule-list .task{grid-template-columns:42px minmax(0,1fr) auto;gap:6px}
+.schedule-list .time{display:none!important}
+.schedule-list .rail{grid-column:1;grid-row:1;justify-content:flex-end;padding-right:2px}
+.schedule-list .taskbody{grid-column:2;grid-row:1}
+.schedule-list .tasktools{grid-column:3;grid-row:1}
+.schedule-list .task-icon{display:none!important}
+.schedule-list .tag{width:auto;min-width:0;max-width:42%;margin-left:auto;justify-content:flex-end;gap:5px;padding:2px 0 2px 6px;flex:none}
+.schedule-list .category-dot{width:6px;height:6px}
+.schedule-list .category-name{font-size:10px;overflow:hidden;text-overflow:ellipsis}
+.schedule-list .taskmeta{margin:3px 0 0 31px;display:flex;flex-direction:column;gap:2px;line-height:1.25}
+.schedule-list .task-time-range{display:block;margin:0;font-size:11px;font-variant-numeric:tabular-nums}
+.schedule-list .task.drag-source{opacity:.65;outline:0!important;outline-offset:0!important}
+.schedule-list .task.drag-over,.schedule-list .task.drag-over .taskbody{outline:0!important;outline-offset:0!important}
+@media(max-width:600px){
+ .schedule-list .task{grid-template-columns:36px minmax(0,1fr) auto;gap:5px}
+ .schedule-list .taskbody{padding:9px 9px}
+ .schedule-list .tag{max-width:38%;gap:4px}
+ .schedule-list .category-name{font-size:9px}
+ .schedule-list .taskmeta{margin-left:31px}
+}
 </style></head>
 <body><div class="app">
 <header class="top"><div class="brand"><button class="logo" id="appMenuBtn" type="button" aria-label="Открыть меню">Р</button><div><h1>РИТМ</h1><small>Твой день. Твой темп.</small></div></div><div class="actions"><button class="btn" id="todayBtn">Сегодня</button><button class="primary" id="addBtn">＋ <span class="word">Задача</span></button></div></header>
