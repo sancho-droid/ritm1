@@ -278,6 +278,10 @@ input,select,textarea{font-size:16px}
 
 @media(max-width:600px){#taskModal .task-modal-form{display:flex;flex-direction:column;max-height:calc(100dvh - env(safe-area-inset-top) - 2px);overflow-y:auto;overscroll-behavior:contain;padding-bottom:calc(78px + env(safe-area-inset-bottom))}#taskModal .task-modal-form .modalfoot{position:sticky;bottom:calc(-78px - env(safe-area-inset-bottom));margin-top:16px;flex:0 0 auto}}
  .repeat-scope-modal{width:min(420px,100%)}.repeat-scope-actions{display:grid;gap:9px}.repeat-scope-actions button{text-align:left;justify-content:flex-start;min-height:48px}
+
+#taskModal .task-modal-form .field>.time-clear-wrap{display:block;width:100%;min-width:0}
+#taskModal .task-modal-form .time-clear-wrap input{display:block;width:100%;height:52px;padding:0 72px 0 14px;border:1px solid var(--line);border-radius:13px;background:var(--panel2);color:var(--text);box-sizing:border-box;font-size:16px;line-height:normal}
+[data-theme=dark] #taskModal .task-modal-form .time-clear-wrap input{background:#1d2230;border-color:#303746;color:#f2f3f5}
 </style></head>
 <body><div class="app">
 <header class="top"><div class="brand"><button class="logo" id="appMenuBtn" type="button" aria-label="Открыть меню">Р</button><div><h1>РИТМ</h1><small>Твой день. Твой темп.</small></div></div><div class="actions"><button class="btn" id="todayBtn">Сегодня</button><button class="primary" id="addBtn">＋ <span class="word">Задача</span></button></div></header>
@@ -363,7 +367,7 @@ function addChildMoney(kind){const amount=Number(prompt(kind==='in'?'Сколь�
 $('#childAddMoney').onclick=()=>addChildMoney('in');$('#childSpendMoney').onclick=()=>addChildMoney('out');
 $('#childSetGoal').onclick=()=>{const name=prompt('На что копим?');if(!name?.trim())return;const amount=Number(prompt('Сколько нужно накопить?'));if(!Number.isFinite(amount)||amount<=0)return;db.childGoal={name:name.trim(),amount};persist()};
 function render(){try{localStorage.setItem('ritm_calendar_view','day');localStorage.setItem('ritm_calendar_date',key(selected))}catch(error){console.warn('Не удалось сохранить настройки календаря:',error)}renderDay();renderFamily();renderLists();renderDiary();renderHabits();renderChild()}
-function showModal(id){$('#'+id).classList.add('show')}function closeModal(id){$('#'+id).classList.remove('show')}function chooseRepeatScope(){return new Promise(resolve=>{const modal=$('#repeatScopeModal');const finish=value=>{closeModal('repeatScopeModal');modal.querySelectorAll('[data-repeat-scope]').forEach(b=>b.onclick=null);$('#repeatScopeCancel').onclick=null;resolve(value)};modal.querySelectorAll('[data-repeat-scope]').forEach(b=>b.onclick=()=>finish(b.dataset.repeatScope));$('#repeatScopeCancel').onclick=()=>finish(null);showModal('repeatScopeModal')})}
+function showModal(id){$('#'+id).classList.add('show')}function closeModal(id){$('#'+id).classList.remove('show')}function chooseRepeatScope(){return new Promise(resolve=>{const modal=$('#repeatScopeModal');const finish=value=>{closeModal('repeatScopeModal');modal.querySelectorAll('[data-repeat-scope]').forEach(b=>b.onclick=null);$('#repeatScopeCancel').onclick=null;modal.onclick=null;resolve(value)};modal.querySelectorAll('[data-repeat-scope]').forEach(b=>b.onclick=()=>finish(b.dataset.repeatScope));$('#repeatScopeCancel').onclick=()=>finish(null);modal.onclick=e=>{if(e.target===modal)finish(null)};showModal('repeatScopeModal')})}
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeModal(b.dataset.close));document.querySelectorAll('.modalback').forEach(m=>m.onclick=e=>{if(e.target===m)closeModal(m.id)});
 function minutesToClock(total){total=((total%1440)+1440)%1440;return String(Math.floor(total/60)).padStart(2,'0')+':'+String(total%60).padStart(2,'0')}
 function readDuration(){const v=$('#taskDurationPicker').value;if(!v)return 0;const p=v.split(':').map(Number);return (p[0]||0)*60+(p[1]||0)}
