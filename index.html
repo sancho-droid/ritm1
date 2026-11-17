@@ -178,6 +178,58 @@ input,select,textarea{font-size:16px}
   #taskModal .task-modal-form .modalfoot{position:sticky;bottom:calc(-18px - env(safe-area-inset-bottom));margin:16px -18px calc(-18px - env(safe-area-inset-bottom));padding:12px 18px calc(12px + env(safe-area-inset-bottom));background:var(--panel);border-top:1px solid var(--line);z-index:2}
 }
 
+
+/* v0.7.2 native date/time control alignment */
+#taskModal .task-modal-form #taskDate,
+#taskModal .task-modal-form #taskTime,
+#taskModal .task-modal-form #taskEndTime,
+#taskModal .task-modal-form #taskDurationPicker{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  height:52px!important;
+  min-height:52px!important;
+  padding:0 12px!important;
+  text-align:center!important;
+  text-align-last:center!important;
+  line-height:normal!important;
+  vertical-align:middle!important;
+  box-sizing:border-box!important;
+  font-variant-numeric:tabular-nums;
+}
+#taskModal .task-modal-form #taskDate{
+  text-align:center!important;
+  text-align-last:center!important;
+  -webkit-appearance:none;
+  appearance:none;
+}
+#taskModal .task-modal-form #taskTime,
+#taskModal .task-modal-form #taskEndTime,
+#taskModal .task-modal-form #taskDurationPicker{
+  -webkit-appearance:none;
+  appearance:none;
+  inline-size:100%!important;
+}
+#taskModal .task-modal-form #taskDate::-webkit-date-and-time-value,
+#taskModal .task-modal-form #taskTime::-webkit-date-and-time-value,
+#taskModal .task-modal-form #taskEndTime::-webkit-date-and-time-value,
+#taskModal .task-modal-form #taskDurationPicker::-webkit-date-and-time-value{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:1.4em;
+  margin:0 auto;
+  padding:0;
+  text-align:center;
+  line-height:normal;
+}
+#taskModal .task-modal-form #taskDate::-webkit-calendar-picker-indicator,
+#taskModal .task-modal-form #taskTime::-webkit-calendar-picker-indicator,
+#taskModal .task-modal-form #taskEndTime::-webkit-calendar-picker-indicator{
+  margin:0;
+  padding:0;
+}
+
 </style></head>
 <body><div class="app">
 <header class="top"><div class="brand"><button class="logo" id="appMenuBtn" type="button" aria-label="Открыть меню">Р</button><div><h1>РИТМ</h1><small>Твой день. Твой темп.</small></div></div><div class="actions"><button class="btn" id="todayBtn">Сегодня</button><button class="primary" id="addBtn">＋ <span class="word">Задача</span></button></div></header>
