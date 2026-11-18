@@ -543,7 +543,7 @@ function parseQuickTask(input,baseDate){
   const textualDate=clean.match(new RegExp('\\b(\\d{1,2})\\s+('+monthPattern+')\\.?\\s*(\\d{4})?(?=\\s|$)','i'));
   if(textualDate){const monthIndex=monthNames.findIndex(forms=>forms.includes(textualDate[2].toLocaleLowerCase('ru-RU')));const day=Number(textualDate[1]),year=Number(textualDate[3]||target.getFullYear()),d=new Date(year,monthIndex,day);if(monthIndex>=0&&d.getFullYear()===year&&d.getMonth()===monthIndex&&d.getDate()===day)target=d;clean=clean.replace(textualDate[0],' ')}
   const dm=clean.match(/\b(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?\b/);
-  if(dm&&!/\bв\s*$/i.test(clean.slice(0,dm.index))){let y=dm[3]?Number(dm[3]):target.getFullYear();if(y<100)y+=2000;const month=Number(dm[2])-1,day=Number(dm[1]),d=new Date(y,month,day);if(month>=0&&month<=11&&d.getFullYear()===y&&d.getMonth()===month&&d.getDate()===day){target=d;clean=clean.replace(dm[0],' ')}}
+  if(dm&&!/в\s*$/i.test(clean.slice(0,dm.index))){let y=dm[3]?Number(dm[3]):target.getFullYear();if(y<100)y+=2000;const month=Number(dm[2])-1,day=Number(dm[1]),d=new Date(y,month,day);if(month>=0&&month<=11&&d.getFullYear()===y&&d.getMonth()===month&&d.getDate()===day){target=d;clean=clean.replace(dm[0],' ')}}
   if(/(?:^|\s)послезавтра(?:\s|$)/i.test(clean)){target=addDays(new Date(now.getFullYear(),now.getMonth(),now.getDate()),2);clean=clean.replace(/послезавтра/ig,' ')}
   else if(/(?:^|\s)завтра(?:\s|$)/i.test(clean)){target=addDays(new Date(now.getFullYear(),now.getMonth(),now.getDate()),1);clean=clean.replace(/завтра/ig,' ')}
   else if(/(?:^|\s)сегодня(?:\s|$)/i.test(clean)){target=new Date(now.getFullYear(),now.getMonth(),now.getDate());clean=clean.replace(/сегодня/ig,' ')}
