@@ -395,6 +395,25 @@ input,select,textarea{font-size:16px}
 .unscheduled-list .timeline-task .taskbody{grid-column:2;grid-row:1;min-width:0;width:100%;margin:0}
 .unscheduled-list .timeline-task .tasktools{grid-column:3;grid-row:1;align-self:start}
 @media(max-width:600px){.mobile-dock{background:var(--panel)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}}
+
+/* Align timeline start times with the vertical center of their task cards. */
+#timeline.day-timeline .timeline-task .time{
+  align-items:flex-end!important;
+  justify-content:center!important;
+  text-align:right!important;
+}
+@media(max-width:600px){
+  #timeline.day-timeline .timeline-task .time{
+    align-items:flex-end!important;
+    justify-content:center!important;
+    text-align:right!important;
+  }
+}
+/* Center the current-time marker on the timeline's time-column axis. */
+#timeline.day-timeline .current-time-marker{left:20px!important}
+@media(max-width:600px){
+  #timeline.day-timeline .current-time-marker{left:18px!important}
+}
 </style></head>
 <body><div class="app">
 <header class="top"><div class="brand"><button class="logo" id="appMenuBtn" type="button" aria-label="Открыть меню">Р</button><div><h1>РИТМ</h1><small>Твой день. Твой темп.</small></div></div><div class="actions"><button class="btn" id="todayBtn">Сегодня</button><button class="primary" id="addBtn">＋ <span class="word">Задача</span></button></div></header>
