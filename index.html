@@ -414,6 +414,19 @@ input,select,textarea{font-size:16px}
 @media(max-width:600px){
   #timeline.day-timeline .current-time-marker{left:18px!important}
 }
+
+/* Center the time scale labels in their column, with equal side spacing. */
+#timeline.day-timeline .timeline-task .time{
+  align-items:center!important;
+  justify-content:center!important;
+  text-align:center!important;
+}
+/* Center the current-time pill on the same axis as the time labels. */
+#timeline.day-timeline .current-time-marker span{
+  left:0!important;
+  right:auto!important;
+  transform:translateX(-50%);
+}
 </style></head>
 <body><div class="app">
 <header class="top"><div class="brand"><button class="logo" id="appMenuBtn" type="button" aria-label="Открыть меню">Р</button><div><h1>РИТМ</h1><small>Твой день. Твой темп.</small></div></div><div class="actions"><button class="btn" id="todayBtn">Сегодня</button><button class="primary" id="addBtn">＋ <span class="word">Задача</span></button></div></header>
