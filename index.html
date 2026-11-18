@@ -382,6 +382,8 @@ input,select,textarea{font-size:16px}
 
 /* Remove the former duration-bead rail line; keep the current-time marker position */
 #timeline.day-timeline:before{display:none!important}
+/* Hide only the decorative dot; preserve the current-time label and marker positioning. */
+#timeline.day-timeline .current-time-marker:before{display:none!important}
 </style></head>
 <body><div class="app">
 <header class="top"><div class="brand"><button class="logo" id="appMenuBtn" type="button" aria-label="Открыть меню">Р</button><div><h1>РИТМ</h1><small>Твой день. Твой темп.</small></div></div><div class="actions"><button class="btn" id="todayBtn">Сегодня</button><button class="primary" id="addBtn">＋ <span class="word">Задача</span></button></div></header>
