@@ -552,6 +552,7 @@ function parseQuickTask(input,baseDate){
   const oneHour=clean.match(/(?:^|\s)на\s+час(?=\s|$)/i);if(oneHour){duration=60;clean=clean.replace(oneHour[0],' ')}
   const dur=clean.match(/(?:^|\s)на\s*(?:(\d+)\s*ч(?:ас(?:а|ов)?)?)?(?:\s*(\d+)\s*мин(?:ут(?:у|ы)?)?)?(?=\s|$)/i);
   if(dur&&(dur[1]||dur[2])){duration=Number(dur[1]||0)*60+Number(dur[2]||0);clean=clean.replace(dur[0],' ')}
+  else {const bareHours=clean.match(/(?:^|\s)(\d+)\s*ч(?:ас(?:а|ов)?)?(?:\s*(\d+)\s*мин(?:ут(?:у|ы)?)?)?(?=\s|$)/i),bareMinutes=clean.match(/(?:^|\s)(\d+)\s*мин(?:ут(?:у|ы)?)?(?=\s|$)/i);if(bareHours){duration=Number(bareHours[1])*60+Number(bareHours[2]||0);clean=clean.replace(bareHours[0],' ')}else if(bareMinutes){duration=Number(bareMinutes[1]);clean=clean.replace(bareMinutes[0],' ')}}
   if(time&&duration&&!endTime)endTime=minutesToClock(parseClockInput(time)+duration);
   clean=clean.replace(/(?:^|\s)(в|на|к|до|с)\s*$/i,'').replace(/\s+/g,' ').replace(/^[\s,.;:]+|[\s,.;:]+$/g,'').trim();
   if(!clean)clean=text.replace(/\s+/g,' ').trim();
