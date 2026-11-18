@@ -310,8 +310,7 @@ input,select,textarea{font-size:16px}
 #timeline.day-timeline .timeline-task .tasktools button{min-width:28px;min-height:30px;padding:2px;font-size:16px}
 #timeline.day-timeline .timeline-task.timeline-unscheduled .time{font-size:10px;white-space:normal}
 #timeline.day-timeline .timeline-task.dragging{opacity:.35}
-#timeline.day-timeline .timeline-task.dragging .time,
-#timeline.day-timeline .timeline-task.dragging .task-time-range,
+/* Keep the original time label visible at the source position while dragging. */
 .drag-ghost .time,
 .drag-ghost .task-time-range{display:none!important}
 #timeline.day-timeline .drag-time-marker{display:none;position:absolute;left:54px;right:0;height:2px;border:0;background:var(--accent);z-index:8;pointer-events:none;padding:0}
