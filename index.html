@@ -334,6 +334,41 @@ input,select,textarea{font-size:16px}
 .important-day-star{color:#f0c65b;font-size:10px;line-height:1;align-self:flex-start}
 .calday:has(.important-day-star){border-color:color-mix(in srgb,#f0c65b 45%,var(--line))}
 @media(max-width:600px){#timeline.day-timeline .timeline-task{width:100%;grid-template-columns:36px minmax(0,1fr) 24px;gap:4px;padding-right:4px}#timeline.day-timeline:before{left:36px}#timeline.day-timeline .drag-time-marker{left:36px}#timeline.day-timeline .current-time-marker{left:36px}#timeline.day-timeline .timeline-task .taskbody{width:100%;padding:8px 8px}}
+
+/* v0.9.2: align time labels with schedule heading and remove lavender rail */
+#timeline.day-timeline .timeline-task{
+  grid-template-columns:40px minmax(0,1fr) 28px;
+}
+#timeline.day-timeline .timeline-task .time{
+  grid-column:1;
+  justify-content:flex-start;
+  text-align:left;
+  padding-left:0;
+}
+#timeline.day-timeline .timeline-task .rail{
+  display:none!important;
+}
+#timeline.day-timeline .timeline-task .taskbody{grid-column:2}
+#timeline.day-timeline .timeline-task .tasktools{grid-column:3}
+#timeline.day-timeline .drag-time-marker{left:40px}
+#timeline.day-timeline .current-time-marker{left:40px}
+@media(max-width:600px){
+  #timeline.day-timeline .timeline-task{
+    grid-template-columns:36px minmax(0,1fr) 24px;
+  }
+  #timeline.day-timeline .timeline-task .time{
+    grid-column:1;
+    justify-content:flex-start;
+    text-align:left;
+    padding-left:0;
+  }
+  #timeline.day-timeline .timeline-task .rail{display:none!important}
+  #timeline.day-timeline .timeline-task .taskbody{grid-column:2}
+  #timeline.day-timeline .timeline-task .tasktools{grid-column:3}
+  #timeline.day-timeline .drag-time-marker{left:36px}
+  #timeline.day-timeline .current-time-marker{left:36px}
+}
+
 </style></head>
 <body><div class="app">
 <header class="top"><div class="brand"><button class="logo" id="appMenuBtn" type="button" aria-label="Открыть меню">Р</button><div><h1>РИТМ</h1><small>Твой день. Твой темп.</small></div></div><div class="actions"><button class="btn" id="todayBtn">Сегодня</button><button class="primary" id="addBtn">＋ <span class="word">Задача</span></button></div></header>
