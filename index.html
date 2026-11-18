@@ -537,7 +537,7 @@ function parseQuickTask(input,baseDate){
   else if(/по будням/i.test(clean)){repeat={type:'weekly',weekdays:[1,2,3,4,5]};clean=clean.replace(/по будням/ig,' ')}
   else {const rm=clean.match(/кажд(?:ый|ую|ое)\s+(понедельник|вторник|среду|среда|четверг|пятницу|пятница|субботу|суббота|воскресенье)/i);if(rm){repeat={type:'weekly',weekdays:[wd[rm[1].toLocaleLowerCase('ru-RU')]]};clean=clean.replace(rm[0],' ')}}
   let rel=clean.match(/через\s+(\d+)\s*(дн(?:я|ей)?|час(?:а|ов)?|минут(?:у|ы)?)/i);
-  if(rel){const n=Number(rel[1]),unit=rel[2].toLocaleLowerCase('ru-RU');let dt=new Date(now);if(unit.startsWith('дн'))dt.setDate(dt.getDate()+n);else dt=new Date(dt.getTime()+n*(unit.startsWith('час')?3600000:60000));target=new Date(dt.getFullYear(),dt.getMonth(),dt.getDate());time=pad(dt.getHours())+':'+pad(dt.getMinutes());clean=clean.replace(rel[0],' ')}
+  if(rel){const n=Number(rel[1]),unit=rel[2].toLocaleLowerCase('ru-RU');let dt=new Date(now);if(unit.startsWith('дн')){dt.setDate(dt.getDate()+n);target=new Date(dt.getFullYear(),dt.getMonth(),dt.getDate())}else{dt=new Date(dt.getTime()+n*(unit.startsWith('час')?3600000:60000));target=new Date(dt.getFullYear(),dt.getMonth(),dt.getDate());time=pad(dt.getHours())+':'+pad(dt.getMinutes())}clean=clean.replace(rel[0],' ')}
   const dm=clean.match(/\b(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?\b/);
   if(dm){let y=dm[3]?Number(dm[3]):target.getFullYear();if(y<100)y+=2000;const d=new Date(y,Number(dm[2])-1,Number(dm[1]));if(d.getFullYear()===y&&d.getMonth()===Number(dm[2])-1&&d.getDate()===Number(dm[1]))target=d;clean=clean.replace(dm[0],' ')}
   if(/\bпослезавтра\b/i.test(clean)){target=addDays(new Date(now.getFullYear(),now.getMonth(),now.getDate()),2);clean=clean.replace(/послезавтра/ig,' ')}
