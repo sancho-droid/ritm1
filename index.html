@@ -538,6 +538,10 @@ function parseQuickTask(input,baseDate){
   else {const rm=clean.match(/кажд(?:ый|ую|ое)\s+(понедельник|вторник|среду|среда|четверг|пятницу|пятница|субботу|суббота|воскресенье)/i);if(rm){repeat={type:'weekly',weekdays:[wd[rm[1].toLocaleLowerCase('ru-RU')]]};clean=clean.replace(rm[0],' ')}}
   let rel=clean.match(/через\s+(\d+)\s*(дн(?:я|ей)?|час(?:а|ов)?|минут(?:у|ы)?)/i);
   if(rel){const n=Number(rel[1]),unit=rel[2].toLocaleLowerCase('ru-RU');let dt=new Date(now);if(unit.startsWith('дн')){dt.setDate(dt.getDate()+n);target=new Date(dt.getFullYear(),dt.getMonth(),dt.getDate())}else{dt=new Date(dt.getTime()+n*(unit.startsWith('час')?3600000:60000));target=new Date(dt.getFullYear(),dt.getMonth(),dt.getDate());time=pad(dt.getHours())+':'+pad(dt.getMinutes())}clean=clean.replace(rel[0],' ')}
+  const monthNames=[['января','январь','янв'],['февраля','февраль','фев'],['марта','март','мар'],['апреля','апрель','апр'],['мая','май'],['июня','июнь','июн'],['июля','июль','июл'],['августа','август','авг'],['сентября','сентябрь','сен','сент'],['октября','октябрь','окт'],['ноября','ноябрь','ноя'],['декабря','декабрь','дек']];
+  const monthPattern=monthNames.map(forms=>forms.join('|')).join('|');
+  const textualDate=clean.match(new RegExp('\\b(\\d{1,2})\\s+('+monthPattern+')\\.?\\s*(\\d{4})?\\b','i'));
+  if(textualDate){const monthIndex=monthNames.findIndex(forms=>forms.includes(textualDate[2].toLocaleLowerCase('ru-RU')));const day=Number(textualDate[1]),year=Number(textualDate[3]||target.getFullYear()),d=new Date(year,monthIndex,day);if(monthIndex>=0&&d.getFullYear()===year&&d.getMonth()===monthIndex&&d.getDate()===day)target=d;clean=clean.replace(textualDate[0],' ')}
   const dm=clean.match(/\b(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?\b/);
   if(dm){let y=dm[3]?Number(dm[3]):target.getFullYear();if(y<100)y+=2000;const d=new Date(y,Number(dm[2])-1,Number(dm[1]));if(d.getFullYear()===y&&d.getMonth()===Number(dm[2])-1&&d.getDate()===Number(dm[1]))target=d;clean=clean.replace(dm[0],' ')}
   if(/(?:^|\s)послезавтра(?:\s|$)/i.test(clean)){target=addDays(new Date(now.getFullYear(),now.getMonth(),now.getDate()),2);clean=clean.replace(/послезавтра/ig,' ')}
@@ -545,9 +549,9 @@ function parseQuickTask(input,baseDate){
   else if(/(?:^|\s)сегодня(?:\s|$)/i.test(clean)){target=new Date(now.getFullYear(),now.getMonth(),now.getDate());clean=clean.replace(/сегодня/ig,' ')}
   const weekday=clean.match(/(?:^|\s)(?:в\s+)?(понедельник|вторник|среду|среда|четверг|пятницу|пятница|субботу|суббота|воскресенье)(?=\s|$)/i);
   if(weekday){const wanted=wd[weekday[1].toLocaleLowerCase('ru-RU')],base=new Date(now.getFullYear(),now.getMonth(),now.getDate()),delta=(wanted-base.getDay()+7)%7;target=addDays(base,delta||7);clean=clean.replace(weekday[0],' ')}
-  const range=clean.match(/(?:^|\s)с\s*(\d{1,2})(?::(\d{2}))?\s*(?:до|по)\s*(\d{1,2})(?::(\d{2}))?(?=\s|$)/i);
+  const range=clean.match(/(?:^|\s)с\s*(\d{1,2})(?:[:.](\d{2}))?\s*(?:до|по)\s*(\d{1,2})(?:[:.](\d{2}))?(?=\s|$)/i);
   if(range){time=pad(Number(range[1]))+':'+pad(Number(range[2]||0));endTime=pad(Number(range[3]))+':'+pad(Number(range[4]||0));let a=Number(range[1])*60+Number(range[2]||0),b=Number(range[3])*60+Number(range[4]||0);duration=(b-a+1440)%1440;clean=clean.replace(range[0],' ')}
-  if(!time){const tm=clean.match(/(?:^|\s)в\s*(\d{1,2})(?::(\d{2}))?\s*(утра|дня|вечера|ночи)?(?=\s|$)/i);if(tm){let h=Number(tm[1]),m=Number(tm[2]||0),period=(tm[3]||'').toLocaleLowerCase('ru-RU');if(period==='вечера'&&h<12)h+=12;else if(period==='дня'&&h<12)h+=12;else if(period==='ночи'&&h===12)h=0;if(h<=23&&m<=59){time=pad(h)+':'+pad(m);clean=clean.replace(tm[0],' ')}}}
+  if(!time){const tm=clean.match(/(?:^|\s)(в\s*)?(\d{1,2})(?:[:.](\d{2}))?\s*(утра|дня|вечера|ночи)?(?=\s|$)/i);if(tm&&(tm[1]||tm[3])){let h=Number(tm[2]),m=Number(tm[3]||0),period=(tm[4]||'').toLocaleLowerCase('ru-RU');if(period==='вечера'&&h<12)h+=12;else if(period==='дня'&&h<12)h+=12;else if(period==='ночи'&&h===12)h=0;if(h<=23&&m<=59){time=pad(h)+':'+pad(m);clean=clean.replace(tm[0],' ')}}}
   const half=clean.match(/(?:^|\s)полчаса(?=\s|$)/i);if(half){duration=30;clean=clean.replace(half[0],' ')}
   const oneHour=clean.match(/(?:^|\s)на\s+час(?=\s|$)/i);if(oneHour){duration=60;clean=clean.replace(oneHour[0],' ')}
   const dur=clean.match(/(?:^|\s)на\s*(?:(\d+)\s*ч(?:ас(?:а|ов)?)?)?(?:\s*(\d+)\s*мин(?:ут(?:у|ы)?)?)?(?=\s|$)/i);
