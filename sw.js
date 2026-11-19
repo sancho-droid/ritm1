@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v0917-free-time-buttons-40';
+const CACHE = 'ritm-v0918-unscheduled-order';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
