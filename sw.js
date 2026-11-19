@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v0918-unscheduled-order';
+const CACHE = 'ritm-v0920-early-completion';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
