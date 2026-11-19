@@ -1,0 +1,9 @@
+import assert from 'node:assert/strict';
+import {parseClock,formatClock,sortChronologically,intervalsFor,freeIntervals,conflicts,minuteToY,yToMinute} from './time-engine.js';
+assert.equal(parseClock('19:09'),1149);assert.equal(parseClock('24:00'),null);assert.equal(parseClock('bad'),null);assert.equal(formatClock(1149),'19:09');
+assert.deepEqual(sortChronologically([{id:'a',time:'20:15'},{id:'b',time:'17:20'},{id:'c',time:'19:00'}]).map(x=>x.time),['17:20','19:00','20:15']);
+assert.deepEqual(intervalsFor([{time:'17:20',duration:30},{time:'17:45',duration:30},{time:'19:00',duration:20}]).map(x=>[x.start,x.end]),[[1040,1095],[1140,1160]]);
+assert.deepEqual(freeIntervals([{time:'17:20',duration:40},{time:'19:00',duration:20}],{nowMinutes:1080,dayEnd:1380,minGap:15}).map(x=>[x.start,x.end]),[[1080,1140],[1160,1380]]);
+assert.equal(conflicts({time:'18:00',duration:60},[{id:'x',time:'18:30',duration:20}]).length,1);assert.equal(conflicts({time:'18:00',duration:30},[{id:'x',time:'18:30',duration:20}]).length,0);
+assert.equal(minuteToY(1140,{originMinute:1020,pixelsPerMinute:2}),240);assert.equal(yToMinute(240,{originMinute:1020,pixelsPerMinute:2,step:5}),1140);
+console.log('time-engine: assertions passed');
