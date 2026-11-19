@@ -1,6 +1,6 @@
 /** Ритм: pure time calculations, independent from DOM/CSS. */
 export const DAY_MINUTES=1440, DAY_END_MINUTES=23*60;
-export function parseClock(value){if(typeof value!=='string'||!/^([01]\\d|2[0-3]):([0-5]\\d)$/.test(value))return null;const [,h,m]=value.match(/^([01]\\d|2[0-3]):([0-5]\\d)$/);return Number(h)*60+Number(m)}
+export function parseClock(value){if(typeof value!=='string'||!/^([01]\d|2[0-3]):([0-5]\d)$/.test(value))return null;const [,h,m]=value.match(/^([01]\d|2[0-3]):([0-5]\d)$/);return Number(h)*60+Number(m)}
 export function formatClock(minutes){const n=Math.max(0,Math.min(DAY_MINUTES-1,Math.round(minutes)));return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')}
 export function durationOf(task){const d=Number(task?.duration);if(Number.isFinite(d)&&d>0)return Math.round(d);const s=parseClock(task?.time),e=parseClock(task?.endTime);if(s!==null&&e!==null){let diff=e-s;if(diff<0)diff+=DAY_MINUTES;if(diff>0)return diff}return 1}
 export function sortChronologically(tasks){return [...tasks].sort((a,b)=>{const am=parseClock(a?.time),bm=parseClock(b?.time);if(am===null&&bm===null)return 0;if(am===null)return 1;if(bm===null)return-1;return am-bm||String(a?.id??'').localeCompare(String(b?.id??''))})}
