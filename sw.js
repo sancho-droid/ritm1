@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v0931-free-time-menu';
+const CACHE = 'ritm-v0932-free-time-intervals';
 const FILES = ['./', './index.html', './manifest.webmanifest', './time-engine.js', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
