@@ -595,6 +595,59 @@ body.keyboard-open .mobile-dock,body.keyboard-open .quick-fab{display:none!impor
   .free-time-action .free-time-icon{width:15px!important;height:15px!important}
   .free-time-action .free-time-icon svg{width:14px!important;height:14px!important}
 }
+
+/* v0.9.13: compact free-time actions and show duration state clearly */
+.free-time-compact{
+  color:var(--muted)!important;
+  font-weight:500!important;
+}
+.free-time-gap{
+  color:#fff!important;
+}
+.free-time-gap-title{
+  color:#fff!important;
+}
+.free-time-actions{
+  display:flex!important;
+  flex-flow:row nowrap!important;
+  justify-content:flex-start!important;
+  align-items:center!important;
+  gap:4px!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+}
+.free-time-action{
+  flex:0 1 52px!important;
+  width:52px!important;
+  min-width:0!important;
+  max-width:52px!important;
+  padding:2px 0!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+}
+.free-time-action .free-time-caption{
+  width:100%!important;
+  max-width:100%!important;
+  font-size:8px!important;
+  letter-spacing:-.15px!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-align:center!important;
+}
+@media(max-width:600px){
+  .free-time-actions{gap:3px!important}
+  .free-time-action{
+    flex:0 1 49px!important;
+    width:49px!important;
+    max-width:49px!important;
+  }
+  .free-time-action .free-time-caption{font-size:7.5px!important}
+}
+
 </style></head>
 <body><div class="app">
 <header class="top"><div class="brand"><button class="logo" id="appMenuBtn" type="button" aria-label="Открыть меню">Р</button><div><h1>РИТМ</h1><small>Твой день. Твой темп.</small></div></div><div class="actions"><button class="btn" id="todayBtn">Сегодня</button><button class="primary" id="addBtn">＋ <span class="word">Задача</span></button></div></header>
