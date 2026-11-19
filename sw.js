@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v087-free-time-menu';
+const CACHE = 'ritm-v088-free-time-alignment';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
