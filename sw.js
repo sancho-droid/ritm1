@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v085-ui-polish';
+const CACHE = 'ritm-v086-free-time-keyboard';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
