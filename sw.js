@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v083-planning';
+const CACHE = 'ritm-v084-free-time';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
