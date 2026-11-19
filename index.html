@@ -463,6 +463,46 @@ body.keyboard-open .mobile-dock,body.keyboard-open .quick-fab{display:none!impor
 
 /* v0.9.10: make the bottom quick-add button yellow for deployment verification */
 .quick-fab{background:#f2c94c!important;color:#262626!important}
+
+/* v0.9.11: restore free-time menu alignment, remove duration-button focus frame, restore accent quick-add */
+.free-time-gap{padding-left:44px!important;padding-right:4px!important}
+.free-time-actions{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  align-items:center!important;
+  justify-items:stretch!important;
+  gap:2px!important;
+  width:100%!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+}
+.free-time-gap-title,
+.free-time-compact{
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  -webkit-tap-highlight-color:transparent!important;
+}
+.free-time-gap-title:active,
+.free-time-gap-title:focus,
+.free-time-gap-title:focus-visible,
+.free-time-compact:active,
+.free-time-compact:focus,
+.free-time-compact:focus-visible{
+  color:inherit!important;
+  background:transparent!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+}
+.quick-fab{background:var(--accent)!important;color:#fff!important}
+@media(max-width:600px){
+  .free-time-gap{padding-left:40px!important}
+  .free-time-actions{gap:0!important}
+}
+
 </style></head>
 <body><div class="app">
 <header class="top"><div class="brand"><button class="logo" id="appMenuBtn" type="button" aria-label="Открыть меню">Р</button><div><h1>РИТМ</h1><small>Твой день. Твой темп.</small></div></div><div class="actions"><button class="btn" id="todayBtn">Сегодня</button><button class="primary" id="addBtn">＋ <span class="word">Задача</span></button></div></header>
