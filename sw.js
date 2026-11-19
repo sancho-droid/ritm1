@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v0913-free-time-actions-compact';
+const CACHE = 'ritm-v0914-free-time-grid-touch';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
