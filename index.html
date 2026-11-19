@@ -648,6 +648,76 @@ body.keyboard-open .mobile-dock,body.keyboard-open .quick-fab{display:none!impor
   .free-time-action .free-time-caption{font-size:12px!important;letter-spacing:-.2px!important}
 }
 
+
+/* v0.9.31: compact, evenly spaced free-time menu items */
+.free-time-actions{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:0!important;
+  justify-items:stretch!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  padding:2px 4px 6px!important;
+  box-sizing:border-box!important;
+}
+.free-time-action{
+  display:flex!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  min-height:38px!important;
+  padding:2px 1px!important;
+  border:0!important;
+  border-radius:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+  color:var(--muted)!important;
+  font-size:10.5px!important;
+  line-height:1.15!important;
+  gap:2px!important;
+  overflow:hidden!important;
+}
+.free-time-action:active,
+.free-time-action:focus,
+.free-time-action:focus-visible{
+  color:var(--muted)!important;
+  background:transparent!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+}
+.free-time-action .free-time-icon{
+  width:18px!important;
+  height:18px!important;
+  color:var(--accent)!important;
+}
+.free-time-action .free-time-icon svg{
+  width:17px!important;
+  height:17px!important;
+}
+.free-time-action .free-time-caption{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  overflow:hidden!important;
+  text-overflow:clip!important;
+  white-space:nowrap!important;
+  text-align:center!important;
+  font-size:10.5px!important;
+  line-height:1.15!important;
+  letter-spacing:-.15px!important;
+  color:var(--muted)!important;
+}
+@media(max-width:600px){
+  .free-time-actions{padding:2px 3px 6px!important}
+  .free-time-action{min-height:36px!important;font-size:9.5px!important}
+  .free-time-action .free-time-icon{width:17px!important;height:17px!important}
+  .free-time-action .free-time-icon svg{width:16px!important;height:16px!important}
+  .free-time-action .free-time-caption{font-size:9.5px!important}
+}
+
 </style></head>
 <body><div class="app">
 <header class="top"><div class="brand"><button class="logo" id="appMenuBtn" type="button" aria-label="Открыть меню">Р</button><div><h1>РИТМ</h1><small>Твой день. Твой темп.</small></div></div><div class="actions"><button class="btn" id="todayBtn">Сегодня</button><button class="primary" id="addBtn">＋ <span class="word">Задача</span></button></div></header>
