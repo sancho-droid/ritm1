@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {parseClock,formatClock,sortChronologically,intervalsFor,freeIntervals,conflicts,minuteToY,yToMinute} from './time-engine.js';
+import {parseClock,formatClock,durationOf,sortChronologically,intervalsFor,freeIntervals,conflicts,minuteToY,yToMinute} from './time-engine.js';
 assert.equal(parseClock('00:00'),0);assert.equal(parseClock('19:09'),1149);assert.equal(parseClock('23:59'),1439);assert.equal(parseClock('24:00'),null);assert.equal(parseClock('9:00'),null);assert.equal(parseClock('bad'),null);assert.equal(formatClock(1149),'19:09');assert.equal(formatClock(1440),'23:59');
 assert.deepEqual(sortChronologically([{id:'a',time:'20:15'},{id:'b',time:'17:20'},{id:'c',time:'19:00'},{id:'d',time:''}]).map(x=>x.time),['17:20','19:00','20:15','']);
 assert.equal(durationOf({time:'23:30',endTime:'00:15'}),45);assert.deepEqual(intervalsFor([{time:'17:20',duration:30},{time:'17:45',duration:30},{time:'18:15',duration:15,done:true},{time:'19:00',duration:20}]).map(x=>[x.start,x.end]),[[1040,1095],[1140,1160]]);
