@@ -387,8 +387,17 @@ input,select,textarea{font-size:16px}
 #timeline.day-timeline .drag-time-marker:before{display:none!important}
 #timeline.day-timeline .current-time-marker:before{display:none!important}
 
-/* Dragging shows only the card and its own time bead; no preview stripe. */
-#timeline.day-timeline .drag-time-marker{display:none!important}
+/* Dragging shows the card plus the moving time bead and label, without a preview stripe. */
+#timeline.day-timeline .drag-time-marker.visible{
+  display:block!important;
+  height:0!important;
+  width:0!important;
+  right:auto!important;
+  background:transparent!important;
+  border:0!important;
+}
+#timeline.day-timeline .drag-time-marker:before{display:block!important}
+#timeline.day-timeline .drag-time-marker span{display:block!important}
 
 /* 2026-11-18: separate undated tasks and reduce mobile scroll repaint cost */
 .unscheduled-list{display:flex;flex-direction:column;gap:7px;min-width:0}
