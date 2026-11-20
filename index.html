@@ -880,19 +880,20 @@ function formatFreeDuration(minutes){if(minutes<60)return minutes+' '+(minutes%1
 function freeGapsForTasks(tasks,dateKey){
   const now=new Date(),todayKey=key(now),isToday=todayKey===dateKey,nowMinutes=now.getHours()*60+now.getMinutes();
   if(dateKey<todayKey)return[];
-  const occupiedTasks=tasks.map(task=>{
-    if(!task.done)return task;
+  const occupiedTasks=tasks.map((task,index)=>{
+    const indexed={...task,_freeTimeIndex:index};
+    if(!task.done)return indexed;
     const completedAt=Date.parse(task.doneAt||'');
-    if(!Number.isFinite(completedAt))return task;
+    if(!Number.isFinite(completedAt))return indexed;
     const completedDate=new Date(completedAt);
-    if(key(completedDate)!==dateKey)return task;
+    if(key(completedDate)!==dateKey)return indexed;
     const start=TimeEngine.parseClock(task.time);
     if(start===null)return null;
     const completedMinute=completedDate.getHours()*60+completedDate.getMinutes();
     const elapsed=completedMinute-start;
     if(elapsed<=0)return null;
     const actualDuration=Math.min(TimeEngine.durationOf(task),elapsed);
-    return actualDuration>0?{...task,duration:actualDuration,endTime:''}:null;
+    return actualDuration>0?{...indexed,duration:actualDuration,endTime:''}:null;
   }).filter(Boolean);
   const occupied=TimeEngine.intervalsFor(occupiedTasks,{includeCompleted:true,dayEnd:1440});
   const dayStart=occupied.length?Math.min(6*60,occupied[0].start):6*60;
@@ -905,7 +906,7 @@ function freeGapsForTasks(tasks,dateKey){
   if(!occupied.length){addGap(dayStart,dayEnd,'empty',-1);return gaps}
   addGap(dayStart,occupied[0].start,'before',-1);
   occupied.forEach((block,index)=>{
-    const afterTask=block.tasks[block.tasks.length-1],afterIndex=tasks.indexOf(afterTask);
+    const afterTask=block.tasks[block.tasks.length-1],afterIndex=afterTask._freeTimeIndex;
     addGap(block.end,occupied[index+1]?.start??dayEnd,'after-'+index,afterIndex);
   });
   return gaps;
