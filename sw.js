@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v0939-drag-time-bead';
+const CACHE = 'ritm-v0940-remove-extra-drag-dot';
 const FILES = ['./', './index.html', './manifest.webmanifest', './time-engine.js', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
