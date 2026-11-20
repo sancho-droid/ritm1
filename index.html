@@ -822,7 +822,7 @@ function taskCard(t){let d=document.createElement('div');d.className='task'+(!t.
       const occurrence=storedOccurrence||(db.occurrences[k]={});
       const hasOccurrenceDone=Object.prototype.hasOwnProperty.call(occurrence,'done');
       const currentDone=hasOccurrenceDone?!!occurrence.done:(recurring?false:!!task.done);
-      const occurrenceState={...task,...occurrence,done:currentDone};
+      const occurrenceState={...task,...occurrence,occurrenceDate:t.occurrenceDate||t.displayDate||t.date||key(selected),done:currentDone};
       applyTaskCompletion(occurrenceState,!currentDone);
       ['done','doneAt','actualTime','time','endTime','duration','plannedTime','plannedEndTime','plannedDuration'].forEach(field=>{
         if(occurrenceState[field]===undefined)delete occurrence[field];
