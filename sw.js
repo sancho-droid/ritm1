@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v0944-current-marker-bounds';
+const CACHE = 'ritm-v0945-current-marker-first-task-bound';
 const FILES = ['./', './index.html', './manifest.webmanifest', './time-engine.js', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
