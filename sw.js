@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v0932-free-time-intervals';
+const CACHE = 'ritm-v0933-hide-empty-current-marker';
 const FILES = ['./', './index.html', './manifest.webmanifest', './time-engine.js', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
