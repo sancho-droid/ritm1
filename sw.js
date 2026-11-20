@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v0946-drag-source-anchor';
+const CACHE = 'ritm-v1001-timeline-audit-fixes';
 const FILES = ['./', './index.html', './manifest.webmanifest', './time-engine.js', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
