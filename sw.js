@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v0935-marker-drag-ghost';
+const CACHE = 'ritm-v0936-drag-card-bounds';
 const FILES = ['./', './index.html', './manifest.webmanifest', './time-engine.js', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
