@@ -873,11 +873,23 @@ function openFreeGapAction(action,gap){if(action==='add'){openQuickAdd('day','',
 function renderFreeGap(gap,expanded){if(!expanded){const compact=document.createElement('button');compact.type='button';compact.className='free-time-compact';compact.textContent=formatFreeDuration(gap.duration)+' свободно';compact.setAttribute('aria-label',formatFreeDuration(gap.duration)+' свободно. Показать действия');compact.onclick=()=>{expandedFreeGapKey=gap.id;renderDay()};return compact}const root=document.createElement('div');root.className='free-time-gap';const title=document.createElement('button');title.type='button';title.className='free-time-gap-title';title.textContent=formatFreeDuration(gap.duration)+' свободно';title.setAttribute('aria-label','Свернуть меню свободного времени');title.onclick=()=>{expandedFreeGapKey=null;renderDay()};const actions=document.createElement('div');actions.className='free-time-actions';const icons={add:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',self:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.7c0 5.2-8.8 10-8.8 10s-8.8-4.8-8.8-10A4.7 4.7 0 0 1 12 6.4a4.7 4.7 0 0 1 8.8 2.3Z"/></svg>',planning:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M7.5 3v4M16.5 3v4M3.5 9.5h17"/></svg>',shelf:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4.5h12a1.5 1.5 0 0 1 1.5 1.5v14L12 16l-7.5 4V6A1.5 1.5 0 0 1 6 4.5Z"/></svg>'};const buttons=[['Добавить','add'],['Для себя','self'],['Планы','planning'],['С полки','shelf']];buttons.forEach(([label,action])=>{const b=document.createElement('button');b.type='button';b.className='free-time-action free-time-action-'+action;b.setAttribute('aria-label',label);const icon=document.createElement('span');icon.className='free-time-icon';icon.innerHTML=icons[action];const caption=document.createElement('span');caption.className='free-time-caption';caption.textContent=label;b.append(icon,caption);b.onclick=()=>openFreeGapAction(action,gap);actions.append(b)});root.append(title,actions);return root}
 function openShelfPicker(gap){const root=$('#shelfPickerItems');root.replaceChildren();const items=db.shelf||[];if(!items.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='Полка пока пуста. Добавь сюда несрочные дела через быстрое добавление.';root.append(empty)}else items.forEach(item=>{const button=document.createElement('button');button.type='button';button.className='shelf-pick';const name=document.createElement('span');name.textContent=item.name;const hint=document.createElement('small');hint.textContent='Добавить в расписание';button.append(name,hint);button.onclick=()=>{closeModal('shelfPickerModal');openQuickAdd('day',item.name,dateObj(gap.date),{gap,shelfItemId:item.id})};root.append(button)});showModal('shelfPickerModal')}
 let expandedFreeGapKey=null,expandedFreeGapDate=null;
-function orderTimedTasksForDisplay(tasks,date){
-  const now=new Date(),dateKey=key(date),todayKey=key(now),cutoff=dateKey<todayKey?1440:dateKey>todayKey?-1:now.getHours()*60+now.getMinutes();
+function orderTimedTasksForDisplay(tasks,date,now=new Date()){
+  const dateKey=key(date),todayKey=key(now),cutoff=dateKey<todayKey?1440:dateKey>todayKey?-1:now.getHours()*60+now.getMinutes();
   const ordered=[...tasks].sort((a,b)=>(TimeEngine.parseClock(a.time)??Infinity)-(TimeEngine.parseClock(b.time)??Infinity));
   const early=[],fixed=[];
-  ordered.forEach(task=>{const planned=TimeEngine.parseClock(task.time),actual=TimeEngine.parseClock(task.actualTime);if(task.done&&planned!==null&&actual!==null&&actual<planned)early.push(task);else fixed.push(task)});
+  ordered.forEach(task=>{
+    const planned=TimeEngine.parseClock(task.time);
+    const taskDate=task.occurrenceDate||task.displayDate||task.date||dateKey;
+    const scheduledDate=taskDate?dateObj(taskDate):null;
+    const scheduledAt=planned!==null&&scheduledDate?new Date(scheduledDate.getFullYear(),scheduledDate.getMonth(),scheduledDate.getDate(),Math.floor(planned/60),planned%60).getTime():NaN;
+    const completedAt=Date.parse(task.doneAt||'');
+    const legacyActual=TimeEngine.parseClock(task.actualTime);
+    const completedEarly=!!task.done&&planned!==null&&(
+      (Number.isFinite(completedAt)&&completedAt<scheduledAt)||
+      (!Number.isFinite(completedAt)&&legacyActual!==null&&legacyActual<planned)
+    );
+    if(completedEarly)early.push(task);else fixed.push(task);
+  });
   let anchor=-1;
   for(let i=0;i<fixed.length;i++){const planned=TimeEngine.parseClock(fixed[i].time);if(planned!==null&&planned<=cutoff)anchor=i;}
   fixed.splice(anchor+1,0,...early);
