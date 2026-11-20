@@ -841,14 +841,16 @@ let weekPointerX=null;$('#weekStrip').addEventListener('pointerdown',e=>{weekPoi
 function updateCurrentTimeMarker(){const timeline=$('#timeline'),marker=timeline?.querySelector('.current-time-marker');if(!timeline||!marker)return;const now=new Date(),todayKey=key(now),label=marker.querySelector('span');if(key(selected)!==todayKey){marker.classList.add('hidden');return}marker.classList.remove('hidden');label.textContent=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');const current=now.getHours()*60+now.getMinutes(),timelineRect=timeline.getBoundingClientRect(),activeList=timeline.querySelector('.schedule-list:not(.completed-task-list)'),firstTimedCard=activeList?.querySelector('.timeline-task:not(.timeline-unscheduled)'),firstCardRect=firstTimedCard?.getBoundingClientRect(),upperBound=firstCardRect?Math.max(0,firstCardRect.top-timelineRect.top):0,y=timelineYAtMinutes(timeline,current);marker.style.top=Math.max(upperBound,Math.min(Math.max(upperBound,timeline.clientHeight-6),y-timelineRect.top))+'px'}
 function formatFreeDuration(minutes){if(minutes<60)return minutes+' '+(minutes%10===1&&minutes%100!==11?'минута':minutes%10>=2&&minutes%10<=4&&!(minutes%100>=12&&minutes%100<=14)?'минуты':'минут');const hours=Math.floor(minutes/60),mins=minutes%60;const hWord=hours%10===1&&hours%100!==11?'час':hours%10>=2&&hours%10<=4&&!(hours%100>=12&&hours%100<=14)?'часа':'часов';return hours+' '+hWord+(mins?' '+mins+' мин':'')}
 function freeGapsForTasks(tasks,dateKey){
-  const now=new Date(),isToday=key(now)===dateKey,nowMinutes=now.getHours()*60+now.getMinutes();
+  const now=new Date(),todayKey=key(now),isToday=todayKey===dateKey,nowMinutes=now.getHours()*60+now.getMinutes();
+  // Не показываем свободные интервалы для прошедших дат, а сегодня начинаем расчёт строго с текущего времени.
+  if(dateKey<todayKey)return[];
   const occupied=TimeEngine.intervalsFor(tasks,{dayEnd:1440});
   const dayStart=occupied.length?Math.min(6*60,occupied[0].start):6*60;
   const dayEnd=occupied.length?Math.min(1440,Math.max(23*60,occupied[occupied.length-1].end)):23*60;
   const gaps=[],clock=value=>value===1440?'24:00':TimeEngine.formatClock(value);
   const addGap=(rawStart,rawEnd,id,afterIndex)=>{
     const start=Math.max(rawStart,isToday?nowMinutes:dayStart),end=Math.min(rawEnd,dayEnd),duration=end-start;
-    if(duration>=15&&start<dayEnd)gaps.push({id:dateKey+'-'+id,start:clock(start),end:clock(end),duration,date:dateKey,afterIndex});
+    if(duration>=15&&start<end)gaps.push({id:dateKey+'-'+id,start:clock(start),end:clock(end),duration,date:dateKey,afterIndex});
   };
   if(!occupied.length){addGap(dayStart,dayEnd,'empty',-1);return gaps}
   addGap(dayStart,occupied[0].start,'before',-1);
