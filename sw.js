@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v0945-current-marker-first-task-bound';
+const CACHE = 'ritm-v0946-drag-source-anchor';
 const FILES = ['./', './index.html', './manifest.webmanifest', './time-engine.js', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
