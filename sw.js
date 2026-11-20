@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v0937-drag-marker-layer';
+const CACHE = 'ritm-v0938-no-drag-preview-stripe';
 const FILES = ['./', './index.html', './manifest.webmanifest', './time-engine.js', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
