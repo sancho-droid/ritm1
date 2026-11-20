@@ -867,8 +867,12 @@ function updateCurrentTimeMarker(){
   let y=timelineYAtMinutes(timeline,current);
   const cards=[...timeline.querySelectorAll('.schedule-list:not(.completed-task-list) .timeline-task')];
   const completedCards=cards.filter(card=>{
-    const task=card._task,completedAt=Date.parse(task?.doneAt||'');
-    return !!task?.done&&Number.isFinite(completedAt)&&completedAt<=now.getTime();
+    const task=card._task;
+    if(!task?.done)return false;
+    const completedAt=Date.parse(task.doneAt||'');
+    if(Number.isFinite(completedAt))return completedAt<=now.getTime();
+    const legacyMinute=TimeEngine.parseClock(task.actualTime);
+    return legacyMinute!==null&&legacyMinute<=current;
   });
   if(completedCards.length){
     const lastCompleted=completedCards.reduce((last,card)=>card.getBoundingClientRect().bottom>last.getBoundingClientRect().bottom?card:last);
@@ -1049,7 +1053,7 @@ $('#quickAddForm').onsubmit=e=>{
 $('#addBtn').onclick=()=>openTask();$('#taskForm').onsubmit=async e=>{e.preventDefault();if(!formatClockInput($('#taskTime'))||!formatClockInput($('#taskEndTime'))||!formatClockInput($('#taskDurationPicker'),true)){alert('Введи время в формате ЧЧ:ММ. Например, 07:30 или 1:15. Минуты должны быть от 00 до 59.');return}
 let old=db.tasks.find(x=>x.id===editing),scope='all';if(old?.repeat&&editingOccurrenceDate){scope=await chooseRepeatScope();if(!scope)return}
 let type=$('#taskRepeat').value,repeat={type};if(type==='weekly'){repeat.weekdays=[...document.querySelectorAll('#repeatWeekdays input:checked')].map(c=>+c.value);if(!repeat.weekdays.length){alert('Выбери хотя бы один день недели.');return}}if(type==='interval')repeat.every=Math.max(2,+$('#repeatEvery').value||2);if(type!=='none'&&$('#repeatEnd').value)repeat.end=$('#repeatEnd').value;
-let t={id:editing||crypto.randomUUID(),name:$('#taskName').value.trim(),time:$('#taskTime').value,duration:readDuration(),endTime:$('#taskEndTime').value,date:$('#taskDate').value,category:$('#taskCategory').value,icon:editing&&editingOccurrenceDate?(db.occurrences[occurrenceKey(editing,editingOccurrenceDate)]?.icon??old?.icon??''):(old?.icon||''),note:$('#taskNote').value.trim(),done:old?.done||false,doneAt:old?.repeat?undefined:old?.doneAt,actualTime:old?.repeat?undefined:old?.actualTime,completionKind:old?.repeat?undefined:old?.completionKind,shared:$('#taskShare').checked,plannedTime:old?.plannedTime,plannedEndTime:old?.plannedEndTime,plannedDuration:old?.plannedDuration,repeat};if(type==='none')delete t.repeat;
+let t={id:editing||crypto.randomUUID(),name:$('#taskName').value.trim(),time:$('#taskTime').value,duration:readDuration(),endTime:$('#taskEndTime').value,date:$('#taskDate').value,category:$('#taskCategory').value,icon:editing&&editingOccurrenceDate?(db.occurrences[occurrenceKey(editing,editingOccurrenceDate)]?.icon??old?.icon??''):(old?.icon||''),note:$('#taskNote').value.trim(),done:old?.done||false,doneAt:old?.repeat&&old.repeat.type!=='none'?undefined:old?.doneAt,actualTime:old?.repeat&&old.repeat.type!=='none'?undefined:old?.actualTime,completionKind:old?.repeat&&old.repeat.type!=='none'?undefined:old?.completionKind,shared:$('#taskShare').checked,plannedTime:old?.plannedTime,plannedEndTime:old?.plannedEndTime,plannedDuration:old?.plannedDuration,repeat};if(type==='none')delete t.repeat;
 const isSeriesEdit=!!(editing&&old?.repeat&&editingOccurrenceDate),selectedOccurrence=editingOccurrenceDate||old?.date||t.date;
 const conflictDate=isSeriesEdit?selectedOccurrence:t.date,warnTask=isSeriesEdit?{...t,seriesId:old.id,occurrenceDate:conflictDate}:t;warnTaskConflict(warnTask,conflictDate,t.time);
 if(isSeriesEdit&&scope==='1'){applyOccurrenceEdit(old,selectedOccurrence,t);}
