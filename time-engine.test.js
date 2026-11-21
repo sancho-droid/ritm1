@@ -41,3 +41,8 @@ const strictScale=createTimelineAnchors([{minutes:540,y:100,kind:'start'},{minut
 for(let i=1;i<strictScale.length;i++){assert.ok(strictScale[i].minutes>strictScale[i-1].minutes);assert.ok(strictScale[i].y>strictScale[i-1].y)}
 for(let minute=0;minute<1440;minute+=15){const y=timelineYAtMinutes(minute,strictScale);const back=timelineMinutesAtY(y,strictScale);assert.ok(Math.abs(back-minute)<1e-8)}
 console.log('parallel tasks, family intervals and strict timeline: assertions passed');
+
+// Family events with an end time occupy the full interval in free-time and conflict calculations.
+assert.deepEqual(freeIntervals([{time:'14:00',endTime:'17:00',duration:0,isFamily:true}],{nowMinutes:780,dayEnd:1080,minGap:15}).map(x=>[x.start,x.end]),[[780,840],[1020,1080]]);
+assert.equal(conflicts({time:'16:30',duration:30},[{time:'14:00',endTime:'17:00',duration:0,isFamily:true}]).length,1);
+console.log('family interval conflict/free-time: assertions passed');
