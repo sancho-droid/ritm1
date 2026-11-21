@@ -846,7 +846,7 @@ let dragScrollFrame=0,pendingDragScroll=0;function queueDragScroll(delta){pendin
  const list=board.querySelector('.schedule-list:not(.completed-task-list)');
  const cards=[...(list||board).querySelectorAll('.timeline-task')].filter(card=>{
   const task=card._task;
-  return task?.time&&!task?.isFamily&&!card.classList.contains('timeline-unscheduled')&&(!excludedTask||!sameTaskOccurrence(task,excludedTask));
+  return task?.time&&!task?.done&&!task?.isFamily&&!card.classList.contains('timeline-unscheduled')&&(!excludedTask||!sameTaskOccurrence(task,excludedTask));
  });
  const cardAnchors=[];
  cards.forEach(card=>{
