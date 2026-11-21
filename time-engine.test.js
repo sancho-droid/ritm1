@@ -27,3 +27,17 @@ const overlapScale=createTimelineAnchors([
 assert.equal(overlapScale.some(a=>a.minutes===600&&a.kind==='start'),true);
 assert.equal(overlapScale.some(a=>a.minutes===720&&a.kind==='end'),false);
 console.log('timeline scale: assertions passed');
+
+// Parallel tasks are visible, but do not occupy free time or create conflicts.
+assert.deepEqual(intervalsFor([{time:'14:00',duration:180,scheduleMode:'parallel'},{time:'14:00',duration:180}]).map(x=>[x.start,x.end]),[[840,1020]]);
+assert.deepEqual(freeIntervals([{time:'14:00',duration:180,scheduleMode:'parallel'}],{nowMinutes:780,dayEnd:1080,minGap:15}).map(x=>[x.start,x.end]),[[780,1080]]);
+assert.equal(conflicts({time:'14:00',duration:60,scheduleMode:'parallel'},[{time:'14:30',duration:30}]).length,0);
+assert.equal(conflicts({time:'14:00',duration:60},[{time:'14:30',duration:30,scheduleMode:'parallel'}]).length,0);
+// Family event duration is inferred from start/end, including midnight crossing.
+assert.equal(durationOf({time:'14:00',endTime:'17:00',duration:0}),180);
+assert.equal(durationOf({time:'23:00',endTime:'01:00',duration:0}),120);
+// A single global timeline scale remains strictly increasing in both domains.
+const strictScale=createTimelineAnchors([{minutes:540,y:100,kind:'start'},{minutes:720,y:160,kind:'end'},{minutes:600,y:170,kind:'start'},{minutes:780,y:240,kind:'end'}],{originMinute:480,originY:40,pixelsPerMinute:1});
+for(let i=1;i<strictScale.length;i++){assert.ok(strictScale[i].minutes>strictScale[i-1].minutes);assert.ok(strictScale[i].y>strictScale[i-1].y)}
+for(let minute=0;minute<1440;minute+=15){const y=timelineYAtMinutes(minute,strictScale);const back=timelineMinutesAtY(y,strictScale);assert.ok(Math.abs(back-minute)<1e-8)}
+console.log('parallel tasks, family intervals and strict timeline: assertions passed');
