@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {parseClock,formatClock,durationOf,sortChronologically,intervalsFor,freeIntervals,conflicts,minuteToY,yToMinute,createTimelineAnchors,timelineMinutesAtY,timelineYAtMinutes} from './time-engine.js';
+import {parseClock,formatClock,durationOf,sortChronologically,intervalsFor,freeIntervals,conflicts,minuteToY,yToMinute,createTimelineAnchors,timelineMinutesAtY,timelineYAtMinutes,timelineCardAnchors} from './time-engine.js';
 assert.equal(parseClock('00:00'),0);assert.equal(parseClock('19:09'),1149);assert.equal(parseClock('23:59'),1439);assert.equal(parseClock('24:00'),null);assert.equal(parseClock('9:00'),null);assert.equal(parseClock('bad'),null);assert.equal(formatClock(1149),'19:09');assert.equal(formatClock(1440),'23:59');
 assert.deepEqual(sortChronologically([{id:'a',time:'20:15'},{id:'b',time:'17:20'},{id:'c',time:'19:00'},{id:'d',time:''}]).map(x=>x.time),['17:20','19:00','20:15','']);assert.deepEqual(sortChronologically([{id:'z',time:'09:00'},{id:'a',time:'09:00'}]).map(x=>x.id),['z','a']);
 assert.equal(durationOf({time:'23:30',endTime:'00:15'}),45);assert.deepEqual(intervalsFor([{time:'17:20',duration:30},{time:'17:45',duration:30},{time:'18:15',duration:15,done:true},{time:'19:00',duration:20}]).map(x=>[x.start,x.end]),[[1040,1095],[1140,1160]]);
@@ -27,3 +27,22 @@ const overlapScale=createTimelineAnchors([
 assert.equal(overlapScale.some(a=>a.minutes===600&&a.kind==='start'),true);
 assert.equal(overlapScale.some(a=>a.minutes===720&&a.kind==='end'),false);
 console.log('timeline scale: assertions passed');
+
+const edgeAnchors=timelineCardAnchors([
+ {task:{id:'active',time:'10:00',duration:45},top:100,bottom:150},
+ {task:{id:'done',time:'11:00',duration:30,done:true},top:170,bottom:210},
+ {task:{id:'family',time:'12:00',duration:60,isFamily:true},top:230,bottom:290},
+ {task:{id:'moving',time:'13:00',duration:30},top:310,bottom:350}
+],{id:'moving',date:'2026-11-21'});
+assert.deepEqual(edgeAnchors,[
+ {minutes:600,y:100,kind:'start',priority:2},
+ {minutes:645,y:150,kind:'end',priority:1}
+]);
+const endOnlyAnchors=timelineCardAnchors([
+ {task:{id:'end-only',time:'23:30',endTime:'00:15'},top:400,bottom:460}
+]);
+assert.deepEqual(endOnlyAnchors,[
+ {minutes:1410,y:400,kind:'start',priority:2},
+ {minutes:1440,y:460,kind:'end',priority:1}
+]);
+console.log('timeline card edges: assertions passed');
