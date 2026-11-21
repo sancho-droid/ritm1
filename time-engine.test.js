@@ -44,5 +44,5 @@ console.log('parallel tasks, family intervals and strict timeline: assertions pa
 
 // Family events with an end time occupy the full interval in free-time and conflict calculations.
 assert.deepEqual(freeIntervals([{time:'14:00',endTime:'17:00',duration:0,isFamily:true}],{nowMinutes:780,dayEnd:1080,minGap:15}).map(x=>[x.start,x.end]),[[780,840],[1020,1080]]);
-assert.equal(conflicts({time:'16:30',duration:30},[{time:'14:00',endTime:'17:00',duration:0,isFamily:true}]).length,1);
+assert.equal(conflicts({id:'candidate',time:'16:30',duration:30},[{id:'family',time:'14:00',endTime:'17:00',duration:0,isFamily:true}]).length,1);
 console.log('family interval conflict/free-time: assertions passed');
