@@ -844,18 +844,11 @@ function taskCard(t){let d=document.createElement('div');d.className='task'+(!t.
 let touchDragState=null;
 let dragScrollFrame=0,pendingDragScroll=0;function queueDragScroll(delta){pendingDragScroll+=delta;if(dragScrollFrame)return;dragScrollFrame=requestAnimationFrame(()=>{window.scrollBy(0,pendingDragScroll);pendingDragScroll=0;dragScrollFrame=0})}function clearDragPreview(state){if(state?.ghost)state.ghost.remove();const marker=document.querySelector('.drag-time-marker');if(marker)marker.classList.remove('visible')}function getTimelineTimeAnchors(board,excludedTask=null){
  const list=board.querySelector('.schedule-list:not(.completed-task-list)');
- const cards=[...(list||board).querySelectorAll('.timeline-task')].filter(card=>{
-  const task=card._task;
-  return task?.time&&!task?.isFamily&&!card.classList.contains('timeline-unscheduled')&&(!excludedTask||!sameTaskOccurrence(task,excludedTask));
+ const cards=[...(list||board).querySelectorAll('.timeline-task')].map(card=>{
+  const task=card._task,body=card.querySelector('.taskbody')||card,rect=body.getBoundingClientRect();
+  return {task,top:rect.top,bottom:rect.bottom};
  });
- const cardAnchors=[];
- cards.forEach(card=>{
-  const task=card._task,start=taskStartMinutes(task);if(start===null)return;
-  const body=card.querySelector('.taskbody')||card,rect=body.getBoundingClientRect();
-  cardAnchors.push({minutes:start,y:rect.top,kind:'start',priority:2});
-  const hasEnd=Number(task.duration)>0||TimeEngine.parseClock(task.endTime)!==null;
-  if(hasEnd){const end=Math.min(1440,start+taskDurationMinutes(task));if(end>start)cardAnchors.push({minutes:end,y:rect.bottom,kind:'end',priority:1})}
- });
+ const cardAnchors=TimeEngine.timelineCardAnchors(cards,excludedTask);
  const listTop=(list||board).getBoundingClientRect().top;
  return TimeEngine.createTimelineAnchors(cardAnchors,{originMinute:480,originY:listTop+31,pixelsPerMinute:69/60});
 }
