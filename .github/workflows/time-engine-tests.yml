@@ -1,7 +1,7 @@
 name: Time engine tests
 on:
   push:
-    branches: [refactor/time-engine-clean]
+    branches: [main, refactor/time-engine-clean, refactor/unified-timeline-model]
   pull_request:
     branches: [main]
 jobs:
