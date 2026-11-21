@@ -43,6 +43,30 @@ export function createTimelineAnchors(cardAnchors, {
   if(maxMinute%60!==0&&!result.some(a=>a.minutes===maxMinute))result.push({minutes:maxMinute,y:interpolate(maxMinute,base),kind:'hour',priority:0});
   return result.sort((a,b)=>a.minutes-b.minutes||b.priority-a.priority);
 }
+/** Collect real task-edge anchors; completed/family/dragged tasks never shape the scale. */
+export function timelineCardAnchors(cards, excludedTask = null) {
+  const excludedId = excludedTask?.seriesId || excludedTask?.id;
+  const excludedDate = excludedTask?.occurrenceDate || excludedTask?.displayDate || excludedTask?.date;
+  const isExcluded = task => {
+    const id = task?.seriesId || task?.id;
+    const date = task?.occurrenceDate || task?.displayDate || task?.date;
+    return !!excludedId && id === excludedId && (!excludedDate || !date || date === excludedDate);
+  };
+  const anchors = [];
+  for (const card of cards || []) {
+    const task = card?.task;
+    if (!task || !task.time || task.done || task.isFamily || isExcluded(task)) continue;
+    const start = parseClock(task.time);
+    if (start === null || !Number.isFinite(card.top)) continue;
+    anchors.push({ minutes: start, y: card.top, kind: 'start', priority: 2 });
+    const hasEnd = Number(task.duration) > 0 || parseClock(task.endTime) !== null;
+    if (hasEnd && Number.isFinite(card.bottom)) {
+      const end = Math.min(DAY_MINUTES, start + durationOf(task));
+      if (end > start) anchors.push({ minutes: end, y: card.bottom, kind: 'end', priority: 1 });
+    }
+  }
+  return anchors;
+}
 function interpolateTimeline(value,anchors,fromKey,toKey,fallbackSlope,fallbackOrigin){
   if(!Number.isFinite(value))return fallbackOrigin;
   if(!anchors?.length)return fallbackOrigin+value*fallbackSlope;
