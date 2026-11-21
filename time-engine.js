@@ -21,11 +21,9 @@ export function createTimelineAnchors(cardAnchors, {
     .map(a => ({...a, minutes:Math.max(minMinute,Math.min(maxMinute,a.minutes)),
       priority:Number.isFinite(a.priority)?a.priority:(a.kind==='start'?2:1)}))
     .sort((a,b)=>a.y-b.y||b.priority-a.priority);
-  // Keep only anchors that preserve the same strict order in screen space
-  // and clock space. Overlapping fixed tasks can have incompatible edges;
-  // those edges are intentionally omitted instead of making time run backwards.
   const base=[];
   for(const anchor of candidates){
+    while(base.length&&anchor.minutes<=base[base.length-1].minutes&&anchor.priority>base[base.length-1].priority)base.pop();
     const last=base[base.length-1];
     if(!last||(anchor.minutes>last.minutes&&anchor.y>last.y))base.push(anchor);
   }
