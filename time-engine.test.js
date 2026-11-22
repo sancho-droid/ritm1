@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {DAY_START_MINUTES,DAY_END_MINUTES,parseClock,formatClock,durationOf,sortChronologically,intervalsFor,freeIntervals,findNextFreeGap,conflicts,orderTimedTasksForDisplay,} from './time-engine.js';
+import {DAY_START_MINUTES,DAY_END_MINUTES,parseClock,formatClock,durationOf,sortChronologically,intervalsFor,freeIntervals,findNextFreeGap,freeTimeAnchorIndex,conflicts,orderTimedTasksForDisplay,} from './time-engine.js';
 assert.equal(parseClock('00:00'),0);assert.equal(parseClock('19:09'),1149);assert.equal(parseClock('23:59'),1439);assert.equal(parseClock('24:00'),null);assert.equal(parseClock('9:00'),null);assert.equal(parseClock('bad'),null);assert.equal(formatClock(1149),'19:09');assert.equal(formatClock(1440),'23:59');
 assert.deepEqual(sortChronologically([{id:'a',time:'20:15'},{id:'b',time:'17:20'},{id:'c',time:'19:00'},{id:'d',time:''}]).map(x=>x.time),['17:20','19:00','20:15','']);assert.deepEqual(sortChronologically([{id:'z',time:'09:00'},{id:'a',time:'09:00'}]).map(x=>x.id),['z','a']);
 assert.equal(durationOf({time:'23:30',endTime:'00:15'}),45);assert.deepEqual(intervalsFor([{time:'17:20',duration:30},{time:'17:45',duration:30},{time:'18:15',duration:15,done:true},{time:'19:00',duration:20}]).map(x=>[x.start,x.end]),[[1040,1095],[1140,1160]]);
@@ -85,3 +85,15 @@ assert.deepEqual(findNextFreeGap(running,19*60+45,2),{start:20*60,end:21*60,dura
 const shortOnly=intervalsFor([{time:'20:00',duration:10,_freeTimeIndex:4}],{includeCompleted:true});
 assert.equal(findNextFreeGap(shortOnly,19*60+55,3),null);
 console.log('current free-time gap selection: assertions passed');
+
+
+// Early-completed future tasks are also behind the free-time marker.
+const screenshotTasks=[
+  {time:'19:35',done:true,doneAt:'2026-11-22T19:36:00'},
+  {time:'19:50',done:true,doneAt:'2026-11-22T19:40:00'},
+  {time:'20:00',done:true,doneAt:'2026-11-22T19:45:00'},
+  {time:'21:15',done:false},
+];
+assert.equal(freeTimeAnchorIndex(screenshotTasks,'2026-11-22',19*60+49),2);
+assert.equal(freeTimeAnchorIndex([{time:'19:50',done:true,doneAt:'2026-11-22T19:40:00'},{time:'20:00',done:false}], '2026-11-22',19*60+51),0);
+console.log('free-time placement after completed tasks: assertions passed');
