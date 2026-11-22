@@ -684,14 +684,14 @@ function freeGapsForTasks(tasks,dateKey){
     const actualDuration=Math.min(TimeEngine.durationOf(task),elapsed);
     return actualDuration>0?{...indexed,duration:actualDuration,endTime:''}:null;
   }).filter(Boolean);
-  const occupied=TimeEngine.intervalsFor(occupiedTasks,{includeCompleted:true,dayEnd:1440});
-  const dayStart=occupied.length?Math.min(6*60,occupied[0].start):6*60;
-  const dayEnd=occupied.length?Math.min(1440,Math.max(23*60,occupied[occupied.length-1].end)):23*60;
+  const occupied=TimeEngine.intervalsFor(occupiedTasks,{includeCompleted:true,dayEnd:TimeEngine.DAY_END_MINUTES});
+  const dayStart=TimeEngine.DAY_START_MINUTES;
+  const dayEnd=TimeEngine.DAY_END_MINUTES;
   const gaps=[],clock=value=>value===1440?'24:00':TimeEngine.formatClock(value);
   if(isToday){
     // Today's counter represents only the current/upcoming free interval, never elapsed gaps.
     // Anchor it after the latest task whose scheduled start has already arrived.
-    let afterIndex=-1,cursor=nowMinutes;
+    let afterIndex=-1;
     tasks.forEach((task,index)=>{
       const start=TimeEngine.parseClock(task?.time);
       if(start!==null&&start<=nowMinutes)afterIndex=index;
