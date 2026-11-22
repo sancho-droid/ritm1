@@ -698,7 +698,8 @@ function freeGapsForTasks(tasks,dateKey,allDayTasks=tasks){
   const occupied=TimeEngine.intervalsFor(occupiedTasks,{includeCompleted:true,dayEnd:TimeEngine.DAY_END_MINUTES});
   const startBlock=occupied.find(block=>block.tasks.some(t=>t._freeTimeIndex===window.startIndex));
   const endBlock=occupied.find(block=>block.tasks.some(t=>t._freeTimeIndex===window.endIndex));
-  const startLimit=Math.max(window.startMinute,startBlock?.end??window.startMinute);
+  const wakeDoneAt=Date.parse(wakeTask.doneAt||'');let wakeCompletedMinute=null;if(Number.isFinite(wakeDoneAt)){const completedDate=new Date(wakeDoneAt);if(key(completedDate)===dateKey)wakeCompletedMinute=completedDate.getHours()*60+completedDate.getMinutes()}if(wakeCompletedMinute===null)wakeCompletedMinute=TimeEngine.parseClock(wakeTask.actualTime);if(wakeCompletedMinute===null)return[];
+  const startLimit=wakeCompletedMinute;
   const endLimit=Math.min(window.endMinute,endBlock?.start??window.endMinute);
   if(startLimit>=endLimit)return[];
   const nowMinutes=now.getHours()*60+now.getMinutes();
