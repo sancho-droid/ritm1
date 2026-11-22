@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v1008-sleep-auto-sync';
+const CACHE = 'ritm-v1009-overnight-continuation';
 const FILES = ['./', './index.html', './manifest.webmanifest', './time-engine.js', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
