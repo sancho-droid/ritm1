@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v1007-day-boundary-per-date-fix';
+const CACHE = 'ritm-v1008-sleep-auto-sync';
 const FILES = ['./', './index.html', './manifest.webmanifest', './time-engine.js', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
