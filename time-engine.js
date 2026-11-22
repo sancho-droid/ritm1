@@ -44,6 +44,23 @@ export function intervalsFor(tasks,{includeCompleted=false,dayEnd=DAY_END_MINUTE
 export function freeIntervals(tasks,{nowMinutes=null,dayEnd=DAY_END_MINUTES,minGap=15}={}){const occupied=intervalsFor(tasks,{dayEnd});const gaps=[];let cursor=Math.max(0,nowMinutes??0);for(const block of occupied){if(block.end<=cursor)continue;if(block.start-cursor>=minGap)gaps.push({start:cursor,end:block.start,duration:block.start-cursor});cursor=Math.max(cursor,block.end)}if(dayEnd-cursor>=minGap)gaps.push({start:cursor,end:dayEnd,duration:dayEnd-cursor});return gaps}
 
 /** Find the first useful free interval at/after now, skipping gaps shorter than minGap. */
+
+/** Latest task that has started or was already completed today. */
+export function freeTimeAnchorIndex(tasks,dateKey,nowMinutes){
+  let anchor=-1;
+  (tasks||[]).forEach((task,index)=>{
+    const start=parseClock(task?.time);
+    let completedMinute=null;
+    const completedAt=Date.parse(task?.doneAt||'');
+    if(Number.isFinite(completedAt)){
+      const completedDate=new Date(completedAt);
+      if(localDateKey(completedDate)===dateKey)completedMinute=completedDate.getHours()*60+completedDate.getMinutes();
+    }else completedMinute=parseClock(task?.actualTime);
+    if((start!==null&&start<=nowMinutes)||(task?.done&&completedMinute!==null&&completedMinute<=nowMinutes))anchor=index;
+  });
+  return anchor;
+}
+
 export function findNextFreeGap(occupied,nowMinutes,afterIndex=-1,{dayEnd=DAY_END_MINUTES,minGap=15}={}){
   let cursor=Math.max(DAY_START_MINUTES,Math.min(dayEnd,nowMinutes));
   let anchor=afterIndex;
