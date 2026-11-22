@@ -62,11 +62,13 @@ assert.deepEqual(
 );
 console.log('early-completion display ordering: assertions passed');
 
-\n// The day calculation boundaries are 00:00 and 23:59; they are internal coordinates.
-assert.equal(TimeEngineBoundaryCheck(),true);
-function TimeEngineBoundaryCheck(){return DAY_END_MINUTES===1439}
 
-\n// A short gap immediately after now must not hide the next useful free interval.
+// The day calculation boundaries are 00:00 and 23:59; they are internal coordinates.
+assert.equal(DAY_START_MINUTES,0);
+assert.equal(DAY_END_MINUTES,1439);
+
+
+// A short gap immediately after now must not hide the next useful free interval.
 const afterNowTasks=[
   {id:'soon',time:'20:00',duration:1,_freeTimeIndex:4},
   {id:'later',time:'21:15',duration:30,_freeTimeIndex:5},
