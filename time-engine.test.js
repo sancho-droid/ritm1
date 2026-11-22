@@ -128,3 +128,10 @@ assert.deepEqual(dayBoundsForTasks(oneBoundary),{start:370,end:1260});
 assert.equal(dayBoundsForTasks([{name:'Подъём',time:'06:00',duration:10}]),null);
 assert.deepEqual(intervalsFor([{time:'05:00',duration:120},{time:'07:00',duration:60}],{dayStart:360,dayEnd:480}).map(x=>[x.start,x.end]),[[360,420]]);
 console.log('day-boundary inference and bounded intervals: assertions passed');
+
+const fallbackBounds=[{name:'Завтрак',time:'07:00',duration:30},{name:'Дела',time:'10:00',duration:60},{name:'Отбой',time:'22:00',duration:1}];
+assignDayBoundaryRoles(fallbackBounds);
+assert.deepEqual(dayBoundsForTasks(fallbackBounds),{start:450,end:1320});
+const overlappingBounds=[{name:'Подъём',time:'06:00',duration:90,dayBoundary:'start'},{name:'Сон',time:'07:00',dayBoundary:'end'}];
+assert.equal(dayBoundsForTasks(overlappingBounds),null);
+console.log('fallback and invalid day-boundary windows: assertions passed');
