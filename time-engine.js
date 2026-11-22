@@ -5,7 +5,7 @@ export function formatClock(minutes){const n=Math.max(0,Math.min(DAY_MINUTES-1,M
 const DAY_START_NAMES=new Set(['подъём','подъем','проснуться','встать','пробуждение','утренний подъём','утренний подъем']);
 const DAY_END_NAMES=new Set(['сон','отбой','лечь спать','ко сну','ночной сон']);
 export function inferDayBoundary(name){
-  const normalized=String(name||'').normalize('NFC').trim().toLocaleLowerCase('ru-RU').replace(/[.!?]+$/,'').replace(/\\s+/g,' ');
+  const normalized=String(name||'').normalize('NFC').trim().toLocaleLowerCase('ru-RU').replace(/[.!?]+$/,'').replace(/\s+/g,' ');
   if(DAY_START_NAMES.has(normalized))return 'start';
   if(DAY_END_NAMES.has(normalized))return 'end';
   return null;
