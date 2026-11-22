@@ -46,3 +46,25 @@ console.log('parallel tasks, family intervals and strict timeline: assertions pa
 assert.deepEqual(freeIntervals([{time:'14:00',endTime:'17:00',duration:0,isFamily:true}],{nowMinutes:780,dayEnd:1080,minGap:15}).map(x=>[x.start,x.end]),[[780,840],[1020,1080]]);
 assert.equal(conflicts({id:'candidate',time:'16:30',duration:30},[{id:'family',time:'14:00',endTime:'17:00',duration:0,isFamily:true}]).length,1);
 console.log('family interval conflict/free-time: assertions passed');
+
+ 
+// Real geometry is allowed to stretch and compress each interval independently.
+const variableGeometry=createTimelineAnchors([
+ {minutes:360,y:100,kind:'gap-start',priority:4},
+ {minutes:480,y:145,kind:'start',priority:3},
+ {minutes:510,y:205,kind:'end',priority:2},
+ {minutes:600,y:230,kind:'gap-end',priority:1},
+ {minutes:660,y:250,kind:'start',priority:3},
+ {minutes:690,y:310,kind:'end',priority:2}
+],{originMinute:480,originY:145,pixelsPerMinute:1});
+assert.equal(timelineYAtMinutes(480,variableGeometry),145);
+assert.equal(timelineYAtMinutes(510,variableGeometry),205);
+assert.equal(timelineYAtMinutes(600,variableGeometry),230);
+assert.equal(timelineYAtMinutes(660,variableGeometry),250);
+for(let minute=360;minute<=690;minute+=3){
+ const y=timelineYAtMinutes(minute,variableGeometry);
+ assert.ok(Math.abs(timelineMinutesAtY(y,variableGeometry)-minute)<1e-8);
+}
+assert.ok(timelineYAtMinutes(510,variableGeometry)-timelineYAtMinutes(480,variableGeometry) >
+ timelineYAtMinutes(600,variableGeometry)-timelineYAtMinutes(510,variableGeometry));
+console.log('variable card and free-gap geometry: assertions passed');
