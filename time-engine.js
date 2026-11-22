@@ -2,6 +2,27 @@
 export const DAY_MINUTES=1440, DAY_START_MINUTES=0, DAY_END_MINUTES=23*60+59;
 export function parseClock(value){if(typeof value!=='string'||!/^([01]\d|2[0-3]):([0-5]\d)$/.test(value))return null;const [,h,m]=value.match(/^([01]\d|2[0-3]):([0-5]\d)$/);return Number(h)*60+Number(m)}
 export function formatClock(minutes){const n=Math.max(0,Math.min(DAY_MINUTES-1,Math.round(minutes)));return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')}
+const DAY_START_NAMES=new Set(['подъём','подъем','проснуться','встать','пробуждение','утренний подъём','утренний подъем']);
+const DAY_END_NAMES=new Set(['сон','отбой','лечь спать','ко сну','ночной сон']);
+export function inferDayBoundary(name){
+  const normalized=String(name||'').normalize('NFC').trim().toLocaleLowerCase('ru-RU').replace(/[.!?]+$/,'').replace(/\s+/g,' ');
+  if(DAY_START_NAMES.has(normalized))return 'start';
+  if(DAY_END_NAMES.has(normalized))return 'end';
+  return null;
+}
+export function dayBoundaryWindow(tasks){
+  const starts=[],ends=[];
+  (tasks||[]).forEach((task,index)=>{
+    if(task?.dayBoundary==='start')starts.push({task,index});
+    if(task?.dayBoundary==='end')ends.push({task,index});
+  });
+  if(starts.length!==1||ends.length!==1)return null;
+  const start=parseClock(starts[0].task.time),end=parseClock(ends[0].task.time);
+  if(start===null||end===null)return null;
+  const startMinute=start+durationOf(starts[0].task);
+  if(startMinute>=end)return null;
+  return {startIndex:starts[0].index,endIndex:ends[0].index,startMinute,endMinute:end};
+}
 export function durationOf(task){const d=Number(task?.duration);if(Number.isFinite(d)&&d>0)return Math.round(d);const s=parseClock(task?.time),e=parseClock(task?.endTime);if(s!==null&&e!==null){let diff=e-s;if(diff<0)diff+=DAY_MINUTES;if(diff>0)return diff}return 1}
 export function orderTimedTasksForDisplay(tasks,date,now=new Date()){
   const dateKey=typeof date==='string'?date:localDateKey(date);
