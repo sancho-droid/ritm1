@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {DAY_START_MINUTES,DAY_END_MINUTES,parseClock,formatClock,durationOf,sortChronologically,intervalsFor,freeIntervals,findNextFreeGap,freeTimeAnchorIndex,conflicts,orderTimedTasksForDisplay,inferDayBoundary,assignDayBoundaryRoles,dayBoundaryIssue,dayBoundaryWindow,} from './time-engine.js';
+import {DAY_START_MINUTES,DAY_END_MINUTES,parseClock,formatClock,durationOf,syncSleepToWake,overnightContinuation,sortChronologically,intervalsFor,freeIntervals,findNextFreeGap,freeTimeAnchorIndex,conflicts,orderTimedTasksForDisplay,inferDayBoundary,assignDayBoundaryRoles,dayBoundaryIssue,dayBoundaryWindow,} from './time-engine.js';
 assert.equal(parseClock('00:00'),0);assert.equal(parseClock('19:09'),1149);assert.equal(parseClock('23:59'),1439);assert.equal(parseClock('24:00'),null);assert.equal(parseClock('9:00'),null);assert.equal(parseClock('bad'),null);assert.equal(formatClock(1149),'19:09');assert.equal(formatClock(1440),'23:59');
 assert.deepEqual(sortChronologically([{id:'a',time:'20:15'},{id:'b',time:'17:20'},{id:'c',time:'19:00'},{id:'d',time:''}]).map(x=>x.time),['17:20','19:00','20:15','']);assert.deepEqual(sortChronologically([{id:'z',time:'09:00'},{id:'a',time:'09:00'}]).map(x=>x.id),['z','a']);
 assert.equal(durationOf({time:'23:30',endTime:'00:15'}),45);assert.deepEqual(intervalsFor([{time:'17:20',duration:30},{time:'17:45',duration:30},{time:'18:15',duration:15,done:true},{time:'19:00',duration:20}]).map(x=>[x.start,x.end]),[[1040,1095],[1140,1160]]);
@@ -112,7 +112,7 @@ assert.equal(dayBoundaryWindow([{dayBoundary:'start',time:'06:00'}]),null);
 console.log('day-boundary inference/window: assertions passed');
 
  
-// Boundary roles are inferred only for a unique exact-name candidate and survive renaming.
+// Boundary roles are assigned per task, not only when the whole database has one candidate.
 const dayMarkers=[{name:'Подъём',time:'06:00',duration:15},{name:'Сон',time:'23:00'}];
 assignDayBoundaryRoles(dayMarkers);
 assert.equal(dayMarkers[0].dayBoundary,'start');
@@ -120,11 +120,28 @@ assert.equal(dayMarkers[1].dayBoundary,'end');
 dayMarkers[0].name='Начало дня';
 assignDayBoundaryRoles(dayMarkers);
 assert.equal(dayMarkers[0].dayBoundary,'start');
+const markersAcrossDates=[
+  {id:'wake-day-1',name:'Подъём',time:'06:00',date:'2026-11-22'},
+  {id:'wake-day-2',name:'Проснуться',time:'07:00',date:'2026-11-23'},
+  {id:'sleep-day-1',name:'Сон',time:'22:00',date:'2026-11-22'},
+  {id:'sleep-day-2',name:'Отбой',time:'23:00',date:'2026-11-23'}
+];
+assignDayBoundaryRoles(markersAcrossDates);
+assert.deepEqual(markersAcrossDates.map(x=>x.dayBoundary),['start','start','end','end']);
+assert.equal(dayBoundaryIssue(markersAcrossDates.filter(x=>x.date==='2026-11-22')),null);
+assert.equal(dayBoundaryIssue(markersAcrossDates.filter(x=>x.date==='2026-11-23')),null);
+assert.deepEqual(
+  dayBoundaryWindow(markersAcrossDates.filter(x=>x.date==='2026-11-22')),
+  {startIndex:0,endIndex:1,startMinute:361,endMinute:1320}
+);
 const ambiguousMarkers=[{name:'Подъём',time:'06:00'},{name:'Проснуться',time:'06:15'},{name:'Сон',time:'23:00'}];
 assignDayBoundaryRoles(ambiguousMarkers);
-assert.equal(ambiguousMarkers[0].dayBoundary,undefined);
-assert.equal(ambiguousMarkers[1].dayBoundary,undefined);
-assert.match(dayBoundaryIssue(ambiguousMarkers),/несколько кандидатов на начало дня/);
+assert.equal(ambiguousMarkers[0].dayBoundary,'start');
+assert.equal(ambiguousMarkers[1].dayBoundary,'start');
+assert.match(dayBoundaryIssue(ambiguousMarkers),/несколько задач с признаком начала дня/);
 assert.equal(dayBoundaryWindow(ambiguousMarkers),null);
 assert.match(dayBoundaryIssue([{name:'Подъём',dayBoundary:'start'},{name:'Сон',time:'23:00',dayBoundary:'end'}]),/не задано время/);
-console.log('day-boundary assignment, rename persistence and ambiguity: assertions passed');
+console.log('day-boundary per-task migration, rename persistence and same-day ambiguity: assertions passed');
+
+// Sleep end and duration follow wake-time task; crossing midnight is supported.
+const sleepSync={name:'Сон',time:'23:00',endTime:'06:00',duration:420};syncSleepToWake(sleepSync,{name:'Подъём',time:'08:00'});assert.deepEqual(sleepSync,{name:'Сон',time:'23:00',endTime:'08:00',duration:540});const sleepCross={name:'Сон',time:'22:00',endTime:'06:00',duration:480};syncSleepToWake(sleepCross,{name:'Подъём',time:'07:00'});assert.deepEqual(sleepCross,{name:'Сон',time:'22:00',endTime:'07:00',duration:540});const sameClockSleep={name:'Сон',time:'23:00',endTime:'07:00',duration:480};syncSleepToWake(sameClockSleep,{name:'Подъём',time:'23:00'});assert.deepEqual(sameClockSleep,{name:'Сон',time:'23:00',endTime:'07:00',duration:480});assert.deepEqual(overnightContinuation({id:'sleep',name:'Сон',time:'23:00',duration:540,endTime:'08:00',dayBoundary:'end'},'2026-11-23'),{id:'sleep@continuation-2026-11-23',name:'Сон (продолжение)',time:'00:00',endTime:'08:00',duration:480,dayBoundary:'continuation',overnightContinuation:true,date:'2026-11-23',displayDate:'2026-11-23'});assert.equal(overnightContinuation({name:'Тренировка',time:'08:00',duration:60},'2026-11-23'),null);console.log('sleep auto-sync and overnight continuation: assertions passed');
