@@ -688,8 +688,29 @@ function freeGapsForTasks(tasks,dateKey){
   const dayStart=occupied.length?Math.min(6*60,occupied[0].start):6*60;
   const dayEnd=occupied.length?Math.min(1440,Math.max(23*60,occupied[occupied.length-1].end)):23*60;
   const gaps=[],clock=value=>value===1440?'24:00':TimeEngine.formatClock(value);
+  if(isToday){
+    // Today's counter represents only the current/upcoming free interval, never elapsed gaps.
+    // Anchor it after the latest task whose scheduled start has already arrived.
+    let afterIndex=-1,cursor=nowMinutes;
+    tasks.forEach((task,index)=>{
+      const start=TimeEngine.parseClock(task?.time);
+      if(start!==null&&start<=nowMinutes)afterIndex=index;
+    });
+    const active=occupied.filter(block=>block.start<=nowMinutes&&block.end>nowMinutes);
+    if(active.length){
+      const current=active.reduce((latest,block)=>block.end>latest.end?block:latest);
+      cursor=current.end;
+      const last=current.tasks.reduce((last,task)=>!last||task._freeTimeIndex>last?task._freeTimeIndex:last,-1);
+      afterIndex=Math.max(afterIndex,last);
+    }
+    if(afterIndex<0)return[];
+    const next=occupied.filter(block=>block.start>=cursor).sort((a,b)=>a.start-b.start)[0];
+    const end=Math.min(next?.start??dayEnd,dayEnd),duration=end-cursor;
+    if(duration>=15&&cursor<end)gaps.push({id:dateKey+'-current',start:clock(cursor),end:clock(end),duration,date:dateKey,afterIndex});
+    return gaps;
+  }
   const addGap=(rawStart,rawEnd,id,afterIndex)=>{
-    const start=Math.max(rawStart,isToday?nowMinutes:dayStart),end=Math.min(rawEnd,dayEnd),duration=end-start;
+    const start=Math.max(rawStart,dayStart),end=Math.min(rawEnd,dayEnd),duration=end-start;
     if(duration>=15&&start<end)gaps.push({id:dateKey+'-'+id,start:clock(start),end:clock(end),duration,date:dateKey,afterIndex});
   };
   if(!occupied.length){addGap(dayStart,dayEnd,'empty',-1);return gaps}
