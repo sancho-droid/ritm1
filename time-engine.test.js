@@ -43,6 +43,12 @@ assert.deepEqual(
   orderTimedTasksForDisplay(scheduledTasks,orderDate,new Date(2026,10,22,16,0)).map(x=>x.id),
   ['wake','shower','work','reading','shop','call']
 );
+// Early completions move ahead of later future tasks, preserving their own time order.
+const withLaterFuture=[...scheduledTasks,{id:'later-future',time:'18:00',done:false}];
+assert.deepEqual(
+  orderTimedTasksForDisplay(withLaterFuture,orderDate,new Date(2026,10,22,11,0)).map(x=>x.id),
+  ['wake','shower','work','reading','shop','call','later-future']
+);
 // An uncompleted task whose time has passed remains before early-completed future tasks.
 const withOverdue=[...scheduledTasks,{id:'earlier-unfinished',time:'09:00',done:false}];
 assert.deepEqual(
