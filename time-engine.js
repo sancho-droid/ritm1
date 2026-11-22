@@ -23,6 +23,31 @@ export function dayBoundaryWindow(tasks){
   if(startMinute>=end)return null;
   return {startIndex:starts[0].index,endIndex:ends[0].index,startMinute,endMinute:end};
 }
+
+export function assignDayBoundaryRoles(tasks){
+  const list=Array.isArray(tasks)?tasks:[];
+  for(const role of ['start','end']){
+    if(list.some(task=>task?.dayBoundary===role))continue;
+    const candidates=list.filter(task=>!task?.dayBoundary&&inferDayBoundary(task?.name)===role);
+    if(candidates.length===1)candidates[0].dayBoundary=role;
+  }
+  return list;
+}
+export function dayBoundaryIssue(tasks){
+  const list=Array.isArray(tasks)?tasks:[];
+  for(const role of ['start','end']){
+    const explicit=list.filter(task=>task?.dayBoundary===role);
+    if(explicit.length>1)return role==='start'?'Найдено несколько задач с признаком начала дня':'Найдено несколько задач с признаком конца дня';
+    if(!explicit.length){
+      const candidates=list.filter(task=>!task?.dayBoundary&&inferDayBoundary(task?.name)===role);
+      if(candidates.length>1)return role==='start'?'Найдено несколько кандидатов на начало дня':'Найдено несколько кандидатов на конец дня';
+      if(!candidates.length)return role==='start'?'Не найдена задача начала дня («Подъём»)':'Не найдена задача конца дня («Сон»)'; 
+    }else if(parseClock(explicit[0]?.time)===null){
+      return role==='start'?'У задачи начала дня не задано время':'У задачи конца дня не задано время';
+    }
+  }
+  return null;
+}
 export function durationOf(task){const d=Number(task?.duration);if(Number.isFinite(d)&&d>0)return Math.round(d);const s=parseClock(task?.time),e=parseClock(task?.endTime);if(s!==null&&e!==null){let diff=e-s;if(diff<0)diff+=DAY_MINUTES;if(diff>0)return diff}return 1}
 export function orderTimedTasksForDisplay(tasks,date,now=new Date()){
   const dateKey=typeof date==='string'?date:localDateKey(date);
