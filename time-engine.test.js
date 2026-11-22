@@ -97,3 +97,17 @@ const screenshotTasks=[
 assert.equal(freeTimeAnchorIndex(screenshotTasks,'2026-11-22',19*60+49),2);
 assert.equal(freeTimeAnchorIndex([{time:'19:50',done:true,doneAt:'2026-11-22T19:40:00'},{time:'20:00',done:false}], '2026-11-22',19*60+51),0);
 console.log('free-time placement after completed tasks: assertions passed');
+
+// Day boundaries are inferred once from unambiguous task names, then stored on tasks.
+import {inferDayBoundary,dayBoundaryWindow} from './time-engine.js';
+assert.equal(inferDayBoundary('Подъём'),'start');
+assert.equal(inferDayBoundary('Подъем'),'start');
+assert.equal(inferDayBoundary('  ПРОСНУТЬСЯ  '),'start');
+assert.equal(inferDayBoundary('Сон'),'end');
+assert.equal(inferDayBoundary('Отбой'),'end');
+assert.equal(inferDayBoundary('Подъём ребёнка'),null);
+assert.deepEqual(dayBoundaryWindow([{dayBoundary:'start',time:'06:00',duration:15},{time:'07:00',duration:30},{dayBoundary:'end',time:'22:30'}]),{startIndex:0,endIndex:2,startMinute:375,endMinute:1350});
+assert.equal(dayBoundaryWindow([{dayBoundary:'start',time:'06:00'},{dayBoundary:'end',time:'05:30'}]),null);
+assert.equal(dayBoundaryWindow([{dayBoundary:'start',time:'06:00'},{dayBoundary:'start',time:'07:00'},{dayBoundary:'end',time:'22:30'}]),null);
+assert.equal(dayBoundaryWindow([{dayBoundary:'start',time:'06:00'}]),null);
+console.log('day-boundary inference/window: assertions passed');
