@@ -696,17 +696,9 @@ function freeGapsForTasks(tasks,dateKey){
       const start=TimeEngine.parseClock(task?.time);
       if(start!==null&&start<=nowMinutes)afterIndex=index;
     });
-    const active=occupied.filter(block=>block.start<=nowMinutes&&block.end>nowMinutes);
-    if(active.length){
-      const current=active.reduce((latest,block)=>block.end>latest.end?block:latest);
-      cursor=current.end;
-      const last=current.tasks.reduce((last,task)=>!last||task._freeTimeIndex>last?task._freeTimeIndex:last,-1);
-      afterIndex=Math.max(afterIndex,last);
-    }
     if(afterIndex<0)return[];
-    const next=occupied.filter(block=>block.start>=cursor).sort((a,b)=>a.start-b.start)[0];
-    const end=Math.min(next?.start??dayEnd,dayEnd),duration=end-cursor;
-    if(duration>=15&&cursor<end)gaps.push({id:dateKey+'-current',start:clock(cursor),end:clock(end),duration,date:dateKey,afterIndex});
+    const nextGap=TimeEngine.findNextFreeGap(occupied,nowMinutes,afterIndex,{dayEnd:1439,minGap:15});
+    if(nextGap)gaps.push({id:dateKey+'-current',start:clock(nextGap.start),end:clock(nextGap.end),duration:nextGap.duration,date:dateKey,afterIndex:nextGap.afterIndex});
     return gaps;
   }
   const addGap=(rawStart,rawEnd,id,afterIndex)=>{
