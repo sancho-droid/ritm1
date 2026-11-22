@@ -132,4 +132,7 @@ export function findNextFreeGap(occupied,nowMinutes,afterIndex=-1,{dayEnd=DAY_EN
 export function conflicts(candidate,tasks){const start=parseClock(candidate?.time);if(start===null||candidate?.scheduleMode==='parallel')return[];const end=start+durationOf(candidate);return(tasks||[]).filter(t=>{if(t===candidate||t?.id===candidate?.id||t?.done||t?.scheduleMode==='parallel')return false;const otherStart=parseClock(t?.time);if(otherStart===null)return false;const otherEnd=otherStart+durationOf(t);return start<otherEnd&&otherStart<end})}
 
 /** Sync a sleep task's end/duration to the selected wake-time task. */
-export function syncSleepToWake(sleep,wake){const start=parseClock(sleep?.time),end=parseClock(wake?.time);if(start===null||end===null)return sleep;let duration=end-start;if(duration<=0)duration+=DAY_MINUTES;sleep.endTime=wake.time;sleep.duration=duration;return sleep;}
+export function syncSleepToWake(sleep,wake){const start=parseClock(sleep?.time),end=parseClock(wake?.time);if(start===null||end===null||start===end)return sleep;let duration=end-start;if(duration<0)duration+=DAY_MINUTES;sleep.endTime=wake.time;sleep.duration=duration;return sleep;}
+
+/** Build the next-day visual/occupancy segment for a task crossing midnight. */
+export function overnightContinuation(task,dateKey){const start=parseClock(task?.time),duration=durationOf(task);if(start===null||duration<=0||start+duration<=DAY_MINUTES)return null;const remaining=start+duration-DAY_MINUTES;return {...task,id:String(task.id||'')+'@continuation-'+dateKey,name:String(task.name||'')+' (продолжение)',time:'00:00',endTime:formatClock(remaining),duration:remaining,dayBoundary:'continuation',overnightContinuation:true,date:dateKey,displayDate:dateKey};}
