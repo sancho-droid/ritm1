@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {parseClock,formatClock,durationOf,sortChronologically,intervalsFor,freeIntervals,conflicts,orderTimedTasksForDisplay,} from './time-engine.js';
+import {DAY_START_MINUTES,DAY_END_MINUTES,parseClock,formatClock,durationOf,sortChronologically,intervalsFor,freeIntervals,findNextFreeGap,conflicts,orderTimedTasksForDisplay,} from './time-engine.js';
 assert.equal(parseClock('00:00'),0);assert.equal(parseClock('19:09'),1149);assert.equal(parseClock('23:59'),1439);assert.equal(parseClock('24:00'),null);assert.equal(parseClock('9:00'),null);assert.equal(parseClock('bad'),null);assert.equal(formatClock(1149),'19:09');assert.equal(formatClock(1440),'23:59');
 assert.deepEqual(sortChronologically([{id:'a',time:'20:15'},{id:'b',time:'17:20'},{id:'c',time:'19:00'},{id:'d',time:''}]).map(x=>x.time),['17:20','19:00','20:15','']);assert.deepEqual(sortChronologically([{id:'z',time:'09:00'},{id:'a',time:'09:00'}]).map(x=>x.id),['z','a']);
 assert.equal(durationOf({time:'23:30',endTime:'00:15'}),45);assert.deepEqual(intervalsFor([{time:'17:20',duration:30},{time:'17:45',duration:30},{time:'18:15',duration:15,done:true},{time:'19:00',duration:20}]).map(x=>[x.start,x.end]),[[1040,1095],[1140,1160]]);
@@ -61,3 +61,25 @@ assert.deepEqual(
   ['wake','shower','work','reading','shop','call']
 );
 console.log('early-completion display ordering: assertions passed');
+
+\n// The day calculation boundaries are 00:00 and 23:59; they are internal coordinates.
+assert.equal(TimeEngineBoundaryCheck(),true);
+function TimeEngineBoundaryCheck(){return DAY_END_MINUTES===1439}
+
+\n// A short gap immediately after now must not hide the next useful free interval.
+const afterNowTasks=[
+  {id:'soon',time:'20:00',duration:1,_freeTimeIndex:4},
+  {id:'later',time:'21:15',duration:30,_freeTimeIndex:5},
+];
+const afterNowOccupied=intervalsFor(afterNowTasks,{includeCompleted:true,dayEnd:DAY_END_MINUTES});
+assert.deepEqual(
+  findNextFreeGap(afterNowOccupied,19*60+51,3,{dayEnd:DAY_END_MINUTES,minGap:15}),
+  {start:20*60+1,end:21*60+15,duration:74,afterIndex:4}
+);
+// A currently running task moves the start of the free interval to its end.
+const running=intervalsFor([{id:'running',time:'19:30',duration:30,_freeTimeIndex:2},{id:'next',time:'21:00',duration:15,_freeTimeIndex:3}],{includeCompleted:true});
+assert.deepEqual(findNextFreeGap(running,19*60+45,2),{start:20*60,end:21*60,duration:60,afterIndex:2});
+// If all remaining gaps are shorter than the threshold, no counter is shown.
+const shortOnly=intervalsFor([{time:'20:00',duration:10,_freeTimeIndex:4}],{includeCompleted:true});
+assert.equal(findNextFreeGap(shortOnly,19*60+55,3),null);
+console.log('current free-time gap selection: assertions passed');
