@@ -26,10 +26,13 @@ export function dayBoundaryWindow(tasks){
 
 export function assignDayBoundaryRoles(tasks){
   const list=Array.isArray(tasks)?tasks:[];
-  for(const role of ['start','end']){
-    if(list.some(task=>task?.dayBoundary===role))continue;
-    const candidates=list.filter(task=>!task?.dayBoundary&&inferDayBoundary(task?.name)===role);
-    if(candidates.length===1)candidates[0].dayBoundary=role;
+  // Boundary identity belongs to each task, not to the entire database.
+  // Multiple tasks with the same boundary name may belong to different dates;
+  // ambiguity is checked later against the selected day's occurrences.
+  for(const task of list){
+    if(task?.dayBoundary)continue;
+    const role=inferDayBoundary(task?.name);
+    if(role)task.dayBoundary=role;
   }
   return list;
 }
