@@ -22,3 +22,36 @@ assert.deepEqual(freeIntervals([{time:'14:00',endTime:'17:00',duration:0,isFamil
 assert.equal(conflicts({id:'candidate',time:'16:30',duration:30},[{id:'family',time:'14:00',endTime:'17:00',duration:0,isFamily:true}]).length,1);
 console.log('family interval conflict/free-time: assertions passed');
 
+
+
+// Early-completed scheduled tasks move after the latest task whose time has arrived,
+// retain chronological order among themselves, and return to chronology at their slot.
+const orderDate='2026-11-22';
+const scheduledTasks=[
+  {id:'wake',time:'06:00',done:true,doneAt:'2026-11-22T00:05:00'},
+  {id:'shower',time:'06:15',done:true,doneAt:'2026-11-22T00:20:00'},
+  {id:'work',time:'08:00',done:true,doneAt:'2026-11-22T01:00:00'},
+  {id:'reading',time:'10:00',done:false},
+  {id:'shop',time:'12:00',done:true,doneAt:'2026-11-22T04:00:00'},
+  {id:'call',time:'15:00',done:true,doneAt:'2026-11-22T04:00:00'},
+];
+assert.deepEqual(
+  orderTimedTasksForDisplay(scheduledTasks,orderDate,new Date(2026,10,22,11,0)).map(x=>x.id),
+  ['wake','shower','work','reading','shop','call']
+);
+assert.deepEqual(
+  orderTimedTasksForDisplay(scheduledTasks,orderDate,new Date(2026,10,22,16,0)).map(x=>x.id),
+  ['wake','shower','work','reading','shop','call']
+);
+// An uncompleted task whose time has passed remains before early-completed future tasks.
+const withOverdue=[...scheduledTasks,{id:'earlier-unfinished',time:'09:00',done:false}];
+assert.deepEqual(
+  orderTimedTasksForDisplay(withOverdue,orderDate,new Date(2026,10,22,11,0)).map(x=>x.id),
+  ['wake','shower','work','earlier-unfinished','reading','shop','call']
+);
+// At the scheduled minute, an early completion stops being temporarily promoted.
+assert.deepEqual(
+  orderTimedTasksForDisplay(scheduledTasks,orderDate,new Date(2026,10,22,12,0)).map(x=>x.id),
+  ['wake','shower','work','reading','shop','call']
+);
+console.log('early-completion display ordering: assertions passed');
