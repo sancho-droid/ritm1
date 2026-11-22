@@ -668,7 +668,7 @@ let weekPointerX=null;$('#weekStrip').addEventListener('pointerdown',e=>{weekPoi
 function formatFreeDuration(minutes){if(minutes<60)return minutes+' '+(minutes%10===1&&minutes%100!==11?'минута':minutes%10>=2&&minutes%10<=4&&!(minutes%100>=12&&minutes%100<=14)?'минуты':'минут');const hours=Math.floor(minutes/60),mins=minutes%60;const hWord=hours%10===1&&hours%100!==11?'час':hours%10>=2&&hours%10<=4&&!(hours%100>=12&&hours%100<=14)?'часа':'часов';return hours+' '+hWord+(mins?' '+mins+' мин':'')}
 function freeGapsForTasks(tasks,dateKey,allTasks=tasks){
   const now=new Date(),todayKey=key(now),isToday=todayKey===dateKey,nowMinutes=now.getHours()*60+now.getMinutes();
-  if(dateKey<todayKey)return[];
+  if(dateKey<todayKey||TimeEngine.dayBoundaryIssue(db.tasks||[]))return[];
   const bounds=TimeEngine.dayBoundsForTasks(allTasks);
   if(!bounds)return[];
   const dayStart=bounds.start,dayEnd=bounds.end;
