@@ -112,7 +112,7 @@ assert.equal(dayBoundaryWindow([{dayBoundary:'start',time:'06:00'}]),null);
 console.log('day-boundary inference/window: assertions passed');
 
  
-// Boundary roles are inferred only for a unique exact-name candidate and survive renaming.
+// Boundary roles are assigned per task, not only when the whole database has one candidate.
 const dayMarkers=[{name:'Подъём',time:'06:00',duration:15},{name:'Сон',time:'23:00'}];
 assignDayBoundaryRoles(dayMarkers);
 assert.equal(dayMarkers[0].dayBoundary,'start');
@@ -120,11 +120,25 @@ assert.equal(dayMarkers[1].dayBoundary,'end');
 dayMarkers[0].name='Начало дня';
 assignDayBoundaryRoles(dayMarkers);
 assert.equal(dayMarkers[0].dayBoundary,'start');
+const markersAcrossDates=[
+  {id:'wake-day-1',name:'Подъём',time:'06:00',date:'2026-11-22'},
+  {id:'wake-day-2',name:'Проснуться',time:'07:00',date:'2026-11-23'},
+  {id:'sleep-day-1',name:'Сон',time:'22:00',date:'2026-11-22'},
+  {id:'sleep-day-2',name:'Отбой',time:'23:00',date:'2026-11-23'}
+];
+assignDayBoundaryRoles(markersAcrossDates);
+assert.deepEqual(markersAcrossDates.map(x=>x.dayBoundary),['start','start','end','end']);
+assert.equal(dayBoundaryIssue(markersAcrossDates.filter(x=>x.date==='2026-11-22')),null);
+assert.equal(dayBoundaryIssue(markersAcrossDates.filter(x=>x.date==='2026-11-23')),null);
+assert.deepEqual(
+  dayBoundaryWindow(markersAcrossDates.filter(x=>x.date==='2026-11-22')),
+  {startIndex:0,endIndex:1,startMinute:361,endMinute:1320}
+);
 const ambiguousMarkers=[{name:'Подъём',time:'06:00'},{name:'Проснуться',time:'06:15'},{name:'Сон',time:'23:00'}];
 assignDayBoundaryRoles(ambiguousMarkers);
-assert.equal(ambiguousMarkers[0].dayBoundary,undefined);
-assert.equal(ambiguousMarkers[1].dayBoundary,undefined);
-assert.match(dayBoundaryIssue(ambiguousMarkers),/несколько кандидатов на начало дня/);
+assert.equal(ambiguousMarkers[0].dayBoundary,'start');
+assert.equal(ambiguousMarkers[1].dayBoundary,'start');
+assert.match(dayBoundaryIssue(ambiguousMarkers),/несколько задач с признаком начала дня/);
 assert.equal(dayBoundaryWindow(ambiguousMarkers),null);
 assert.match(dayBoundaryIssue([{name:'Подъём',dayBoundary:'start'},{name:'Сон',time:'23:00',dayBoundary:'end'}]),/не задано время/);
-console.log('day-boundary assignment, rename persistence and ambiguity: assertions passed');
+console.log('day-boundary per-task migration, rename persistence and same-day ambiguity: assertions passed');
