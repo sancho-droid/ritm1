@@ -584,7 +584,7 @@ function openLocalDB(){return new Promise((resolve,reject)=>{const req=indexedDB
 async function readLocalState(){const idb=await openLocalDB();return new Promise((resolve,reject)=>{let settled=false;const finish=(fn,value)=>{if(settled)return;settled=true;idb.close();fn(value)};let tx;try{tx=idb.transaction(STORE,'readonly');const req=tx.objectStore(STORE).get('state');req.onsuccess=()=>finish(resolve,req.result||null);req.onerror=()=>finish(reject,req.error||tx.error||new Error('Ошибка чтения локальной базы.'));tx.onabort=()=>finish(reject,tx.error||new Error('Транзакция чтения локальной базы прервана.'));tx.onerror=()=>finish(reject,tx.error||new Error('Ошибка транзакции чтения локальной базы.'))}catch(error){finish(reject,error)}})}
 async function writeLocalState(value){const idb=await openLocalDB();return new Promise((resolve,reject)=>{let settled=false;const finish=(fn,result)=>{if(settled)return;settled=true;idb.close();fn(result)};try{const tx=idb.transaction(STORE,'readwrite');tx.objectStore(STORE).put(value,'state');tx.oncomplete=()=>finish(resolve);tx.onerror=()=>finish(reject,tx.error||new Error('Ошибка записи локальной базы.'));tx.onabort=()=>finish(reject,tx.error||new Error('Запись локальной базы прервана.'))}catch(error){finish(reject,error)}})}
 function validState(v){return !!v&&Array.isArray(v.tasks)&&Array.isArray(v.family)&&Array.isArray(v.lists)}
-function normalizeState(v){(v.tasks||[]).forEach(t=>{if(!t.scheduleMode)t.scheduleMode='fixed'});const categories=Array.isArray(v.categories)?[...v.categories]:['Личное','Работа','Здоровье','Развитие','Дом','Семья','Отдых','Другое'];(v.tasks||[]).forEach(t=>{if(t.category&&!categories.includes(t.category))categories.push(t.category)});const palette=['#8b7cf6','#42b98b','#4388e8','#e5a63b','#dc6c91','#26a6ad','#9a78d1','#7d91a8'];const categoryColors={...(v.categoryColors||{})};categories.forEach((name,i)=>{if(!categoryColors[name])categoryColors[name]=palette[i%palette.length]});return {...v,categories,categoryColors,occurrences:v.occurrences||{},shelf:Array.isArray(v.shelf)?v.shelf:[],diary:Array.isArray(v.diary)?v.diary:[],habits:Array.isArray(v.habits)?v.habits:[],childTasks:Array.isArray(v.childTasks)?v.childTasks:[],childMoney:Array.isArray(v.childMoney)?v.childMoney:[],childGoal:v.childGoal||null}}
+function normalizeState(v){const tasks=v.tasks||[];const dayBoundaryMigrationVersion=Number(v.dayBoundaryMigrationVersion)||0;if(dayBoundaryMigrationVersion<1){const startCandidates=tasks.filter(t=>!t.dayBoundary&&TimeEngine.inferDayBoundary(t.name)==='start');const endCandidates=tasks.filter(t=>!t.dayBoundary&&TimeEngine.inferDayBoundary(t.name)==='end');if(startCandidates.length===1)startCandidates[0].dayBoundary='start';if(endCandidates.length===1)endCandidates[0].dayBoundary='end'}tasks.forEach(t=>{if(!t.scheduleMode)t.scheduleMode='fixed'});const categories=Array.isArray(v.categories)?[...v.categories]:['Личное','Работа','Здоровье','Развитие','Дом','Семья','Отдых','Другое'];(v.tasks||[]).forEach(t=>{if(t.category&&!categories.includes(t.category))categories.push(t.category)});const palette=['#8b7cf6','#42b98b','#4388e8','#e5a63b','#dc6c91','#26a6ad','#9a78d1','#7d91a8'];const categoryColors={...(v.categoryColors||{})};categories.forEach((name,i)=>{if(!categoryColors[name])categoryColors[name]=palette[i%palette.length]});return {...v,dayBoundaryMigrationVersion:1,categories,categoryColors,occurrences:v.occurrences||{},shelf:Array.isArray(v.shelf)?v.shelf:[],diary:Array.isArray(v.diary)?v.diary:[],habits:Array.isArray(v.habits)?v.habits:[],childTasks:Array.isArray(v.childTasks)?v.childTasks:[],childMoney:Array.isArray(v.childMoney)?v.childMoney:[],childGoal:v.childGoal||null}}
 async function bootStorage(){let stored;try{stored=await readLocalState()}catch(error){console.error('Не удалось прочитать локальную базу Ритма:',{name:error?.name,message:error?.message,code:error?.code,error});alert('Не удалось прочитать локальную базу. Данные не удалены. Не очищайте данные сайта. Закройте другие вкладки Ритма и повторите попытку.');render();return}try{if(validState(stored)){db=normalizeState(stored);/* Нормализация выполняется в памяти. Не переписываем пользовательскую базу при каждом запуске. */}else{if(stored!==null&&stored!==undefined)throw new Error('В IndexedDB найдена сохранённая запись, но её структура не прошла проверку. Запись оставлена без изменений для защиты данных.');let legacy=null;try{legacy=JSON.parse(localStorage.getItem('ritm_v2_demo')||'null')}catch{};if(validState(legacy)){db=normalizeState(legacy)}else{let oldTasks=[];try{oldTasks=JSON.parse(localStorage.getItem('ritm_tasks_v1')||'[]')}catch{};db=normalizeState({...seed,tasks:Array.isArray(oldTasks)?oldTasks.map(t=>({...t,shared:false})):[],occurrences:{}})}await writeLocalState(db)}render()}catch(error){const detail=[error?.name,error?.message,error?.code!==undefined?'code='+error.code:null].filter(Boolean).join(' | ');console.error('Не удалось подготовить локальную базу Ритма:',{name:error?.name,message:error?.message,code:error?.code,error});alert('Не удалось подготовить локальную базу. Существующие данные не изменены. Причина: '+(detail||'неизвестная ошибка')+'. Не очищайте данные сайта.');render()}}
 function persist(){render();if($('#moveModal')?.classList.contains('show')&&moveSelectedDate)renderMoveDay();writeLocalState(db).catch(error=>{console.error(error);alert('Не удалось сохранить изменения в локальную базу. Проверьте свободное место и обновите страницу.')})}
 function setTheme(t){theme=t;document.documentElement.dataset.theme=t;localStorage.setItem('ritm_theme',t);$('#themeBtn').textContent=t==='dark'?'☀':'☾';document.querySelector('meta[name="theme-color"]').content=t==='dark'?'#151823':'#f4f5f9'}
@@ -667,6 +667,59 @@ function renderWeekStrip(){const root=$('#weekStrip');root.replaceChildren();con
 let weekPointerX=null;$('#weekStrip').addEventListener('pointerdown',e=>{weekPointerX=e.clientX;try{$('#weekStrip').setPointerCapture(e.pointerId)}catch{}});$('#weekStrip').addEventListener('pointerup',e=>{if(weekPointerX===null)return;const dx=e.clientX-weekPointerX;weekPointerX=null;if(Math.abs(dx)>45){selected=addDays(selected,dx<0?7:-7);render()}});$('#weekStrip').addEventListener('pointercancel',()=>{weekPointerX=null});
 function formatFreeDuration(minutes){if(minutes<60)return minutes+' '+(minutes%10===1&&minutes%100!==11?'минута':minutes%10>=2&&minutes%10<=4&&!(minutes%100>=12&&minutes%100<=14)?'минуты':'минут');const hours=Math.floor(minutes/60),mins=minutes%60;const hWord=hours%10===1&&hours%100!==11?'час':hours%10>=2&&hours%10<=4&&!(hours%100>=12&&hours%100<=14)?'часа':'часов';return hours+' '+hWord+(mins?' '+mins+' мин':'')}
 function freeGapsForTasks(tasks,dateKey){
+  const now=new Date(),todayKey=key(now),isToday=todayKey===dateKey;
+  if(dateKey<todayKey)return[];
+  const window=TimeEngine.dayBoundaryWindow(tasks);
+  if(!window)return[];
+  const occupiedTasks=tasks.map((task,index)=>{
+    const indexed={...task,_freeTimeIndex:index};
+    if(!task.done)return indexed;
+    const completedAt=Date.parse(task.doneAt||'');
+    let completedMinute;
+    if(Number.isFinite(completedAt)){
+      const completedDate=new Date(completedAt);
+      if(key(completedDate)!==dateKey)return indexed;
+      completedMinute=completedDate.getHours()*60+completedDate.getMinutes();
+    }else{
+      const legacyMinute=TimeEngine.parseClock(task.actualTime);
+      if(legacyMinute===null)return indexed;
+      completedMinute=legacyMinute;
+    }
+    const start=TimeEngine.parseClock(task.time);
+    if(start===null)return indexed;
+    const elapsed=completedMinute-start;
+    if(elapsed<=0)return null;
+    const actualDuration=Math.min(TimeEngine.durationOf(task),elapsed);
+    return actualDuration>0?{...indexed,duration:actualDuration,endTime:''}:null;
+  }).filter(Boolean);
+  const occupied=TimeEngine.intervalsFor(occupiedTasks,{includeCompleted:true,dayEnd:TimeEngine.DAY_END_MINUTES});
+  const startBlock=occupied.find(block=>block.tasks.some(t=>t._freeTimeIndex===window.startIndex));
+  const endBlock=occupied.find(block=>block.tasks.some(t=>t._freeTimeIndex===window.endIndex));
+  const startLimit=Math.max(window.startMinute,startBlock?.end??window.startMinute);
+  const endLimit=Math.min(window.endMinute,endBlock?.start??window.endMinute);
+  if(startLimit>=endLimit)return[];
+  let cursor=isToday?Math.max(startLimit,now.getHours()*60+now.getMinutes()):startLimit;
+  if(cursor>=endLimit)return[];
+  let afterIndex=window.startIndex;
+  const gaps=[],clock=value=>value===1440?'24:00':TimeEngine.formatClock(value);
+  for(const block of occupied){
+    if(block.end<=cursor){
+      for(const task of block.tasks||[])if(Number.isInteger(task?._freeTimeIndex))afterIndex=Math.max(afterIndex,task._freeTimeIndex);
+      continue;
+    }
+    if(block.start>=endLimit)break;
+    if(block.start>cursor){
+      const duration=block.start-cursor;
+      if(duration>=15)gaps.push({id:dateKey+'-gap-'+gaps.length,start:clock(cursor),end:clock(block.start),duration,date:dateKey,afterIndex});
+      if(isToday&&gaps.length)return gaps;
+    }
+    cursor=Math.max(cursor,Math.min(block.end,endLimit));
+    for(const task of block.tasks||[])if(Number.isInteger(task?._freeTimeIndex))afterIndex=Math.max(afterIndex,task._freeTimeIndex);
+    if(cursor>=endLimit)break;
+  }
+  if(endLimit-cursor>=15)gaps.push({id:dateKey+'-gap-'+gaps.length,start:clock(cursor),end:clock(endLimit),duration:endLimit-cursor,date:dateKey,afterIndex});
+  return isToday?gaps.slice(0,1):gaps;
+}
   const now=new Date(),todayKey=key(now),isToday=todayKey===dateKey,nowMinutes=now.getHours()*60+now.getMinutes();
   if(dateKey<todayKey)return[];
   const occupiedTasks=tasks.map((task,index)=>{
