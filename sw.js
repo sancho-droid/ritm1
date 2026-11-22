@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v1003-fixed-parallel-family-intervals';
+const CACHE = 'ritm-v1004-time-engine-export-fix';
 const FILES = ['./', './index.html', './manifest.webmanifest', './time-engine.js', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
