@@ -130,3 +130,6 @@ export function findNextFreeGap(occupied,nowMinutes,afterIndex=-1,{dayEnd=DAY_EN
 }
 
 export function conflicts(candidate,tasks){const start=parseClock(candidate?.time);if(start===null||candidate?.scheduleMode==='parallel')return[];const end=start+durationOf(candidate);return(tasks||[]).filter(t=>{if(t===candidate||t?.id===candidate?.id||t?.done||t?.scheduleMode==='parallel')return false;const otherStart=parseClock(t?.time);if(otherStart===null)return false;const otherEnd=otherStart+durationOf(t);return start<otherEnd&&otherStart<end})}
+
+/** Sync a sleep task's end/duration to the selected wake-time task. */
+export function syncSleepToWake(sleep,wake){const start=parseClock(sleep?.time),end=parseClock(wake?.time);if(start===null||end===null)return sleep;let duration=end-start;if(duration<=0)duration+=DAY_MINUTES;sleep.endTime=wake.time;sleep.duration=duration;return sleep;}
