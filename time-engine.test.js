@@ -83,7 +83,7 @@ const running=intervalsFor([{id:'running',time:'19:30',duration:30,_freeTimeInde
 assert.deepEqual(findNextFreeGap(running,19*60+45,2),{start:20*60,end:21*60,duration:60,afterIndex:2});
 // If all remaining gaps are shorter than the threshold, no counter is shown.
 const shortOnly=intervalsFor([{time:'20:00',duration:10,_freeTimeIndex:4}],{includeCompleted:true});
-assert.equal(findNextFreeGap(shortOnly,19*60+55,3),null);
+assert.equal(findNextFreeGap(shortOnly,19*60+55,3,{dayEnd:20*60+10}),null);
 console.log('current free-time gap selection: assertions passed');
 
 
