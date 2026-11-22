@@ -691,11 +691,7 @@ function freeGapsForTasks(tasks,dateKey){
   if(isToday){
     // Today's counter represents only the current/upcoming free interval, never elapsed gaps.
     // Anchor it after the latest task whose scheduled start has already arrived.
-    let afterIndex=-1;
-    tasks.forEach((task,index)=>{
-      const start=TimeEngine.parseClock(task?.time);
-      if(start!==null&&start<=nowMinutes)afterIndex=index;
-    });
+    const afterIndex=TimeEngine.freeTimeAnchorIndex(tasks,dateKey,nowMinutes);
     if(afterIndex<0)return[];
     const nextGap=TimeEngine.findNextFreeGap(occupied,nowMinutes,afterIndex,{dayEnd:1439,minGap:15});
     if(nextGap)gaps.push({id:dateKey+'-current',start:clock(nextGap.start),end:clock(nextGap.end),duration:nextGap.duration,date:dateKey,afterIndex:nextGap.afterIndex});
