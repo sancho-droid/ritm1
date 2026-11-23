@@ -99,7 +99,7 @@ assert.match(html,/if\(!t\.isFamily&&!\(t\.time&&t\.done\)\)dragSurface\.addEven
 assert.match(html,/const root=\$\('#scheduledTasks'\),list=root\?\.querySelector\('\.timed-schedule-list'\),bead=root\?\.querySelector\('\.current-time-bead'\)/, 'all task drags create a timeline preview target');
 assert.match(html,/if\(state\.previewTime\)\{moveDraggedTaskToTime\(state\.task,state\.previewTime\);\}/, 'dropping a dated or undated card on the schedule commits its assigned time');
 assert.match(html,/state\.reorder=e\.clientX>=rect\.left&&e\.clientX<=rect\.right&&e\.clientY>=rect\.top&&e\.clientY<=rect\.bottom/, 'undated cards distinguish list sorting from dropping into the schedule');
-assert.match(html,/if\(state\.reorder\)\{[\s\S]*?return;\s*\}\s*\}\s*state\.reorder=false;updateTimedDragPreview\(state,e\)/, 'leaving the unscheduled list switches from sorting to timeline placement');
+assert.match(html,/if\(state\.reorder\)\{[\s\S]*?return;\s*\}\s*\}\s*state\.reorder=false;updateDragDisplacement\(state,e\);updateTimedDragPreview\(state,e\)/, 'leaving the unscheduled list switches from sorting to timeline placement and visual slot preview');
 assert.match(html,/if\(state\.reorder&&list\)\{/, 'sorting within the unscheduled list remains supported');
 assert.match(html,/function moveDraggedTaskToTime\(task,time,\{allowOverlap=false\}=\{\}\)/, 'successful drag has a dedicated persistence path with explicit overlap choice');
 assert.match(html,/conflicts=findTaskConflicts\(task,date,time\)/, 'drag gathers every overlapping blocking task before committing');
