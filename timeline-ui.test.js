@@ -30,6 +30,7 @@ assert.match(html, /new ResizeObserver\(updateCurrentTimeBead\)/, 'bead recalcul
 assert.match(html, /setInterval\(\(\)=>\{updateCurrentTimeBead\(\)/, 'bead follows the live clock');
 assert.match(html, /position===null\)\{bead\.style\.display='none'/, 'bead hides outside available schedule anchors and on other dates');
 assert.match(html, /bead\.style\.top=position\+'px'/, 'bead overlays the interpolated schedule position without changing card layout');
+assert.match(html, /const initialPosition=bead\.dataset\.positioned!==\'true\';if\(initialPosition\)bead\.style\.transition=\'none\';bead\.style\.top=position\+'px';bead\.style\.display=\'flex\';if\(initialPosition\)\{bead\.getBoundingClientRect\(\);bead\.style\.removeProperty\(\'transition\'\);bead\.dataset\.positioned=\'true\'\}/, 'first measured position is applied without animation; transitions are enabled only for later clock updates');
 console.log('left time rail UI integration: assertions passed');
 
 const desktopRailRule = html.indexOf('.timed-schedule-list .task{grid-template-columns:52px');
