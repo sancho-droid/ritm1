@@ -120,6 +120,30 @@ export function timeScaleBounds(tasks,now=new Date()){
 }
 /** Map the current clock minute onto the dynamic visible time range. */
 export function timeScaleRatio(start,end,minute){if(!Number.isFinite(start)||!Number.isFinite(end)||!Number.isFinite(minute)||end<=start||minute<start||minute>end)return null;return (minute-start)/(end-start)}
+
+/** Interpolate a vertical position from real schedule anchors. */
+export function timeScalePosition(anchors,minute){
+  if(!Array.isArray(anchors)||!Number.isFinite(minute))return null;
+  const sorted=anchors.filter(point=>Number.isFinite(point?.minute)&&Number.isFinite(point?.y))
+    .sort((a,b)=>a.minute-b.minute||a.y-b.y);
+  if(sorted.length<2||minute<sorted[0].minute||minute>sorted[sorted.length-1].minute)return null;
+  const unique=[];
+  for(const point of sorted){
+    const last=unique[unique.length-1];
+    if(last&&point.minute===last.minute){last.y=Math.max(last.y,point.y);continue;}
+    if(last&&point.y<last.y)continue;
+    unique.push({minute:point.minute,y:point.y});
+  }
+  if(unique.length<2||minute<unique[0].minute||minute>unique[unique.length-1].minute)return null;
+  for(let i=1;i<unique.length;i++){
+    const left=unique[i-1],right=unique[i];
+    if(minute<=right.minute){
+      const ratio=(minute-left.minute)/(right.minute-left.minute);
+      return left.y+ratio*(right.y-left.y);
+    }
+  }
+  return unique[unique.length-1].y;
+}
 export function sortChronologically(tasks){return [...tasks].sort((a,b)=>{const am=parseClock(a?.time),bm=parseClock(b?.time);if(am===null&&bm===null)return 0;if(am===null)return 1;if(bm===null)return-1;return am-bm})}
 export function intervalsFor(tasks,{includeCompleted=false,dayEnd=DAY_END_MINUTES}={}){const list=[];for(const task of tasks||[]){const start=parseClock(task?.time);if(start===null||task?.scheduleMode==='parallel'||(!includeCompleted&&task?.done))continue;const end=Math.min(dayEnd,start+durationOf(task));if(end>start)list.push({start,end,task})}list.sort((a,b)=>a.start-b.start||a.end-b.end);const merged=[];for(const item of list){const last=merged.at(-1);if(last&&item.start<last.end){last.end=Math.max(last.end,item.end);last.tasks.push(item.task)}else merged.push({start:item.start,end:item.end,tasks:[item.task]})}return merged}
 export function freeIntervals(tasks,{nowMinutes=null,dayEnd=DAY_END_MINUTES,minGap=15}={}){const occupied=intervalsFor(tasks,{dayEnd});const gaps=[];let cursor=Math.max(0,nowMinutes??0);for(const block of occupied){if(block.end<=cursor)continue;if(block.start-cursor>=minGap)gaps.push({start:cursor,end:block.start,duration:block.start-cursor});cursor=Math.max(cursor,block.end)}if(dayEnd-cursor>=minGap)gaps.push({start:cursor,end:dayEnd,duration:dayEnd-cursor});return gaps}
