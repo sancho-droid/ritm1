@@ -728,7 +728,10 @@ function updateCurrentTimeBead(){
           if(end!==null&&planned!==null){duration=end-planned;if(duration<0)duration+=TimeEngine.DAY_MINUTES}
         }
       }
-      const taskAnchors=TimeEngine.timeScaleTaskAnchors(display,duration,rect.top-rootRect.top,rect.bottom-rootRect.top);
+      const card=item.querySelector('.taskbody')||item;
+      const cardRect=card.getBoundingClientRect();
+      if(cardRect.height<=0){previousPointTask=false;continue}
+      const taskAnchors=TimeEngine.timeScaleTaskAnchors(display,duration,cardRect.top-rootRect.top,cardRect.bottom-rootRect.top);
       taskAnchors.forEach(point=>anchors.push(point));
       previousPointTask=duration===0;
     }else if(item.classList.contains('free-time-compact')||item.classList.contains('free-time-gap')){
