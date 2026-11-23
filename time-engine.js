@@ -147,6 +147,13 @@ export function timeScalePosition(anchors,minute){
     groups.push({minute:point.minute,firstY:point.y,lastY:point.y});
   }
   if(groups.length<2||minute<groups[0].minute||minute>groups[groups.length-1].minute)return null;
+  // Preserve forward-only geometry for overlapping/out-of-order visual anchors,
+  // while retaining the distinct top/bottom edges inside an equal-time group.
+  for(let i=1;i<groups.length;i++){
+    const previous=groups[i-1],current=groups[i];
+    current.firstY=Math.max(previous.lastY,current.firstY);
+    current.lastY=Math.max(current.firstY,current.lastY);
+  }
   for(let i=0;i<groups.length;i++){
     const current=groups[i];
     if(minute===current.minute)return current.firstY;
