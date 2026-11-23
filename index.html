@@ -708,7 +708,7 @@ function startTaskDrag(state){
     if(root&&list){
       const marker=document.createElement('div');marker.className='current-time-bead drag-time-bead';marker.setAttribute('aria-hidden','true');marker.textContent=state.task.time||'—';
       const rootRect=root.getBoundingClientRect(),railRect=rail?.getBoundingClientRect(),width=window.matchMedia('(max-width: 600px)').matches?41:48;
-      marker.style.left=bead?.style.left||(railRect?(railRect.left-rootRect.left+(railRect.width-width)/2)+'px':'0px');
+      marker.style.left=bead?.style.left||(railRect?(railRect.left-rootRect.left+(railRect.width-width)/2)+'px':'0px');marker.style.transition='none';
       root.append(marker);state.marker=marker;
     }
   }
@@ -736,7 +736,7 @@ function updateTimedDragPreview(state,e){
       if(Number.isFinite(raw)&&raw>0)taskDuration=Math.round(raw);
       else if(task.endTime){const end=TimeEngine.parseClock(task.endTime);if(end!==null&&taskStart!==null){taskDuration=end-taskStart;if(taskDuration<0)taskDuration+=TimeEngine.DAY_MINUTES}}
     }
-    if(taskDuration===0&&taskStart===snapped&&centerY>=cardRect.top&&centerY<=cardRect.bottom){markerY=centerY;break}
+    if(taskDuration===0&&centerY>=cardRect.top&&centerY<=cardRect.bottom){markerY=centerY;break}
   }
   state.previewTime=TimeEngine.formatClock(snapped);
   marker.textContent=state.previewTime;marker.style.top=(markerY-rootRect.top)+'px';marker.style.display='flex';
