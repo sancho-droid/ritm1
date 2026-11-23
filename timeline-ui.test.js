@@ -69,7 +69,14 @@ assert.match(html,/TimeEngine\.timelineTimeForTask\(task,now\)\?\?task\.time/, '
 assert.match(html,/if\(!task\.done\)\{\s*const raw=Number\(task\.duration\)/, 'completed cards use point anchors rather than blocking their original duration');
 assert.match(html,/TimeEngine\.timeScaleMinuteAtPosition\(anchors,topY\)/, 'drag converts the card top edge back to timeline minutes');
 assert.match(html,/function moveDraggedTaskToTime\(task,time\)/, 'successful drag has a dedicated persistence path');
-assert.match(html,/const conflict=findTaskConflict\(task,date,time\);/, 'drag rejects conflicting drops before changing task data');
+assert.match(html,/const conflicts=findTaskConflicts\(task,date,time\);/, 'drag gathers every overlapping blocking task before committing');
+assert.match(html,/function showDragConflict\(task,date,time,conflicts\)/, 'drag opens a conflict decision dialog');
+assert.match(html,/id="dragConflictCombine"/, 'user can explicitly combine overlapping tasks');
+assert.match(html,/id="dragConflictChange"/, 'user can choose a different time after a conflict');
+assert.match(html,/id="dragConflictCancel"/, 'user can cancel and restore the original task placement');
+assert.match(html,/function openDragTimeEditor\(\)/, 'change-time action opens a dedicated time editor');
+assert.match(html,/findTaskConflicts\(task,date,time\);if\(conflicts.length\)/, 'a second conflict after changing time requires another decision');
+assert.match(html,/moveDraggedTaskToTime\(pendingDragMove.task,pendingDragMove.time,\{allowOverlap:true\}\)/, 'combine explicitly commits an overlapping placement');
 assert.match(html,/if\(other\.done\|\|sameTaskOccurrence\(candidate,other\)\|\|other\?\.scheduleMode==='parallel'\)continue;/, 'completed tasks do not block a time slot after they release it');
 assert.match(html,/if\(t\.isFamily\|\|\(t\.time&&t\.done\)\)dragHandle\.remove\(\)/, 'family and completed timed cards are not draggable');
 
