@@ -42,7 +42,7 @@ assert.match(html, /now\.getSeconds\(\)\/60/,
   'bead interpolates continuously between minute ticks');
 assert.match(html, /},1000\);/,
   'bead geometry refreshes every second');
-assert.match(html, /\.current-time-bead\{position:absolute;z-index:7;left:26px;top:0;[^}]*transform:translate\(-50%,-50%\)/,
+assert.match(html, /\.current-time-bead\{position:absolute;z-index:7;left:26px;top:0;[^}]*transform:translate\(-50%,-50%\)[^}]*transition:top \.9s linear/,
   'desktop bead is centered on the 52px time rail');
 assert.match(html, /@media\(max-width:600px\)\{\.current-time-bead\{left:21\.5px;width:41px;/,
   'mobile bead is centered on the 43px time rail');
