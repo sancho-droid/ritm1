@@ -173,3 +173,7 @@ assert.deepEqual(gapCalc([{time:'10:00',duration:10},{time:'10:10',duration:10}]
 assert.deepEqual(gapCalc([{time:'08:00',duration:10},{time:'08:05',duration:20}], '2026-11-24'),[{start:'00:00',end:'08:00',duration:480,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'},{start:'08:25',end:'24:00',duration:935,date:'2026-11-24',afterIndex:1,id:'2026-11-24-gap-1'}]);
 assert.deepEqual(gapCalc([{time:'08:00',duration:10},{time:'08:20',duration:5}], '2026-11-24'),[{start:'00:00',end:'08:00',duration:480,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'},{start:'08:25',end:'24:00',duration:935,date:'2026-11-24',afterIndex:1,id:'2026-11-24-gap-1'}]);
 console.log('independent free-gap engine: regression and boundary assertions passed');
+
+// Legacy actualTime for a task crossing midnight must be interpreted as an overnight clock when it wraps.
+assert.deepEqual(gapCalc([{time:'23:00',duration:120,done:true,actualTime:'00:30'}], '2026-11-24'),[{start:'00:00',end:'23:00',duration:1380,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}]);
+assert.deepEqual(gapCalc([{time:'23:00',duration:120,done:true,actualTime:'23:30'}], '2026-11-24'),[{start:'00:00',end:'23:00',duration:1380,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}]);
