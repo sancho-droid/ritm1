@@ -77,6 +77,8 @@ assert.match(html,/if\(state\.source\.closest\('\.unscheduled-list'\)\)\{\s*cons
 assert.match(html,/state\.ghostLeft=referenceRect\.left;state\.ghostWidth=referenceRect\.width;/, 'undated drag ghost uses the same horizontal left edge and width as scheduled task cards');
 assert.match(html,/ghost\.style\.height=state\.ghostHeight\+'px'/, 'undated drag ghost preserves the original card height');
 assert.match(html,/TimeEngine\.timeScaleMinuteAtPosition\(anchors,centerY\)/, 'drag converts the card center back to timeline minutes');
+assert.match(html,/else anchors\.push\(\{minute:start,y:rect\.top\},\{minute:start,y:rect\.bottom\}\)/, 'a durationless task keeps its exact time across the full visible card height');
+assert.match(html,/taskDuration===0&&taskStart===snapped&&centerY>=cardRect\.top&&centerY<=cardRect\.bottom\)\{markerY=centerY;break\}/, 'drag preview bead stays physically attached to a durationless card while it is crossed');
 assert.doesNotMatch(html,/TimeEngine\.timeScaleMinuteAtPosition\(anchors,topY\)/, 'drag no longer maps the card top edge to a time');
 assert.match(html,/marker\.style\.top=\(\(snappedPosition\?\?centerY\)-rootRect\.top\)\+'px'/, 'drag bead is positioned at the snapped five-minute mark');
 assert.match(html,/Math\.round\(minute\/5\)\*5/, 'drag preview snaps to five-minute increments');
@@ -122,3 +124,19 @@ assert.ok(TimeEngine.timeScalePosition([...firstTaskAnchors, ...nextTaskAnchors]
 assert.equal(TimeEngine.timeScalePosition([...firstTaskAnchors, ...nextTaskAnchors], 12 * 60 + 45), 262,
   'the next task is interpolated from its own top edge to its bottom edge');
 console.log('shared task-boundary geometry: assertions passed');
+
+const pointTaskDragAnchors = [
+  { minute: 11 * 60 + 45, y: 100 }, { minute: 11 * 60 + 45, y: 150 },
+  { minute: 11 * 60 + 50, y: 162 }, { minute: 11 * 60 + 50, y: 212 }
+];
+for (const y of [100, 112, 125, 149, 150]) {
+  assert.equal(TimeEngine.formatClock(TimeEngine.timeScaleMinuteAtPosition(pointTaskDragAnchors, y)), '11:45',
+    'the entire first durationless task card retains 11:45 during drag');
+}
+for (const y of [162, 175, 190, 211, 212]) {
+  assert.equal(TimeEngine.formatClock(TimeEngine.timeScaleMinuteAtPosition(pointTaskDragAnchors, y)), '11:50',
+    'the entire next durationless task card switches cleanly to 11:50');
+}
+assert.ok(TimeEngine.timeScaleMinuteAtPosition(pointTaskDragAnchors, 156) > 11 * 60 + 45,
+  'only the visual gap between durationless cards interpolates between their times');
+console.log('durationless drag-card time lock: assertions passed');
