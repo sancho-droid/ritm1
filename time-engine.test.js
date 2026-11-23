@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {DAY_START_MINUTES,DAY_END_MINUTES,parseClock,formatClock,durationOf,syncSleepToWake,overnightContinuation,sortChronologically,intervalsFor,freeIntervals,findNextFreeGap,freeTimeAnchorIndex,conflicts,orderTimedTasksForDisplay,inferDayBoundary,assignDayBoundaryRoles,dayBoundaryIssue,dayBoundaryWindow,freeGapsForDay,} from './time-engine.js';
+import {DAY_START_MINUTES,DAY_END_MINUTES,parseClock,formatClock,durationOf,syncSleepToWake,overnightContinuation,sortChronologically,intervalsFor,freeIntervals,findNextFreeGap,freeTimeAnchorIndex,conflicts,orderTimedTasksForDisplay,inferDayBoundary,assignDayBoundaryRoles,dayBoundaryIssue,dayBoundaryWindow,freeGapsForDay,timelineTimeForTask,timeScaleBounds,} from './time-engine.js';
 assert.equal(parseClock('00:00'),0);assert.equal(parseClock('19:09'),1149);assert.equal(parseClock('23:59'),1439);assert.equal(parseClock('24:00'),null);assert.equal(parseClock('9:00'),null);assert.equal(parseClock('bad'),null);assert.equal(formatClock(1149),'19:09');assert.equal(formatClock(1440),'23:59');
 assert.deepEqual(sortChronologically([{id:'a',time:'20:15'},{id:'b',time:'17:20'},{id:'c',time:'19:00'},{id:'d',time:''}]).map(x=>x.time),['17:20','19:00','20:15','']);assert.deepEqual(sortChronologically([{id:'z',time:'09:00'},{id:'a',time:'09:00'}]).map(x=>x.id),['z','a']);
 assert.equal(durationOf({time:'23:30',endTime:'00:15'}),45);assert.deepEqual(intervalsFor([{time:'17:20',duration:30},{time:'17:45',duration:30},{time:'18:15',duration:15,done:true},{time:'19:00',duration:20}]).map(x=>[x.start,x.end]),[[1040,1095],[1140,1160]]);
@@ -197,3 +197,30 @@ assert.deepEqual(gapCalc([{time:'23:00',duration:120,done:true,actualTime:'23:30
 
 // A legacy clock before a late scheduled start is ambiguous; low post-midnight clocks wrap, evening clocks remain early.
 assert.deepEqual(gapCalc([{time:'23:00',duration:120,done:true,actualTime:'22:30'}], '2026-11-24'),[{start:'00:00',end:'24:00',duration:1440,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}]);
+
+
+// Left time rail: planned start is the default; only a genuine early completion
+// may display its actual completion clock. The task card's planned interval stays intact.
+const railNow=new Date(2026,10,23,11,0,0);
+const earlyRailTask={time:'12:00',duration:60,done:true,doneAt:'2026-11-23T08:30:00',actualTime:'08:30',completionKind:'early',occurrenceDate:'2026-11-23'};
+assert.equal(timelineTimeForTask(earlyRailTask,railNow),'08:30');
+assert.equal(earlyRailTask.time,'12:00','left rail must not rewrite the planned card time');
+assert.equal(timelineTimeForTask({...earlyRailTask,done:false},railNow),'12:00','cancelled completion returns to planned time');
+assert.equal(timelineTimeForTask({...earlyRailTask,doneAt:'2026-11-23T12:00:00',actualTime:'12:00',completionKind:'on-time-or-late'},railNow),'12:00','on-time completion keeps planned time');
+assert.equal(timelineTimeForTask({...earlyRailTask,doneAt:'2026-11-23T12:15:00',actualTime:'12:15',completionKind:'on-time-or-late'},railNow),'12:00','late completion keeps planned time');
+assert.equal(timelineTimeForTask({...earlyRailTask,doneAt:'2026-11-23T11:30:00',actualTime:'11:30',completionKind:'early'},railNow),'12:00','future completion timestamp is not shown yet');
+assert.equal(timelineTimeForTask({time:'',done:true,actualTime:'08:30'},railNow),null,'untimed task has no rail label');
+assert.equal(timelineTimeForTask({time:'12:00',done:true,actualTime:'08:30',completionKind:'early'},railNow),'08:30','legacy early completion without doneAt remains supported');
+assert.equal(timelineTimeForTask({...earlyRailTask,displayDate:'2026-11-23',occurrenceDate:'2026-11-22'},railNow),'08:30','moved occurrence uses its displayed date, not its source occurrence key');
+assert.deepEqual(
+  timeScaleBounds([
+    {time:'06:00',duration:30},
+    earlyRailTask,
+    {time:'22:00',duration:90}
+  ],railNow),
+  {start:360,end:1410},
+  'dynamic bounds use first displayed time and final scheduled end'
+);
+assert.deepEqual(timeScaleBounds([{time:'23:00',duration:120}],railNow),{start:1380,end:1500},'overnight task extends the dynamic end boundary past midnight');
+assert.equal(timeScaleBounds([{name:'no time',time:''}],railNow),null,'no timed tasks means no visible scale range');
+console.log('left time rail labels and dynamic bounds: assertions passed');
