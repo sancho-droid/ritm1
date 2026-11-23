@@ -96,7 +96,7 @@ const screenshotTasks=[
 ];
 assert.equal(freeTimeAnchorIndex(screenshotTasks,'2026-11-22',19*60+49),2);
 assert.equal(freeTimeAnchorIndex([{time:'19:50',done:true,doneAt:'2026-11-22T19:40:00'},{time:'20:00',done:false}], '2026-11-22',19*60+51),0);
-console.log('free-time placement after completed tasks: assertions passed');
+
 
 // Day boundaries are inferred once from unambiguous task names, then stored on tasks.
 assert.equal(inferDayBoundary('Подъём'),'start');
@@ -172,6 +172,23 @@ assert.deepEqual(gapCalc([{time:'10:00',duration:10}], '2026-11-24',{today:'2026
 assert.deepEqual(gapCalc([{time:'10:00',duration:10},{time:'10:10',duration:10}], '2026-11-24',{today:'2026-11-24',minute:600}),[{start:'10:20',end:'24:00',duration:820,date:'2026-11-24',afterIndex:1,id:'2026-11-24-gap-0'}]);
 assert.deepEqual(gapCalc([{time:'08:00',duration:10},{time:'08:05',duration:20}], '2026-11-24'),[{start:'00:00',end:'08:00',duration:480,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'},{start:'08:25',end:'24:00',duration:935,date:'2026-11-24',afterIndex:1,id:'2026-11-24-gap-1'}]);
 assert.deepEqual(gapCalc([{time:'08:00',duration:10},{time:'08:20',duration:5}], '2026-11-24'),[{start:'00:00',end:'08:00',duration:480,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'},{start:'08:25',end:'24:00',duration:935,date:'2026-11-24',afterIndex:1,id:'2026-11-24-gap-1'}]);
+
+// Today's free-time counter must be placed below the current-time position
+// and below every task already completed by the current moment, including
+// early-completed tasks whose scheduled start is still in the future.
+assert.deepEqual(
+  gapCalc([{id:'early-done',time:'12:00',duration:60,done:true,doneAt:'2026-11-23T08:30:00'}], '2026-11-23',{today:'2026-11-23',minute:11*60}),
+  [{start:'11:00',end:'24:00',duration:780,date:'2026-11-23',afterIndex:0,id:'2026-11-23-gap-0'}]
+);
+assert.deepEqual(
+  gapCalc([{id:'not-yet-done',time:'12:00',duration:60,done:true,doneAt:'2026-11-23T11:05:00'}], '2026-11-23',{today:'2026-11-23',minute:11*60}),
+  [{start:'11:00',end:'24:00',duration:780,date:'2026-11-23',afterIndex:-1,id:'2026-11-23-gap-0'}]
+);
+assert.deepEqual(
+  gapCalc([{id:'past',time:'09:00',duration:30},{id:'early-done',time:'12:00',duration:60,done:true,doneAt:'2026-11-23T08:30:00'}], '2026-11-23',{today:'2026-11-23',minute:11*60}),
+  [{start:'11:00',end:'24:00',duration:780,date:'2026-11-23',afterIndex:1,id:'2026-11-23-gap-0'}]
+);
+
 console.log('independent free-gap engine: regression and boundary assertions passed');
 
 // Legacy actualTime for a task crossing midnight must be interpreted as an overnight clock when it wraps.

@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v1015-time-engine-cache-bust';
+const CACHE = 'ritm-v1016-free-time-anchor-order';
 const FILES = ['./', './index.html', './manifest.webmanifest', './time-engine.js', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
