@@ -730,9 +730,27 @@ function startTaskDrag(state){
     const root=$('#scheduledTasks'),list=root?.querySelector('.timed-schedule-list'),bead=root?.querySelector('.current-time-bead'),rail=list?.querySelector('.task-time-rail');
     if(root&&list){
       const marker=document.createElement('div');marker.className='current-time-bead drag-time-bead';marker.setAttribute('aria-hidden','true');marker.textContent=state.task.time||'—';
-      const rootRect=root.getBoundingClientRect(),railRect=rail?.getBoundingClientRect(),width=window.matchMedia('(max-width: 600px)').matches?41:48;
-      marker.style.left=bead?.style.left||(railRect?(railRect.left-rootRect.left+(railRect.width-width)/2)+'px':'0px');marker.style.transition='none';
-      root.append(marker);state.marker=marker;
+      const width=window.matchMedia('(max-width: 600px)').matches?41:48;
+      // The drag marker is absolutely positioned against this root on every date.
+      // The live bead may be hidden outside today, so never reuse its stale/unset left.
+      root.style.position='relative';
+      marker.style.width=width+'px';marker.style.transition='none';
+      root.append(marker);
+      const railNode=rail?.firstChild;
+      if(railNode&&railNode.nodeType===Node.TEXT_NODE&&railNode.textContent.length>=3){
+        const railRange=document.createRange();railRange.setStart(railNode,2);railRange.setEnd(railNode,3);
+        const railColon=railRange.getBoundingClientRect();
+        const markerNode=marker.firstChild;
+        if(markerNode&&markerNode.nodeType===Node.TEXT_NODE&&markerNode.textContent.length>=3){
+          const markerRange=document.createRange();markerRange.setStart(markerNode,2);markerRange.setEnd(markerNode,3);
+          const markerColon=markerRange.getBoundingClientRect(),markerRect=marker.getBoundingClientRect();
+          const markerColonOffset=(markerColon.left+markerColon.right)/2-(markerRect.left+markerRect.right)/2;
+          const targetColon=(railColon.left+railColon.right)/2;
+          const rootRect=root.getBoundingClientRect();
+          marker.style.left=(targetColon-markerColonOffset-rootRect.left)+'px';
+        }else marker.style.left='0px';
+      }else marker.style.left='0px';
+      state.marker=marker;
     }
   }
 }
