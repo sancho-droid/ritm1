@@ -679,7 +679,7 @@ function dragTimeScaleAnchors(state,list){
         else if(task.endTime){const end=TimeEngine.parseClock(task.endTime);if(end!==null&&start!==null){duration=end-start;if(duration<0)duration+=TimeEngine.DAY_MINUTES}}
       }
       if(start===null||rect.height<=0){previousPointTask=false;continue}
-      anchors.push(...TimeEngine.timeScaleTaskAnchors(start,duration,rect.top,rect.bottom));
+      if(duration>0)anchors.push(...TimeEngine.timeScaleTaskAnchors(start,duration,rect.top,rect.bottom));else anchors.push({minute:start,y:rect.top},{minute:start,y:rect.bottom});
       previousPointTask=duration===0;
     }else if(item.classList.contains('free-time-compact')||item.classList.contains('free-time-gap')){
       let start=Number(item.dataset.startMinute);const end=Number(item.dataset.endMinute),rect=item.getBoundingClientRect();
@@ -708,7 +708,7 @@ function startTaskDrag(state){
     if(root&&list){
       const marker=document.createElement('div');marker.className='current-time-bead drag-time-bead';marker.setAttribute('aria-hidden','true');marker.textContent=state.task.time||'—';
       const rootRect=root.getBoundingClientRect(),railRect=rail?.getBoundingClientRect(),width=window.matchMedia('(max-width: 600px)').matches?41:48;
-      marker.style.left=bead?.style.left||(railRect?(railRect.left-rootRect.left+(railRect.width-width)/2)+'px':'0px');
+      marker.style.left=bead?.style.left||(railRect?(railRect.left-rootRect.left+(railRect.width-width)/2)+'px':'0px');marker.style.transition='none';
       root.append(marker);state.marker=marker;
     }
   }
@@ -726,8 +726,20 @@ function updateTimedDragPreview(state,e){
   if(minute===null){state.previewTime=null;marker.style.display='none';return}
   const snapped=Math.max(0,Math.min(1435,Math.round(minute/5)*5));
   const snappedPosition=TimeEngine.timeScalePosition(anchors,snapped);
+  let markerY=snappedPosition??centerY;
+  for(const item of list.children){
+    if(!item.classList.contains('task')||!item._task?.time)continue;
+    const task=item._task,taskStart=TimeEngine.parseClock(TimeEngine.timelineTimeForTask(task,new Date())??task.time),card=item.querySelector('.taskbody')||item,cardRect=card.getBoundingClientRect();
+    let taskDuration=0;
+    if(!task.done){
+      const raw=Number(task.duration);
+      if(Number.isFinite(raw)&&raw>0)taskDuration=Math.round(raw);
+      else if(task.endTime){const end=TimeEngine.parseClock(task.endTime);if(end!==null&&taskStart!==null){taskDuration=end-taskStart;if(taskDuration<0)taskDuration+=TimeEngine.DAY_MINUTES}}
+    }
+    if(taskDuration===0&&centerY>=cardRect.top&&centerY<=cardRect.bottom){markerY=centerY;break}
+  }
   state.previewTime=TimeEngine.formatClock(snapped);
-  marker.textContent=state.previewTime;marker.style.top=((snappedPosition??centerY)-rootRect.top)+'px';marker.style.display='flex';
+  marker.textContent=state.previewTime;marker.style.top=(markerY-rootRect.top)+'px';marker.style.display='flex';
 }
 document.addEventListener('pointermove',e=>{
   const state=touchDragState;if(!state||e.pointerId!==state.pointerId)return;
