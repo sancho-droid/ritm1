@@ -667,34 +667,10 @@ function renderWeekStrip(){const root=$('#weekStrip');root.replaceChildren();con
 let weekPointerX=null;$('#weekStrip').addEventListener('pointerdown',e=>{weekPointerX=e.clientX;try{$('#weekStrip').setPointerCapture(e.pointerId)}catch{}});$('#weekStrip').addEventListener('pointerup',e=>{if(weekPointerX===null)return;const dx=e.clientX-weekPointerX;weekPointerX=null;if(Math.abs(dx)>45){selected=addDays(selected,dx<0?7:-7);render()}});$('#weekStrip').addEventListener('pointercancel',()=>{weekPointerX=null});
 function formatFreeDuration(minutes){if(minutes<60)return minutes+' '+(minutes%10===1&&minutes%100!==11?'минута':minutes%10>=2&&minutes%10<=4&&!(minutes%100>=12&&minutes%100<=14)?'минуты':'минут');const hours=Math.floor(minutes/60),mins=minutes%60;const hWord=hours%10===1&&hours%100!==11?'час':hours%10>=2&&hours%10<=4&&!(hours%100>=12&&hours%100<=14)?'часа':'часов';return hours+' '+hWord+(mins?' '+mins+' мин':'')}
 function freeGapsForTasks(tasks,dateKey,allDayTasks=tasks){
-  const now=new Date(),todayKey=key(now),isToday=todayKey===dateKey;
-  if(dateKey<todayKey)return[];
-  const dayStart=isToday?now.getHours()*60+now.getMinutes():0,dayEnd=1440;
-  const prevDate=dateObj(dateKey);prevDate.setDate(prevDate.getDate()-1);const prevKey=key(prevDate);
-  const priorTasks=tasksForDate(prevDate).filter(t=>t.time&&t.dayBoundary==='end'||t.time&&TimeEngine.durationOf(t)+TimeEngine.parseClock(t.time)>1440);
-  const relevant=[...tasks,...priorTasks.map(t=>({...t,_priorDate:true}))];
-  const occupied=[];
-  for(const task of relevant){
-    if(!task.time||task.scheduleMode==='parallel')continue;
-    const s=TimeEngine.parseClock(task.time);if(s===null)continue;
-    let duration=TimeEngine.durationOf(task),start=s;
-    if(task._priorDate){const overflow=Math.max(0,s+duration-1440);if(overflow<=0)continue;start=0;duration=overflow;if(task.done){const completedAt=Date.parse(task.doneAt||'');if(Number.isFinite(completedAt)){const completedDate=new Date(completedAt);const completedKey=key(completedDate);if(completedKey===prevKey)duration=0;else if(completedKey===dateKey)duration=Math.max(0,Math.min(duration,completedDate.getHours()*60+completedDate.getMinutes()));}else{const actual=TimeEngine.parseClock(task.actualTime);if(actual!==null&&actual<=1440)duration=0;else if(actual!==null)duration=Math.max(0,Math.min(duration,actual-1440));}}}
-    else if(s+duration>1440)duration=1440-s;
-    if(task.done&&!task._priorDate){
-      const completedAt=Date.parse(task.doneAt||'');if(Number.isFinite(completedAt)){
-        const completedDate=new Date(completedAt);
-        if(key(completedDate)===dateKey){const cm=completedDate.getHours()*60+completedDate.getMinutes();duration=Math.max(0,cm-s);}else{const nextDate=dateObj(dateKey);nextDate.setDate(nextDate.getDate()+1);if(key(completedDate)===key(nextDate)&&s+duration>1440)duration=Math.max(0,completedDate.getHours()*60+completedDate.getMinutes()+1440-s);}
-      }else{const actual=TimeEngine.parseClock(task.actualTime);if(actual!==null)duration=Math.max(0,actual-s)}
-    }
-    if(duration>0)occupied.push({start,end:Math.min(dayEnd,start+duration),index:task._priorDate?-1:tasks.indexOf(task)});
-  }
-  occupied.sort((a,b)=>a.start-b.start||a.end-b.end);
-  const merged=[];for(const x of occupied){const last=merged.at(-1);if(last&&x.start<=last.end){last.end=Math.max(last.end,x.end);last.indices=[...(last.indices||[]),x.index]}else merged.push({...x,indices:[x.index]})}
-  let cursor=dayStart,afterIndex=-1;const gaps=[];
-  const addGap=(s,e)=>{if(e-s>=15)gaps.push({id:dateKey+'-gap-'+gaps.length,start:s===1440?'24:00':TimeEngine.formatClock(s),end:e===1440?'24:00':TimeEngine.formatClock(e),duration:e-s,date:dateKey,afterIndex})};
-  for(const block of merged){if(block.end<=cursor){afterIndex=Math.max(afterIndex,...block.indices);continue}if(block.start>=dayEnd)break;if(block.start>cursor)addGap(cursor,block.start);cursor=Math.max(cursor,block.end);afterIndex=Math.max(afterIndex,...block.indices);if(cursor>=dayEnd)break}
-  if(cursor<dayEnd)addGap(cursor,dayEnd);
-  return gaps;
+  const now=new Date(),todayKey=key(now);if(dateKey<todayKey)return[];
+  const prevDate=dateObj(dateKey);prevDate.setDate(prevDate.getDate()-1);
+  const previousDayTasks=tasksForDate(prevDate);
+  return TimeEngine.freeGapsForDay(tasks,dateKey,{todayKey,nowMinutes:now.getHours()*60+now.getMinutes(),previousDayTasks});
 }
 function openFreeGapAction(action,gap){if(action==='add'){openQuickAdd('day','',dateObj(gap.date),{gap});return}if(action==='self'){openQuickAdd('day','Время для себя',dateObj(gap.date),{gap});return}if(action==='planning'){openPlanningCalendar();return}if(action==='shelf'){openShelfPicker(gap)}}
 function renderFreeGap(gap,expanded){if(!expanded){const compact=document.createElement('button');compact.type='button';compact.className='free-time-compact';compact.textContent=formatFreeDuration(gap.duration)+' свободно';compact.setAttribute('aria-label',formatFreeDuration(gap.duration)+' свободно. Показать действия');compact.onclick=()=>{expandedFreeGapKey=gap.id;renderDay()};return compact}const root=document.createElement('div');root.className='free-time-gap';const title=document.createElement('button');title.type='button';title.className='free-time-gap-title';title.textContent=formatFreeDuration(gap.duration)+' свободно';title.setAttribute('aria-label','Свернуть меню свободного времени');title.onclick=()=>{expandedFreeGapKey=null;renderDay()};const actions=document.createElement('div');actions.className='free-time-actions';const icons={add:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',self:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.7c0 5.2-8.8 10-8.8 10s-8.8-4.8-8.8-10A4.7 4.7 0 0 1 12 6.4a4.7 4.7 0 0 1 8.8 2.3Z"/></svg>',planning:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M7.5 3v4M16.5 3v4M3.5 9.5h17"/></svg>',shelf:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4.5h12a1.5 1.5 0 0 1 1.5 1.5v14L12 16l-7.5 4V6A1.5 1.5 0 0 1 6 4.5Z"/></svg>'};const buttons=[['Добавить','add'],['Для себя','self'],['Планы','planning'],['С полки','shelf']];buttons.forEach(([label,action])=>{const b=document.createElement('button');b.type='button';b.className='free-time-action free-time-action-'+action;b.setAttribute('aria-label',label);const icon=document.createElement('span');icon.className='free-time-icon';icon.innerHTML=icons[action];const caption=document.createElement('span');caption.className='free-time-caption';caption.textContent=label;b.append(icon,caption);b.onclick=()=>openFreeGapAction(action,gap);actions.append(b)});root.append(title,actions);return root}
