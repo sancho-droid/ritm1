@@ -64,6 +64,7 @@ console.log('proportional bead geometry and centered rail integration: assertion
 assert.match(html,/class="drag-handle"/, 'task cards expose a visible drag affordance');
 assert.match(html,/dragHandle\.addEventListener\('pointerdown'/, 'drag handle receives pointer input');
 assert.match(html,/function dragTimeScaleAnchors\(state,list\)/, 'drag anchors use measured task and free-gap geometry');
+assert.doesNotMatch(html,/if\(!task\|\|task\.done\|\|task\.isFamily\|\|!task\.time\|\|sameTaskOccurrence\(task,state\.task\)\)/, 'the dragged task remains an anchor so its original time interval is not stretched across neighboring gaps');
 assert.match(html,/TimeEngine\.timeScaleMinuteAtPosition\(anchors,topY\)/, 'drag converts the card top edge back to timeline minutes');
 assert.match(html,/function moveDraggedTaskToTime\(task,time\)/, 'successful drag has a dedicated persistence path');
 assert.match(html,/const conflict=findTaskConflict\(task,date,time\);/, 'drag rejects conflicting drops before changing task data');
