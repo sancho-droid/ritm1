@@ -62,7 +62,7 @@ assert.match(html, /@media\(max-width:600px\)\{\.current-time-bead\{width:41px;/
   'mobile bead is centered on the 43px time rail');
 console.log('proportional bead geometry and centered rail integration: assertions passed');
 assert.match(html,/class="drag-handle"/, 'task cards expose a visible drag affordance');
-assert.match(html,/handle\.addEventListener\('pointerdown'/, 'drag handle receives pointer input');
+assert.match(html,/dragHandle\.addEventListener\('pointerdown'/, 'drag handle receives pointer input');
 assert.match(html,/function dragTimeScaleAnchors\(state,list\)/, 'drag anchors use measured task and free-gap geometry');
 assert.match(html,/TimeEngine\.timeScaleMinuteAtPosition\(anchors,topY\)/, 'drag converts the card top edge back to timeline minutes');
 assert.match(html,/function moveDraggedTaskToTime\(task,time\)/, 'successful drag has a dedicated persistence path');
