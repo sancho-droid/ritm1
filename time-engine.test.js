@@ -239,7 +239,16 @@ assert.equal(timeScalePosition([{minute:0,y:10},{minute:60,y:70},{minute:120,y:1
 assert.equal(timeScalePosition([{minute:0,y:10},{minute:60,y:70}],-1),null);
 assert.equal(timeScalePosition([{minute:0,y:10},{minute:60,y:70}],61),null);
 assert.equal(timeScalePosition([{minute:0,y:10},{minute:60,y:70},{minute:30,y:80}],45),80,'overlapping visual anchors never make the bead move backwards');
-assert.equal(timeScalePosition([{minute:0,y:10},{minute:0,y:20},{minute:60,y:80}],0),20);
+assert.equal(timeScalePosition([{minute:0,y:10},{minute:0,y:20},{minute:60,y:80}],0),10,
+  'at an equal-time boundary, the exact timestamp belongs to the first edge rather than collapsing to the later card edge');
+const firstBoundaryAnchors=timeScaleTaskAnchors(720,30,100,200);
+const secondBoundaryAnchors=timeScaleTaskAnchors(750,30,212,312);
+const sharedBoundaryAnchors=[...firstBoundaryAnchors,...secondBoundaryAnchors];
+assert.equal(timeScalePosition(sharedBoundaryAnchors,720),100,'task start aligns to its visible top border');
+assert.equal(timeScalePosition(sharedBoundaryAnchors,735),150,'bead moves proportionally inside the first card');
+assert.equal(timeScalePosition(sharedBoundaryAnchors,750),200,'task end aligns to the visible bottom border at the shared minute');
+assert.ok(timeScalePosition(sharedBoundaryAnchors,750.001)>212,'after the shared minute the bead continues from the next card top, preserving the inter-card gap');
+assert.equal(timeScalePosition(sharedBoundaryAnchors,765),262,'the next task uses its own card geometry');
 
 assert.deepEqual(timeScaleTaskAnchors(637,220,100,320),[{minute:637,y:100},{minute:857,y:320}],
   'a 3h40m task spans its complete card height');
