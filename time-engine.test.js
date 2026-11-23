@@ -145,3 +145,31 @@ console.log('day-boundary per-task migration, rename persistence and same-day am
 
 // Sleep end and duration follow wake-time task; crossing midnight is supported.
 const sleepSync={name:'Сон',time:'23:00',endTime:'06:00',duration:420};syncSleepToWake(sleepSync,{name:'Подъём',time:'08:00'});assert.deepEqual(sleepSync,{name:'Сон',time:'23:00',endTime:'08:00',duration:540});const sleepCross={name:'Сон',time:'22:00',endTime:'06:00',duration:480};syncSleepToWake(sleepCross,{name:'Подъём',time:'07:00'});assert.deepEqual(sleepCross,{name:'Сон',time:'22:00',endTime:'07:00',duration:540});const sameClockSleep={name:'Сон',time:'23:00',endTime:'07:00',duration:480};syncSleepToWake(sameClockSleep,{name:'Подъём',time:'23:00'});assert.deepEqual(sameClockSleep,{name:'Сон',time:'23:00',endTime:'07:00',duration:480});assert.deepEqual(overnightContinuation({id:'sleep',name:'Сон',time:'23:00',duration:540,endTime:'08:00',dayBoundary:'end'},'2026-11-23'),{id:'sleep@continuation-2026-11-23',name:'Сон (продолжение)',time:'00:00',endTime:'08:00',duration:480,dayBoundary:'continuation',overnightContinuation:true,date:'2026-11-23',displayDate:'2026-11-23'});assert.equal(overnightContinuation({name:'Тренировка',time:'08:00',duration:60},'2026-11-23'),null);console.log('sleep auto-sync and overnight continuation: assertions passed');
+
+// New independent free-time calculation: direct coverage with deterministic date/time inputs.
+const gapCalc=(tasks,date,{today='2026-11-23',minute=360,previous=[]}={})=>freeGapsForDay(tasks,date,{todayKey:today,nowMinutes:minute,previousDayTasks:previous});
+assert.deepEqual(gapCalc([], '2026-11-22',{today:'2026-11-23'}),[],'past dates must not show free time');
+assert.deepEqual(gapCalc([], '2026-11-23',{minute:600}),[{start:'10:00',end:'24:00',duration:840,date:'2026-11-23',afterIndex:-1,id:'2026-11-23-gap-0'}]);
+assert.deepEqual(gapCalc([], '2026-11-24',{minute:600}),[{start:'00:00',end:'24:00',duration:1440,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}]);
+assert.deepEqual(gapCalc([{time:'08:00',duration:60},{time:'12:00',duration:30}], '2026-11-24'),[
+ {start:'00:00',end:'08:00',duration:480,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'},
+ {start:'09:00',end:'12:00',duration:180,date:'2026-11-24',afterIndex:0,id:'2026-11-24-gap-1'},
+ {start:'12:30',end:'24:00',duration:690,date:'2026-11-24',afterIndex:1,id:'2026-11-24-gap-2'}]);
+assert.deepEqual(gapCalc([{time:'08:00',duration:60,scheduleMode:'parallel'}], '2026-11-24'),[{start:'00:00',end:'24:00',duration:1440,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}]);
+assert.deepEqual(gapCalc([{time:'08:00',duration:120,done:true,doneAt:'2026-11-24T08:30:00'}], '2026-11-24'),[
+ {start:'00:00',end:'08:00',duration:480,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'},
+ {start:'08:30',end:'24:00',duration:930,date:'2026-11-24',afterIndex:0,id:'2026-11-24-gap-1'}]);
+assert.deepEqual(gapCalc([{time:'08:00',duration:120,done:true,actualTime:'08:30'}], '2026-11-24'),[
+ {start:'00:00',end:'08:00',duration:480,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'},
+ {start:'08:30',end:'24:00',duration:930,date:'2026-11-24',afterIndex:0,id:'2026-11-24-gap-1'}]);
+assert.deepEqual(gapCalc([{time:'23:00',duration:120}], '2026-11-24',{previous:[{time:'23:00',duration:120}]}),[{start:'00:00',end:'01:00',duration:60,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}]);
+assert.deepEqual(gapCalc([], '2026-11-24',{previous:[{time:'23:00',duration:120,dayBoundary:'end'}]}),[{start:'00:00',end:'01:00',duration:60,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}]);
+assert.deepEqual(gapCalc([], '2026-11-24',{previous:[{time:'23:00',duration:120,done:true,doneAt:'2026-11-23T23:30:00'}]}),[{start:'00:00',end:'24:00',duration:1440,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}]);
+assert.deepEqual(gapCalc([], '2026-11-24',{previous:[{time:'23:00',duration:120,done:true,doneAt:'2026-11-24T00:30:00'}]}),[{start:'00:30',end:'24:00',duration:1410,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}]);
+assert.deepEqual(gapCalc([], '2026-11-24',{previous:[{time:'23:00',duration:120,done:true,actualTime:'00:30'}]}),[{start:'00:30',end:'24:00',duration:1410,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}]);
+assert.deepEqual(gapCalc([{time:'23:30',duration:90,done:true,doneAt:'2026-11-25T00:15:00'}], '2026-11-24'),[{start:'00:00',end:'23:30',duration:1410,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}]);
+assert.deepEqual(gapCalc([{time:'10:00',duration:10}], '2026-11-24',{minute:600}),[{start:'10:10',end:'24:00',duration:830,date:'2026-11-24',afterIndex:0,id:'2026-11-24-gap-0'}]);
+assert.deepEqual(gapCalc([{time:'10:00',duration:10},{time:'10:10',duration:10}], '2026-11-24',{minute:600}),[{start:'10:20',end:'24:00',duration:820,date:'2026-11-24',afterIndex:1,id:'2026-11-24-gap-0'}]);
+assert.deepEqual(gapCalc([{time:'08:00',duration:10},{time:'08:05',duration:20}], '2026-11-24'),[{start:'00:00',end:'08:25',duration:505,date:'2026-11-24',afterIndex:1,id:'2026-11-24-gap-0'},{start:'08:25',end:'24:00',duration:935,date:'2026-11-24',afterIndex:1,id:'2026-11-24-gap-1'}]);
+assert.deepEqual(gapCalc([{time:'08:00',duration:10},{time:'08:20',duration:5}], '2026-11-24'),[{start:'00:00',end:'08:00',duration:480,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'},{start:'08:10',end:'08:20',duration:10,date:'2026-11-24',afterIndex:0,id:'2026-11-24-gap-1'},{start:'08:25',end:'24:00',duration:935,date:'2026-11-24',afterIndex:1,id:'2026-11-24-gap-2'}]);
+console.log('independent free-gap engine: regression and boundary assertions passed');
