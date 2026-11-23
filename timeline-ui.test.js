@@ -100,7 +100,7 @@ assert.match(html,/item\.style\.setProperty\('min-height',height\+'px','importan
 assert.match(html,/item\.style\.transform='translateY\('\+shift\+'px\)'/, 'neighboring cards move visually without changing their layout data');
 assert.match(html,/item\.style\.removeProperty\('transform'\)/, 'temporary visual displacement can be removed');
 assert.match(html,/state\.reorder=false;updateDragDisplacement\(state,e\);updateTimedDragPreview\(state,e\)/, 'schedule displacement updates during pointer movement');
-assert.match(html,/clearTimeout\(state\.timer\);clearDragDisplacement\(\);state\.ghost\?\.remove\(\)/, 'all displaced cards return to their original visual positions when dragging ends');
+assert.match(html,/clearTimeout\(state\.timer\);clearDragDisplacement\(\);clearDragTimeScale\(state\);state\.ghost\?\.remove\(\)/, 'all displaced cards and expanded free-time gaps return to their original geometry when dragging ends');
 assert.match(html,/now\.getSeconds\(\)\/60/, 'live current-time bead retains second-level precision independently of drag snapping');
 assert.doesNotMatch(html,/Math\.round\(minute\)\)/, 'drag preview no longer uses one-minute precision');
 assert.match(html,/marker\.textContent=state\.task\.time\|\|'—'/, 'undated tasks receive a visible preview bead when entering the timeline');
