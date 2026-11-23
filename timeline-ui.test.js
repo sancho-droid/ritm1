@@ -64,7 +64,9 @@ console.log('proportional bead geometry and centered rail integration: assertion
 assert.match(html,/class="drag-handle"/, 'task cards expose a visible drag affordance');
 assert.match(html,/dragHandle\.addEventListener\('pointerdown'/, 'drag handle receives pointer input');
 assert.match(html,/function dragTimeScaleAnchors\(state,list\)/, 'drag anchors use measured task and free-gap geometry');
-assert.doesNotMatch(html,/if\(!task\|\|task\.done\|\|task\.isFamily\|\|!task\.time\|\|sameTaskOccurrence\(task,state\.task\)\)/, 'the dragged task remains an anchor so its original time interval is not stretched across neighboring gaps');
+assert.doesNotMatch(html,/if\(!task\|\|task\.done\|\|task\.isFamily\|\|!task\.time\)/, 'completed, family and dragged task cards remain part of the visual time geometry');
+assert.match(html,/TimeEngine\.timelineTimeForTask\(task,now\)\?\?task\.time/, 'drag anchors use the same displayed time as the current-time bead');
+assert.match(html,/if\(!task\.done\)\{\s*const raw=Number\(task\.duration\)/, 'completed cards use point anchors rather than blocking their original duration');
 assert.match(html,/TimeEngine\.timeScaleMinuteAtPosition\(anchors,topY\)/, 'drag converts the card top edge back to timeline minutes');
 assert.match(html,/function moveDraggedTaskToTime\(task,time\)/, 'successful drag has a dedicated persistence path');
 assert.match(html,/const conflict=findTaskConflict\(task,date,time\);/, 'drag rejects conflicting drops before changing task data');
