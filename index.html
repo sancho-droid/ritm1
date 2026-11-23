@@ -219,7 +219,7 @@ input,select,textarea{font-size:16px}
 
 /* Plain schedule cards and undated-task sorting. */
 .schedule-list,.unscheduled-list{display:flex;flex-direction:column;gap:7px;min-width:0}
-/* Invisible day coordinates stay inside the timed-task window: 00:00 at its top, 23:59 after its last timed card. */
+/* Invisible anchors store the dynamic start and end of the timed-task range. */
 .timed-schedule-list{position:relative}
 .schedule-day-boundary{position:absolute;left:0;width:0;height:0;overflow:hidden;visibility:hidden;pointer-events:none}
 .schedule-day-boundary-start{top:0}
