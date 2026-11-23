@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import * as TimeEngine from './time-engine.js';
 
 const html = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
 assert.match(html, /\.timed-schedule-list \.task\{grid-template-columns:52px minmax\(0,1fr\) auto\}/);
@@ -55,3 +56,17 @@ assert.match(html, /bead\.style\.left=\(targetColon-beadColonOffset-rootRect\.le
 assert.match(html, /@media\(max-width:600px\)\{\.current-time-bead\{width:41px;/,
   'mobile bead is centered on the 43px time rail');
 console.log('proportional bead geometry and centered rail integration: assertions passed');
+
+const firstTaskAnchors = TimeEngine.timeScaleTaskAnchors(12 * 60, 30, 100, 200);
+const nextTaskAnchors = TimeEngine.timeScaleTaskAnchors(12 * 60 + 30, 30, 212, 312);
+const sharedBoundary = TimeEngine.timeScalePosition([...firstTaskAnchors, ...nextTaskAnchors], 12 * 60 + 30);
+assert.equal(sharedBoundary, 200, 'at a shared timestamp the bead axis lands on the previous card bottom border');
+assert.equal(TimeEngine.timeScalePosition([...firstTaskAnchors, ...nextTaskAnchors], 12 * 60), 100,
+  'task start aligns with the top border of the card');
+assert.equal(TimeEngine.timeScalePosition([...firstTaskAnchors, ...nextTaskAnchors], 12 * 60 + 15), 150,
+  'during the task the bead axis interpolates inside the card');
+assert.ok(TimeEngine.timeScalePosition([...firstTaskAnchors, ...nextTaskAnchors], 12 * 60 + 30 + 0.001) > 212,
+  'after the shared boundary the bead continues from the next card top, preserving the visible inter-card gap');
+assert.equal(TimeEngine.timeScalePosition([...firstTaskAnchors, ...nextTaskAnchors], 12 * 60 + 45), 262,
+  'the next task is interpolated from its own top edge to its bottom edge');
+console.log('shared task-boundary geometry: assertions passed');
