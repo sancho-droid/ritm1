@@ -4,8 +4,8 @@ import * as TimeEngine from './time-engine.js';
 
 const html = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
 const serviceWorker = readFileSync(new URL('./sw.js', import.meta.url), 'utf8');
-assert.match(html, /import \* as TimeEngine from '\.\/time-engine\.js\?v=20261123-6'/);
-assert.match(serviceWorker, /'\.\/time-engine\.js\?v=20261123-6'/, 'service worker precaches the versioned module URL used by the app');
+assert.match(html, /import \* as TimeEngine from '\.\/time-engine\.js\?v=20261123-5'/);
+assert.match(serviceWorker, /'\.\/time-engine\.js\?v=20261123-5'/, 'service worker precaches the versioned module URL used by the app');
 assert.match(html, /\.timed-schedule-list \.task\{grid-template-columns:52px minmax\(0,1fr\) auto\}/);
 assert.match(html, /\.timed-schedule-list \.taskbody\{grid-column:2\}/);
 assert.match(html, /\.timed-schedule-list \.tasktools\{grid-column:3\}/);
