@@ -23,7 +23,7 @@ assert.match(html, /TimeEngine\.timeScalePosition\(anchors,minute\)/, 'bead posi
 assert.match(html, /if\(!list\.querySelector\('\.task'\)\)\{bead\.style\.display='none'/, 'bead stays hidden when the timed schedule is empty');
 assert.match(html, /item\.classList\.contains\('task'\)&&item\._task/);
 assert.match(html, /item\.dataset\.startMinute/);
-assert.match(html, /addAnchor\(plannedTime\+TimeEngine\.durationOf\(task\),rect\.bottom\)/);
+assert.match(html, /TimeEngine\.timeScaleTaskAnchors\(display,duration,rect\.top-rootRect\.top,rect\.bottom-rootRect\.top\)/, 'task anchors use full card geometry');
 assert.match(html, /new ResizeObserver\(updateCurrentTimeBead\)/, 'bead recalculates after card or boundary geometry changes');
 assert.match(html, /setInterval\(\(\)=>\{updateCurrentTimeBead\(\)/, 'bead follows the live clock');
 assert.match(html, /position===null\)\{bead\.style\.display='none'/, 'bead hides outside available schedule anchors and on other dates');
