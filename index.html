@@ -690,6 +690,7 @@ let currentTimeResizeObserver=null;
 function updateCurrentTimeBead(){
   const root=$('#scheduledTasks'),bead=root?.querySelector('.current-time-bead'),list=root?.querySelector('.timed-schedule-list');
   if(!bead||!list)return;
+  if(!list.querySelector('.task')){bead.style.display='none';return}
   const now=new Date(),minute=now.getHours()*60+now.getMinutes();
   if(key(selected)!==key(now)){bead.style.display='none';return}
   const rootRect=root.getBoundingClientRect(),anchors=[];
