@@ -46,8 +46,12 @@ assert.match(html, /\.current-time-bead\{position:absolute;z-index:7;left:0;top:
   'bead uses measured horizontal position and smooth vertical transition');
 assert.match(html, /\.current-time-bead\{position:absolute;z-index:7;left:0;top:0;/,
   'bead horizontal position is measured from the real grid track rather than hardcoded');
-assert.match(html, /const railWidth=Math\.max\(0,bodyRect\.left-cardRect\.left-gap\);\s*bead\.style\.left=\(cardRect\.left-rootRect\.left\+railWidth\/2\)\+'px';/,
-  'bead is centered on the measured first grid column at every breakpoint');
+assert.match(html, /const railColon=railRange\.getBoundingClientRect\(\)/,
+  'bead alignment measures the actual colon glyph in the task time rail');
+assert.match(html, /const beadColonOffset=\(beadColon\.left\+beadColon\.right\)\/2-\(beadRect\.left\+beadRect\.right\)\/2/,
+  'bead alignment compensates for its own colon glyph offset');
+assert.match(html, /bead\.style\.left=\(targetColon-beadColonOffset-rootRect\.left\)\+'px'/,
+  'the two colon glyph centers share the same vertical axis');
 assert.match(html, /@media\(max-width:600px\)\{\.current-time-bead\{width:41px;/,
   'mobile bead is centered on the 43px time rail');
 console.log('proportional bead geometry and centered rail integration: assertions passed');

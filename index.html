@@ -694,14 +694,22 @@ function updateCurrentTimeBead(){
   const now=new Date(),minute=now.getHours()*60+now.getMinutes()+now.getSeconds()/60;
   if(key(selected)!==key(now)){bead.style.display='none';return}
   const rootRect=root.getBoundingClientRect(),anchors=[];
-  // Align the bead to the actual first grid track, not a guessed fixed offset.
-  const firstCard=list.querySelector('.task');
-  const firstBody=firstCard?.querySelector('.taskbody');
-  if(firstCard&&firstBody){
-    const cardRect=firstCard.getBoundingClientRect(),bodyRect=firstBody.getBoundingClientRect();
-    const styles=getComputedStyle(firstCard),gap=parseFloat(styles.columnGap)||0;
-    const railWidth=Math.max(0,bodyRect.left-cardRect.left-gap);
-    bead.style.left=(cardRect.left-rootRect.left+railWidth/2)+'px';
+  // Align the colon glyph itself with the colon in the task time rail.
+  const firstRail=list.querySelector('.task-time-rail');
+  if(firstRail){
+    const railNode=firstRail.firstChild;
+    if(railNode&&railNode.nodeType===Node.TEXT_NODE&&railNode.textContent.length>=3){
+      const railRange=document.createRange();railRange.setStart(railNode,2);railRange.setEnd(railNode,3);
+      const railColon=railRange.getBoundingClientRect();
+      const beadNode=bead.firstChild;
+      if(beadNode&&beadNode.nodeType===Node.TEXT_NODE&&beadNode.textContent.length>=3){
+        const beadRange=document.createRange();beadRange.setStart(beadNode,2);beadRange.setEnd(beadNode,3);
+        const beadColon=beadRange.getBoundingClientRect(),beadRect=bead.getBoundingClientRect();
+        const beadColonOffset=(beadColon.left+beadColon.right)/2-(beadRect.left+beadRect.right)/2;
+        const targetColon=(railColon.left+railColon.right)/2;
+        bead.style.left=(targetColon-beadColonOffset-rootRect.left)+'px';
+      }
+    }
   }
   const addAnchor=(time,y)=>{if(Number.isFinite(time)&&Number.isFinite(y))anchors.push({minute:time,y:y-rootRect.top})};
   let previousPointTask=false;
@@ -734,6 +742,7 @@ function updateCurrentTimeBead(){
   if(position===null){bead.style.display='none';return}
   bead.textContent=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
   bead.setAttribute('aria-label','Текущее время '+bead.textContent);
+  // Re-measure after text changes so the colon remains on the exact same axis.
   bead.style.top=position+'px';bead.style.display='flex';
 }
 function mountCurrentTimeBead(list,divider){
