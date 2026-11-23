@@ -129,15 +129,6 @@ export function timeScaleTaskAnchors(startMinute,duration,top,bottom){
   return [{minute:startMinute,y:(top+bottom)/2},{minute:startMinute+1,y:bottom}];
 }
 
-/** Temporary drag scale: give long free gaps enough physical height to make
- * their time range controllable by touch, without changing scheduled data.
- */
-export function dragGapHeight(duration,currentHeight=0){
-  const existing=Number.isFinite(currentHeight)?Math.max(0,currentHeight):0;
-  if(!Number.isFinite(duration)||duration<=0)return existing;
-  return Math.max(existing,Math.min(600,duration*0.8));
-}
-
 /** Interpolate a vertical position from real schedule anchors.
  * Equal-time anchors can represent two different card edges: the previous
  * card's bottom and the next card's top. Keep both instead of flattening the

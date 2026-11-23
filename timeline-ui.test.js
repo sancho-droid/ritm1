@@ -34,11 +34,6 @@ assert.match(html, /setInterval\(\(\)=>\{updateCurrentTimeBead\(\)/, 'bead follo
 assert.match(html, /position===null\)\{bead\.style\.display='none'/, 'bead hides outside available schedule anchors and on other dates');
 assert.match(html, /bead\.style\.top=position\+'px'/, 'bead overlays the interpolated schedule position without changing card layout');
 assert.match(html, /const initialPosition=bead\.dataset\.positioned!==\'true\';if\(initialPosition\)bead\.style\.transition=\'none\';bead\.style\.top=position\+'px';bead\.style\.display=\'flex\';if\(initialPosition\)\{bead\.getBoundingClientRect\(\);bead\.style\.removeProperty\(\'transition\'\);bead\.dataset\.positioned=\'true\'\}/, 'first measured position is applied without animation; transitions are enabled only for later clock updates');
-assert.equal(TimeEngine.dragGapHeight(300,34),240,'five free hours expand to a usable 240px touch range');
-assert.equal(TimeEngine.dragGapHeight(200,34),160,'a 3h20m free gap receives proportional touch space');
-assert.equal(TimeEngine.dragGapHeight(900,34),600,'very long gaps are capped to keep the temporary timeline manageable');
-assert.equal(TimeEngine.dragGapHeight(60,80),80,'existing taller free-time cards are never compressed');
-assert.equal(TimeEngine.dragGapHeight(-10,34),34,'invalid or non-positive gaps keep their original height');
 console.log('left time rail UI integration: assertions passed');
 
 const desktopRailRule = html.indexOf('.timed-schedule-list .task{grid-template-columns:52px');
@@ -93,14 +88,10 @@ assert.doesNotMatch(html,/TimeEngine\.timeScalePosition\(anchors,snapped\)/, 'pr
 assert.match(html,/function dragItemRect\(item\)/, 'drag geometry can ignore temporary visual transforms');
 assert.match(html,/while\(node&&node!==list\)/, 'drag geometry removes transforms from the full ancestor chain');
 assert.match(html,/function updateDragDisplacement\(state,e\)/, 'neighboring schedule cards receive temporary visual displacement');
-assert.match(html,/function expandDragTimeScale\(state,list\)/, 'free gaps expand while a card is dragged');
-assert.match(html,/TimeEngine\.dragGapHeight\(duration,rect\.height\)/, 'free-gap drag scale follows elapsed minutes and rendered height');
-assert.match(html,/function clearDragTimeScale\(state\)/, 'temporary free-gap expansion is restored after drag');
-assert.match(html,/item\.style\.setProperty\('min-height',height\+'px','important'\)/, 'expanded drag space is applied to the visible free-time gap');
 assert.match(html,/item\.style\.transform='translateY\('\+shift\+'px\)'/, 'neighboring cards move visually without changing their layout data');
 assert.match(html,/item\.style\.removeProperty\('transform'\)/, 'temporary visual displacement can be removed');
 assert.match(html,/state\.reorder=false;updateDragDisplacement\(state,e\);updateTimedDragPreview\(state,e\)/, 'schedule displacement updates during pointer movement');
-assert.match(html,/clearTimeout\(state\.timer\);clearDragDisplacement\(\);clearDragTimeScale\(state\);state\.ghost\?\.remove\(\)/, 'all displaced cards and expanded free-time gaps return to their original geometry when dragging ends');
+assert.match(html,/clearTimeout\(state\.timer\);clearDragDisplacement\(\);state\.ghost\?\.remove\(\)/, 'all displaced cards return to their original visual positions when dragging ends');
 assert.match(html,/now\.getSeconds\(\)\/60/, 'live current-time bead retains second-level precision independently of drag snapping');
 assert.doesNotMatch(html,/Math\.round\(minute\)\)/, 'drag preview no longer uses one-minute precision');
 assert.match(html,/marker\.textContent=state\.task\.time\|\|'—'/, 'undated tasks receive a visible preview bead when entering the timeline');

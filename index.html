@@ -247,7 +247,6 @@ input,select,textarea{font-size:16px}
 @media(max-width:600px){.current-time-bead{width:41px;height:19px;font-size:10px}}
 .drag-time-bead{z-index:9;transition:none}
 .timed-schedule-list>.drag-displaced{transition:transform .12s ease;will-change:transform}
-.timed-schedule-list .drag-time-expanded{transition:min-height .14s ease}
 @media(max-width:600px){.timed-schedule-list .task{grid-template-columns:43px minmax(0,1fr) auto}}
 
 .time-clear-wrap{position:relative;width:100%}.time-clear-wrap input{width:100%}.time-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;border-radius:8px;background:var(--soft);color:var(--muted);font-size:11px;padding:5px 8px;min-height:28px}
@@ -683,28 +682,6 @@ function clearDragDisplacement(){
   const list=$('#scheduledTasks .timed-schedule-list');if(!list)return;
   for(const item of list.children){item.classList.remove('drag-displaced');item.style.removeProperty('transform')}
 }
-function expandDragTimeScale(state,list){
-  if(!list)return;
-  state.expandedGaps=new Map();
-  for(const item of list.children){
-    if(!item.classList.contains('free-time-compact')&&!item.classList.contains('free-time-gap'))continue;
-    const start=Number(item.dataset.startMinute),end=Number(item.dataset.endMinute),duration=end-start;
-    if(!Number.isFinite(start)||!Number.isFinite(end)||duration<=0)continue;
-    const rect=dragItemRect(item),height=TimeEngine.dragGapHeight(duration,rect.height);
-    if(height<=rect.height+1)continue;
-    state.expandedGaps.set(item,{value:item.style.getPropertyValue('min-height'),priority:item.style.getPropertyPriority('min-height')});
-    item.classList.add('drag-time-expanded');
-    item.style.setProperty('min-height',height+'px','important');
-  }
-}
-function clearDragTimeScale(state){
-  for(const [item,previous] of state.expandedGaps||[]){
-    item.classList.remove('drag-time-expanded');
-    if(previous.value)item.style.setProperty('min-height',previous.value,previous.priority);
-    else item.style.removeProperty('min-height');
-  }
-  state.expandedGaps?.clear();
-}
 function updateDragDisplacement(state,e){
   const list=$('#scheduledTasks .timed-schedule-list');if(!list)return;
   const all=[...list.children],items=all.filter(item=>item!==state.source);
@@ -771,7 +748,6 @@ function startTaskDrag(state){
       marker.style.left=bead?.style.left||(railRect?(railRect.left-rootRect.left+(railRect.width-width)/2)+'px':'0px');marker.style.transition='none';
       root.append(marker);state.marker=marker;
     }
-    expandDragTimeScale(state,list);
   }
 }
 function updateTimedDragPreview(state,e){
@@ -817,7 +793,7 @@ document.addEventListener('pointermove',e=>{
   state.reorder=false;updateDragDisplacement(state,e);updateTimedDragPreview(state,e);
 });
 function clearTaskDrag(state){
-  clearTimeout(state.timer);clearDragDisplacement();clearDragTimeScale(state);state.ghost?.remove();state.marker?.remove();
+  clearTimeout(state.timer);clearDragDisplacement();state.ghost?.remove();state.marker?.remove();
   state.source?.classList.remove('dragging','drag-source');
 }
 document.addEventListener('pointerup',e=>{
