@@ -243,7 +243,7 @@ assert.equal(timeScalePosition([{minute:0,y:10},{minute:0,y:20},{minute:60,y:80}
 
 assert.deepEqual(timeScaleTaskAnchors(637,220,100,320),[{minute:637,y:100},{minute:857,y:320}],
   'a 3h40m task spans its complete card height');
-assert.equal(timeScalePosition(timeScaleTaskAnchors(637,220,100,320),747),200,
+assert.equal(timeScalePosition(timeScaleTaskAnchors(637,220,100,320),747),210,
   'bead is proportional to elapsed time inside a task card');
 assert.equal(timeScalePosition(timeScaleTaskAnchors(637,15,100,160),644.5),130,
   'a 15-minute task uses its full card height');
