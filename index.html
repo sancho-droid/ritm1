@@ -897,7 +897,7 @@ function renderDatePickerDayDetails(){
  if(!datePickerDetailDate){panel.classList.add('hidden');return}
  const date=dateObj(datePickerDetailDate),family=db.family.filter(x=>x.state==='active'&&!x.hidden&&!x.sourceTaskId&&x.date===datePickerDetailDate).map(x=>({name:x.name,time:x.time||'',isFamily:true}));
  const tasks=[...tasksForDate(date),...family].sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
- $('#datePickerDayTitle').textContent='Задачи. '+labelDate(date);
+ const dayLabel=labelDate(date);$('#datePickerDayTitle').textContent='Задачи. '+dayLabel.charAt(0).toLocaleUpperCase('ru-RU')+dayLabel.slice(1);
  $('#datePickerDayCount').textContent=tasks.length+' '+(tasks.length===1?'задача':tasks.length>=2&&tasks.length<=4?'задачи':'задач');
  if(!tasks.length){const empty=document.createElement('div');empty.className='muted';empty.textContent='На этот день задач пока нет.';root.append(empty)}
  tasks.forEach(task=>{const row=document.createElement('div');row.className='date-picker-day-task';const name=document.createElement('span');name.textContent=task.name;const time=document.createElement('span');time.textContent=task.time||'Без времени';row.append(name,time);root.append(row)});
@@ -918,7 +918,7 @@ $('#dateTodayBtn').onclick=()=>{datePickerDetailDate=key(today);datePickerMonth=
 $('#datePickerDayClose').onclick=()=>{datePickerDetailDate=null;renderDatePickerDayDetails()};
 $('#datePickerDayGo').onclick=()=>{if(!datePickerDetailDate)return;selected=dateObj(datePickerDetailDate);closeModal('datePickerModal');render()};
 let dateCalendarSwipeY=null;
-$('#datePickerGrid').addEventListener('pointerdown',e=>{dateCalendarSwipeY=e.clientY;try{$('#datePickerGrid').setPointerCapture(e.pointerId)}catch{}});
+$('#datePickerGrid').addEventListener('pointerdown',e=>{dateCalendarSwipeY=e.clientY});
 $('#datePickerGrid').addEventListener('pointerup',e=>{if(dateCalendarSwipeY===null)return;const dy=e.clientY-dateCalendarSwipeY;dateCalendarSwipeY=null;if(Math.abs(dy)>45)changeDatePickerMonth(dy<0?1:-1)});
 $('#datePickerGrid').addEventListener('pointercancel',()=>{dateCalendarSwipeY=null});
 function renderWeekStrip(){
