@@ -136,3 +136,37 @@ export function syncSleepToWake(sleep,wake){const start=parseClock(sleep?.time),
 
 /** Build the next-day visual/occupancy segment for a task crossing midnight. */
 export function overnightContinuation(task,dateKey){const start=parseClock(task?.time),duration=durationOf(task);if(start===null||duration<=0||start+duration<=DAY_MINUTES)return null;const remaining=start+duration-DAY_MINUTES;return {...task,id:String(task.id||'')+'@continuation-'+dateKey,name:String(task.name||'')+' (продолжение)',time:'00:00',endTime:formatClock(remaining),duration:remaining,dayBoundary:'continuation',overnightContinuation:true,date:dateKey,displayDate:dateKey};}
+
+/** Calculate date-specific free gaps, including spillover from the previous day.
+ * now is injectable for deterministic tests; previousDayTasks must be occurrences for that date.
+ */
+export function freeGapsForDay(tasks,dateKey,{todayKey,nowMinutes=0,previousDayTasks=[],minGap=15}={}){
+  if(!dateKey||!todayKey||dateKey<todayKey)return[];
+  const dayStart=dateKey===todayKey?Math.max(0,Math.min(1439,Math.floor(nowMinutes))):0;
+  const current=Array.isArray(tasks)?tasks:[],prior=Array.isArray(previousDayTasks)?previousDayTasks:[];
+  const occupied=[];
+  const localKey=d=>String(d.getFullYear()).padStart(4,'0')+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  const dateOffset=(key,days)=>{const [y,m,d]=key.split('-').map(Number);const date=new Date(y,m-1,d,12);date.setDate(date.getDate()+days);return localKey(date)};
+  const prevKey=dateOffset(dateKey,-1),nextKey=dateOffset(dateKey,1);
+  const crosses=(t)=>{const start=parseClock(t?.time);return start!==null&&start+durationOf(t)>DAY_MINUTES;};
+  for(const task of [...current,...prior.filter(t=>crosses(t)||t?.dayBoundary==='end').map(t=>({...t,_priorDate:true}))]){
+    if(!task?.time||task.scheduleMode==='parallel')continue;
+    const s=parseClock(task.time);if(s===null)continue;
+    let start=s,duration=durationOf(task);
+    if(task._priorDate){const spill=Math.max(0,s+duration-DAY_MINUTES);if(!spill)continue;start=0;duration=spill;
+      if(task.done){const stamp=Date.parse(task.doneAt||'');if(Number.isFinite(stamp)){const completed=localKey(new Date(stamp)),minute=new Date(stamp).getHours()*60+new Date(stamp).getMinutes();if(completed===prevKey)duration=0;else if(completed===dateKey)duration=Math.min(duration,Math.max(0,minute));}
+        else {const actual=parseClock(task.actualTime);if(actual!==null)duration=Math.min(duration,Math.max(0,actual));}}
+    }else{
+      if(s+duration>DAY_MINUTES)duration=DAY_MINUTES-s;
+      if(task.done){const stamp=Date.parse(task.doneAt||'');if(Number.isFinite(stamp)){const completed=new Date(stamp),completedKey=localKey(completed),minute=completed.getHours()*60+completed.getMinutes();if(completedKey===dateKey)duration=Math.max(0,minute-s);else if(completedKey===nextKey&&s+duration>DAY_MINUTES)duration=Math.max(0,minute+DAY_MINUTES-s);}
+        else {const actual=parseClock(task.actualTime);if(actual!==null)duration=Math.max(0,actual-s);}}
+    }
+    if(duration>0)occupied.push({start,end:Math.min(DAY_MINUTES,start+duration),index:task._priorDate?-1:current.indexOf(task)});
+  }
+  occupied.sort((a,b)=>a.start-b.start||a.end-b.end);
+  const merged=[];for(const x of occupied){const last=merged.at(-1);if(last&&x.start<=last.end){last.end=Math.max(last.end,x.end);last.indices.push(x.index);}else merged.push({...x,indices:[x.index]});}
+  let cursor=dayStart,afterIndex=-1;const gaps=[];
+  const add=(s,e)=>{if(e-s>=minGap)gaps.push({start:s===1440?'24:00':formatClock(s),end:e===1440?'24:00':formatClock(e),duration:e-s,date:dateKey,afterIndex,id:dateKey+'-gap-'+gaps.length});};
+  for(const block of merged){if(block.end<=cursor){afterIndex=Math.max(afterIndex,...block.indices);continue;}if(block.start>=DAY_MINUTES)break;if(block.start>cursor)add(cursor,block.start);cursor=Math.max(cursor,block.end);afterIndex=Math.max(afterIndex,...block.indices);if(cursor>=DAY_MINUTES)break;}
+  if(cursor<DAY_MINUTES)add(cursor,DAY_MINUTES);return gaps;
+}
