@@ -78,7 +78,7 @@ assert.match(html,/state\.ghostLeft=referenceRect\.left;state\.ghostWidth=refere
 assert.match(html,/ghost\.style\.height=state\.ghostHeight\+'px'/, 'undated drag ghost preserves the original card height');
 assert.match(html,/TimeEngine\.timeScaleMinuteAtPosition\(anchors,centerY\)/, 'drag converts the card center back to timeline minutes');
 assert.match(html,/else anchors\.push\(\{minute:start,y:rect\.top\},\{minute:start,y:rect\.bottom\}\)/, 'a durationless task keeps its exact time across the full visible card height');
-assert.match(html,/taskDuration===0&&taskStart===snapped&&centerY>=cardRect\.top&&centerY<=cardRect\.bottom\)\{markerY=centerY;break\}/, 'drag preview bead stays physically attached to a durationless card while it is crossed');
+assert.match(html,/taskDuration===0&&centerY>=cardRect\.top&&centerY<=cardRect\.bottom\)\{markerY=centerY;break\}/, 'drag preview bead stays physically attached to a durationless card while it is crossed');
 assert.match(html,/marker\.style\.transition='none'/, 'drag preview bead has no easing delay and remains attached to the dragged card');
 assert.doesNotMatch(html,/TimeEngine\.timeScaleMinuteAtPosition\(anchors,topY\)/, 'drag no longer maps the card top edge to a time');
 assert.match(html,/marker\.style\.top=\(\(snappedPosition\?\?centerY\)-rootRect\.top\)\+'px'/, 'drag bead is positioned at the snapped five-minute mark');
