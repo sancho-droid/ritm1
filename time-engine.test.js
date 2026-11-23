@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {DAY_START_MINUTES,DAY_END_MINUTES,parseClock,formatClock,durationOf,syncSleepToWake,overnightContinuation,sortChronologically,intervalsFor,freeIntervals,findNextFreeGap,freeTimeAnchorIndex,conflicts,orderTimedTasksForDisplay,inferDayBoundary,assignDayBoundaryRoles,dayBoundaryIssue,dayBoundaryWindow,freeGapsForDay,timelineTimeForTask,timeScaleBounds,timeScaleRatio,timeScalePosition,} from './time-engine.js';
+import {DAY_START_MINUTES,DAY_END_MINUTES,parseClock,formatClock,durationOf,syncSleepToWake,overnightContinuation,sortChronologically,intervalsFor,freeIntervals,findNextFreeGap,freeTimeAnchorIndex,conflicts,orderTimedTasksForDisplay,inferDayBoundary,assignDayBoundaryRoles,dayBoundaryIssue,dayBoundaryWindow,freeGapsForDay,timelineTimeForTask,timeScaleBounds,timeScaleRatio,timeScalePosition,timeScaleTaskAnchors,} from './time-engine.js';
 assert.equal(parseClock('00:00'),0);assert.equal(parseClock('19:09'),1149);assert.equal(parseClock('23:59'),1439);assert.equal(parseClock('24:00'),null);assert.equal(parseClock('9:00'),null);assert.equal(parseClock('bad'),null);assert.equal(formatClock(1149),'19:09');assert.equal(formatClock(1440),'23:59');
 assert.deepEqual(sortChronologically([{id:'a',time:'20:15'},{id:'b',time:'17:20'},{id:'c',time:'19:00'},{id:'d',time:''}]).map(x=>x.time),['17:20','19:00','20:15','']);assert.deepEqual(sortChronologically([{id:'z',time:'09:00'},{id:'a',time:'09:00'}]).map(x=>x.id),['z','a']);
 assert.equal(durationOf({time:'23:30',endTime:'00:15'}),45);assert.deepEqual(intervalsFor([{time:'17:20',duration:30},{time:'17:45',duration:30},{time:'18:15',duration:15,done:true},{time:'19:00',duration:20}]).map(x=>[x.start,x.end]),[[1040,1095],[1140,1160]]);
@@ -240,3 +240,15 @@ assert.equal(timeScalePosition([{minute:0,y:10},{minute:60,y:70}],-1),null);
 assert.equal(timeScalePosition([{minute:0,y:10},{minute:60,y:70}],61),null);
 assert.equal(timeScalePosition([{minute:0,y:10},{minute:60,y:70},{minute:30,y:80}],45),80,'overlapping visual anchors never make the bead move backwards');
 assert.equal(timeScalePosition([{minute:0,y:10},{minute:0,y:20},{minute:60,y:80}],0),20);
+
+assert.deepEqual(timeScaleTaskAnchors(637,220,100,320),[{minute:637,y:100},{minute:857,y:320}],
+  'a 3h40m task spans its complete card height');
+assert.equal(timeScalePosition(timeScaleTaskAnchors(637,220,100,320),747),210,
+  'bead is proportional to elapsed time inside a task card');
+assert.equal(timeScalePosition(timeScaleTaskAnchors(637,15,100,160),644.5),130,
+  'a 15-minute task uses its full card height');
+assert.deepEqual(timeScaleTaskAnchors(600,0,100,160),[{minute:600,y:130},{minute:601,y:160}],
+  'a point task is centered at its assigned minute and moves below the card by the next minute');
+assert.equal(timeScalePosition(timeScaleTaskAnchors(600,0,100,160),600),130);
+assert.equal(timeScalePosition(timeScaleTaskAnchors(600,0,100,160),601),160);
+console.log('task-proportional current-time bead anchors: assertions passed');

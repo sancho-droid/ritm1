@@ -245,8 +245,8 @@ input,select,textarea{font-size:16px}
 .timed-schedule-list .taskbody{grid-column:2}
 .timed-schedule-list .tasktools{grid-column:3}
 .timed-schedule-list .task-time-rail{grid-column:1;grid-row:1;justify-self:start;align-self:center;padding:0;color:var(--muted);font-size:11px;line-height:1;font-variant-numeric:tabular-nums;text-align:left;white-space:nowrap;pointer-events:none}
-.current-time-bead{position:absolute;z-index:7;left:0;top:0;width:48px;height:20px;display:flex;align-items:center;justify-content:center;transform:translateY(-50%);border:2px solid var(--panel);border-radius:999px;background:var(--accent);color:#fff;box-shadow:0 2px 7px #0003;font-size:10px;font-weight:750;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
-@media(max-width:600px){.current-time-bead{width:41px;height:19px;font-size:10px}}
+.current-time-bead{position:absolute;z-index:7;left:26px;top:0;width:48px;height:20px;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%);border:2px solid var(--panel);border-radius:999px;background:var(--accent);color:#fff;box-shadow:0 2px 7px #0003;font-size:10px;font-weight:750;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;transition:top .9s linear}
+@media(max-width:600px){.current-time-bead{left:21.5px;width:41px;height:19px;font-size:10px}}
 @media(max-width:600px){.timed-schedule-list .task{grid-template-columns:43px minmax(0,1fr) auto}}
 
 .time-clear-wrap{position:relative;width:100%}.time-clear-wrap input{width:100%}.time-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;border-radius:8px;background:var(--soft);color:var(--muted);font-size:11px;padding:5px 8px;min-height:28px}
@@ -691,21 +691,34 @@ function updateCurrentTimeBead(){
   const root=$('#scheduledTasks'),bead=root?.querySelector('.current-time-bead'),list=root?.querySelector('.timed-schedule-list');
   if(!bead||!list)return;
   if(!list.querySelector('.task')){bead.style.display='none';return}
-  const now=new Date(),minute=now.getHours()*60+now.getMinutes();
+  const now=new Date(),minute=now.getHours()*60+now.getMinutes()+now.getSeconds()/60;
   if(key(selected)!==key(now)){bead.style.display='none';return}
   const rootRect=root.getBoundingClientRect(),anchors=[];
   const addAnchor=(time,y)=>{if(Number.isFinite(time)&&Number.isFinite(y))anchors.push({minute:time,y:y-rootRect.top})};
+  let previousPointTask=false;
   for(const item of list.children){
     const rect=item.getBoundingClientRect();
     if(item.classList.contains('task')&&item._task){
-      const task=item._task,displayTime=TimeEngine.parseClock(TimeEngine.timelineTimeForTask(task,now)??task.time);
-      const plannedTime=TimeEngine.parseClock(task.time);
-      if(displayTime===null||rect.height<=0)continue;
-      addAnchor(displayTime,(rect.top+rect.bottom)/2);
-      if(!task.done&&plannedTime!==null)addAnchor(plannedTime+TimeEngine.durationOf(task),rect.bottom);
+      const task=item._task,planned=TimeEngine.parseClock(task.time);
+      const display=TimeEngine.parseClock(TimeEngine.timelineTimeForTask(task,now)??task.time);
+      if(display===null||rect.height<=0){previousPointTask=false;continue}
+      let duration=0;
+      if(!task.done){
+        const raw=Number(task.duration);
+        if(Number.isFinite(raw)&&raw>0)duration=Math.round(raw);
+        else if(task.endTime){
+          const end=TimeEngine.parseClock(task.endTime);
+          if(end!==null&&planned!==null){duration=end-planned;if(duration<0)duration+=TimeEngine.DAY_MINUTES}
+        }
+      }
+      const taskAnchors=TimeEngine.timeScaleTaskAnchors(display,duration,rect.top-rootRect.top,rect.bottom-rootRect.top);
+      taskAnchors.forEach(point=>anchors.push(point));
+      previousPointTask=duration===0;
     }else if(item.classList.contains('free-time-compact')||item.classList.contains('free-time-gap')){
-      const start=Number(item.dataset.startMinute),end=Number(item.dataset.endMinute);
+      let start=Number(item.dataset.startMinute),end=Number(item.dataset.endMinute);
+      if(previousPointTask&&Number.isFinite(start))start+=1;
       if(rect.height>0){addAnchor(start,rect.top);addAnchor(end,rect.bottom)}
+      previousPointTask=false;
     }
   }
   const position=TimeEngine.timeScalePosition(anchors,minute);
@@ -882,7 +895,7 @@ $('#todayBtn').onclick=()=>{selected=new Date(today.getFullYear(),today.getMonth
 $('#appMenuBtn').onclick=()=>showModal('appMenuModal');$('#openSettingsBtn').onclick=()=>{closeModal('appMenuModal');showModal('settingsModal')};$('#exportBtn').onclick=()=>{let blob=new Blob([JSON.stringify({version:4,exportedAt:new Date().toISOString(),...db},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ritm-backup-v2.json';a.click();URL.revokeObjectURL(a.href)};$('#importBtn').onclick=()=>$('#fileInput').click();$('#fileInput').onchange=async e=>{try{let v=JSON.parse(await e.target.files[0].text());if(!Array.isArray(v.tasks)||!Array.isArray(v.family)||!Array.isArray(v.lists))throw Error();if(confirm('Заменить текущие данные резервной копией?')){db=normalizeState(v);persist()}}catch{alert('Файл не похож на резервную копию Ритма v2.')}e.target.value=''};
 function syncMobileKeyboardUi(){const mobile=window.matchMedia('(max-width: 600px)').matches;const active=document.activeElement;const editable=!!active&&(active.matches('input,textarea,select')||active.isContentEditable)&&!active.disabled&&!active.readOnly;document.body.classList.toggle('keyboard-open',mobile&&editable)}
 document.addEventListener('focusin',syncMobileKeyboardUi);document.addEventListener('focusout',()=>setTimeout(syncMobileKeyboardUi,100));window.addEventListener('resize',syncMobileKeyboardUi);if(window.visualViewport)window.visualViewport.addEventListener('resize',syncMobileKeyboardUi);
-setTheme(theme);bootStorage();setInterval(()=>{updateCurrentTimeBead();const now=new Date(),nowKey=key(now),previousKey=key(today);if(nowKey!==previousKey){if(key(selected)===previousKey)selected=new Date(now.getFullYear(),now.getMonth(),now.getDate());today=new Date(now.getFullYear(),now.getMonth(),now.getDate());render()}},30000);
+setTheme(theme);bootStorage();setInterval(()=>{updateCurrentTimeBead();const now=new Date(),nowKey=key(now),previousKey=key(today);if(nowKey!==previousKey){if(key(selected)===previousKey)selected=new Date(now.getFullYear(),now.getMonth(),now.getDate());today=new Date(now.getFullYear(),now.getMonth(),now.getDate());render()}},1000);
 function openToday(){const now=new Date();today=new Date(now.getFullYear(),now.getMonth(),now.getDate());selected=new Date(today);render()}
 addEventListener('pageshow',openToday);
 if('serviceWorker'in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(reg=>reg.update()).catch(error=>console.warn('Не удалось обновить офлайн-режим:',error)));
