@@ -42,8 +42,8 @@ assert.match(html, /now\.getSeconds\(\)\/60/,
   'bead interpolates continuously between minute ticks');
 assert.match(html, /},1000\);/,
   'bead geometry refreshes every second');
-assert.match(html, /\.current-time-bead\{position:absolute;z-index:7;left:26px;top:0;[^}]*transform:translate\(-50%,-50%\)[^}]*transition:top \.9s linear/,
-  'desktop bead is centered on the 52px time rail');
+assert.match(html, /\.current-time-bead\{position:absolute;z-index:7;left:0;top:0;[^}]*transform:translate\(-50%,-50%\)[^}]*transition:top \.9s linear/,
+  'bead uses measured horizontal position and smooth vertical transition');
 assert.match(html, /\.current-time-bead\{position:absolute;z-index:7;left:0;top:0;/,
   'bead horizontal position is measured from the real grid track rather than hardcoded');
 assert.match(html, /const railWidth=Math\.max\(0,bodyRect\.left-cardRect\.left-gap\);\s*bead\.style\.left=\(cardRect\.left-rootRect\.left\+railWidth\/2\)\+'px';/,
