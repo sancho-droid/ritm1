@@ -157,9 +157,10 @@ export function freeGapsForDay(tasks,dateKey,{todayKey,nowMinutes=0,previousDayT
       if(task.done){const stamp=Date.parse(task.doneAt||'');if(Number.isFinite(stamp)){const completed=localKey(new Date(stamp)),minute=new Date(stamp).getHours()*60+new Date(stamp).getMinutes();if(completed===prevKey)duration=0;else if(completed===dateKey)duration=Math.min(duration,Math.max(0,minute));}
         else {const actual=parseClock(task.actualTime);if(actual!==null)duration=Math.min(duration,Math.max(0,actual));}}
     }else{
-      if(s+duration>DAY_MINUTES)duration=DAY_MINUTES-s;
-      if(task.done){const stamp=Date.parse(task.doneAt||'');if(Number.isFinite(stamp)){const completed=new Date(stamp),completedKey=localKey(completed),minute=completed.getHours()*60+completed.getMinutes();if(completedKey===dateKey)duration=Math.max(0,minute-s);else if(completedKey===nextKey&&s+duration>DAY_MINUTES)duration=Math.max(0,minute+DAY_MINUTES-s);}
-        else {const actual=parseClock(task.actualTime);if(actual!==null)duration=Math.max(0,actual-s);}}
+      const crossesMidnight=s+duration>DAY_MINUTES;
+      if(crossesMidnight)duration=DAY_MINUTES-s;
+      if(task.done){const stamp=Date.parse(task.doneAt||'');if(Number.isFinite(stamp)){const completed=new Date(stamp),completedKey=localKey(completed),minute=completed.getHours()*60+completed.getMinutes();if(completedKey===dateKey)duration=Math.max(0,minute-s);}
+        else {const actual=parseClock(task.actualTime);if(actual!==null){const elapsed=crossesMidnight&&actual<s?actual+DAY_MINUTES-s:actual-s;duration=Math.max(0,Math.min(crossesMidnight?DAY_MINUTES-s:duration,elapsed));}}}
     }
     if(duration>0)occupied.push({start,end:Math.min(DAY_MINUTES,start+duration),index:task._priorDate?-1:current.indexOf(task)});
   }
