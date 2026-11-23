@@ -124,8 +124,7 @@ input,select,textarea{font-size:16px}
   .menu-modal{margin:0;width:min(300px,calc(100% - 20px));border-radius:18px}
 }
 .check{display:inline-grid!important;place-items:center!important;width:22px!important;height:22px!important;min-width:22px!important;min-height:22px!important;max-width:22px!important;max-height:22px!important;aspect-ratio:1/1!important;flex:0 0 22px!important;border-radius:50%!important;padding:0!important;line-height:1!important;appearance:none;-webkit-appearance:none}.task{touch-action:pan-y}.schedule-list .taskbody{touch-action:none;cursor:grab}.schedule-list .taskbody:active{cursor:grabbing}.date-picker-modal{width:min(420px,100%)}.date-picker-modal .calday{min-height:48px;text-align:center;align-items:center;justify-content:center}.date-picker-modal .daynum{font-size:15px}.date-picker-actions{display:flex;justify-content:space-between;gap:8px;margin-top:14px}
-#dayContent{touch-action:pan-y;will-change:transform}
-.day-swipe-settling{transition:transform .22s cubic-bezier(.22,.61,.36,1)!important}
+#dayContent{touch-action:pan-y}
 .date-picker-modal #datePickerGrid{touch-action:none;user-select:none}.date-picker-modal .calday.detail-selected{outline:2px solid var(--accent);outline-offset:1px}
 .date-picker-day-panel{margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--panel2)}
 .date-picker-day-panel .sectionhead{margin:0 0 8px}
@@ -568,11 +567,7 @@ body.keyboard-open .mobile-dock,body.keyboard-open .quick-fab{display:none!impor
 .modalback{z-index:10000!important}
 
 /* Gallery-like navigation for day, week and month */
-#dayContent{touch-action:pan-y;will-change:transform;}
-.day-swipe-viewport{width:100%;overflow:hidden;position:relative;}
-.day-swipe-track{display:flex;align-items:flex-start;will-change:transform;}
-.day-swipe-page{flex:0 0 auto;min-width:0;}
-
+#dayContent{touch-action:pan-y;will-change:transform;transition:transform .22s cubic-bezier(.22,.61,.36,1),opacity .22s;}
 #weekStrip{touch-action:pan-y;overflow:hidden;will-change:transform;transition:transform .22s cubic-bezier(.22,.61,.36,1),opacity .22s;}
 #datePickerGrid{touch-action:pan-y;will-change:transform;transition:transform .22s cubic-bezier(.22,.61,.36,1),opacity .22s;}
 .swipe-preview{transition:none!important;}
@@ -1042,19 +1037,11 @@ function addChildMoney(kind){const amount=Number(prompt(kind==='in'?'Сколь�
 $('#childAddMoney').onclick=()=>addChildMoney('in');$('#childSpendMoney').onclick=()=>addChildMoney('out');
 $('#childSetGoal').onclick=()=>{const name=prompt('На что копим?');if(!name?.trim())return;const amount=Number(prompt('Сколько нужно накопить?'));if(!Number.isFinite(amount)||amount<=0)return;db.childGoal={name:name.trim(),amount};persist()};
 
-let daySwipeStart=null,daySwipeAnimating=false;const daySwipeEl=$('#dayContent');
-const daySwipeViewport=document.createElement('div'),daySwipeTrack=document.createElement('div');
-daySwipeViewport.className='day-swipe-viewport';daySwipeTrack.className='day-swipe-track';
-daySwipeEl.parentNode.insertBefore(daySwipeViewport,daySwipeEl);daySwipeViewport.append(daySwipeTrack,daySwipeEl);daySwipeTrack.append(daySwipeEl);
-function daySwipeSnapshot(date){const previous=selected,oldGapDate=expandedFreeGapDate,oldGapKey=expandedFreeGapKey;selected=dateObj(date);renderDay();const html=daySwipeEl.innerHTML;selected=previous;expandedFreeGapDate=oldGapDate;expandedFreeGapKey=oldGapKey;renderDay();return html}
-function prepareDaySwipePages(){const width=daySwipeViewport.clientWidth||daySwipeEl.getBoundingClientRect().width;const prevHtml=daySwipeSnapshot(addDays(selected,-1)),nextHtml=daySwipeSnapshot(addDays(selected,1));daySwipeTrack.replaceChildren();const prev=document.createElement('div'),next=document.createElement('div');prev.className='day-swipe-page';next.className='day-swipe-page';prev.innerHTML=prevHtml;next.innerHTML=nextHtml;daySwipeTrack.append(prev,daySwipeEl,next);daySwipeTrack.style.width=(width*3)+'px';[prev,daySwipeEl,next].forEach(page=>{page.style.width=width+'px';page.style.flex='0 0 '+width+'px'});daySwipeTrack.style.transition='none';daySwipeTrack.style.transform='translate3d('+(-width)+'px,0,0)';daySwipeViewport.style.height=Math.max(daySwipeEl.scrollHeight,prev.scrollHeight,next.scrollHeight)+'px';void daySwipeTrack.offsetWidth;return width}
-function finishDaySwipeAnimation(callback){let finished=false;const finish=e=>{if(e&&e.target!==daySwipeTrack)return;if(finished)return;finished=true;daySwipeTrack.removeEventListener('transitionend',finish);clearTimeout(fallback);callback()};daySwipeTrack.addEventListener('transitionend',finish);const fallback=setTimeout(finish,320)}
-function cleanupDaySwipe(){daySwipeTrack.style.transition='none';daySwipeTrack.style.transform='';daySwipeTrack.replaceChildren();daySwipeTrack.append(daySwipeEl);daySwipeEl.style.width='';daySwipeEl.style.flex='';daySwipeTrack.style.width='';daySwipeViewport.style.height='';daySwipeAnimating=false}
-function settleDaySwipe(commit,direction,width){daySwipeAnimating=true;daySwipeTrack.style.transition='transform .24s cubic-bezier(.22,.61,.36,1)';daySwipeTrack.style.transform='translate3d('+ (commit?(-width*(1+direction)):-width) +'px,0,0)';finishDaySwipeAnimation(()=>{if(commit){selected=addDays(selected,direction);render()}cleanupDaySwipe()})}
-daySwipeEl.addEventListener('pointerdown',e=>{if(daySwipeAnimating||e.target.closest('button,input,textarea,select,.tasktools,.free-time-action,.task-action-menu'))return;daySwipeStart={x:e.clientX,y:e.clientY,id:e.pointerId,width:prepareDaySwipePages()};});
-daySwipeEl.addEventListener('pointermove',e=>{if(!daySwipeStart||daySwipeStart.id!==e.pointerId||daySwipeAnimating)return;const dx=e.clientX-daySwipeStart.x,dy=e.clientY-daySwipeStart.y;if(Math.abs(dx)>Math.abs(dy)*1.15){daySwipeTrack.style.transform='translate3d('+(-daySwipeStart.width+dx)+'px,0,0)'}});
-daySwipeEl.addEventListener('pointerup',e=>{if(!daySwipeStart||daySwipeStart.id!==e.pointerId)return;const dx=e.clientX-daySwipeStart.x,dy=e.clientY-daySwipeStart.y,width=daySwipeStart.width;daySwipeStart=null;if(Math.abs(dx)<=65||Math.abs(dx)<=Math.abs(dy)*1.35){settleDaySwipe(false,0,width);return}settleDaySwipe(true,dx<0?1:-1,width)});
-daySwipeEl.addEventListener('pointercancel',()=>{if(!daySwipeStart||daySwipeAnimating)return;const width=daySwipeStart.width;daySwipeStart=null;settleDaySwipe(false,0,width)});
+let daySwipeStart=null;const daySwipeEl=$('#dayContent');
+daySwipeEl.addEventListener('pointerdown',e=>{if(e.target.closest('button,input,textarea,select,.tasktools,.free-time-action,.task-action-menu'))return;daySwipeStart={x:e.clientX,y:e.clientY,id:e.pointerId};daySwipeEl.classList.add('swipe-preview')});
+daySwipeEl.addEventListener('pointermove',e=>{if(!daySwipeStart||daySwipeStart.id!==e.pointerId)return;const dx=e.clientX-daySwipeStart.x,dy=e.clientY-daySwipeStart.y;if(Math.abs(dx)>Math.abs(dy)*1.15)daySwipeEl.style.transform='translateX('+dx+'px)'});
+daySwipeEl.addEventListener('pointerup',e=>{if(!daySwipeStart||daySwipeStart.id!==e.pointerId)return;const dx=e.clientX-daySwipeStart.x,dy=e.clientY-daySwipeStart.y;daySwipeStart=null;daySwipeEl.classList.remove('swipe-preview');daySwipeEl.style.transform='';if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.35){selected=addDays(selected,dx<0?1:-1);render()}});
+daySwipeEl.addEventListener('pointercancel',()=>{daySwipeStart=null;daySwipeEl.classList.remove('swipe-preview');daySwipeEl.style.transform=''});
 function render(){try{localStorage.setItem('ritm_calendar_view','day');localStorage.setItem('ritm_calendar_date',key(selected))}catch(error){console.warn('Не удалось сохранить настройки календаря:',error)}renderDay();renderFamily();renderLists();renderDiary();renderHabits();renderChild()}
 function showModal(id){$('#'+id).classList.add('show')}function closeModal(id){$('#'+id).classList.remove('show')}function chooseRepeatScope(){return new Promise(resolve=>{const modal=$('#repeatScopeModal');const finish=value=>{closeModal('repeatScopeModal');modal.querySelectorAll('[data-repeat-scope]').forEach(b=>b.onclick=null);$('#repeatScopeCancel').onclick=null;modal.onclick=null;resolve(value)};modal.querySelectorAll('[data-repeat-scope]').forEach(b=>b.onclick=()=>finish(b.dataset.repeatScope));$('#repeatScopeCancel').onclick=()=>finish(null);modal.onclick=e=>{if(e.target===modal)finish(null)};showModal('repeatScopeModal')})}
 function chooseDeleteScope(){return new Promise(resolve=>{const modal=$('#repeatDeleteScopeModal');const finish=value=>{closeModal('repeatDeleteScopeModal');modal.querySelectorAll('[data-delete-scope]').forEach(b=>b.onclick=null);$('#deleteScopeCancel').onclick=null;modal.onclick=null;resolve(value)};modal.querySelectorAll('[data-delete-scope]').forEach(b=>b.onclick=()=>finish(b.dataset.deleteScope));$('#deleteScopeCancel').onclick=()=>finish(null);modal.onclick=e=>{if(e.target===modal)finish(null)};showModal('repeatDeleteScopeModal')})}

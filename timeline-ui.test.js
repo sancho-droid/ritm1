@@ -190,27 +190,3 @@ assert.equal(TimeEngine.formatClock(Math.max(0, Math.min(1435, Math.round(TimeEn
   'the final five-minute snap remains inside the 23:59 day boundary');
 console.log('fixed full-day drag ruler: assertions passed');
 
-const daySwipeCode = html.slice(html.indexOf('let daySwipeStart=null'), html.indexOf('function render(){'));
-assert.match(daySwipeCode,/daySwipeViewport\.className='day-swipe-viewport';daySwipeTrack\.className='day-swipe-track'/,
-  'day navigation uses a dedicated clipped viewport and horizontal track');
-assert.match(daySwipeCode,/daySwipeEl\.parentNode\.insertBefore\(daySwipeViewport,daySwipeEl\);daySwipeViewport\.append\(daySwipeTrack,daySwipeEl\);daySwipeTrack\.append\(daySwipeEl\)/,
-  'the live day stays centered between its previous and next preview pages');
-assert.match(daySwipeCode,/function daySwipeSnapshot\(date\).*selected=dateObj\(date\);renderDay\(\);const html=daySwipeEl\.innerHTML;selected=previous;expandedFreeGapDate=oldGapDate;expandedFreeGapKey=oldGapKey;renderDay\(\);return html\}/,
-  'neighbor snapshots restore the selected date and expanded free-time state after rendering');
-assert.match(daySwipeCode,/daySwipeTrack\.append\(prev,daySwipeEl,next\)/,
-  'the swipe track orders previous, current and next day pages');
-assert.match(daySwipeCode,/daySwipeTrack\.style\.transform='translate3d\('\+\(-width\)\+'px,0,0\)'/,
-  'the current day starts centered in the three-page track');
-assert.match(daySwipeCode,/daySwipeTrack\.style\.transform='translate3d\('\+\(-daySwipeStart\.width\+dx\)\+'px,0,0\)'/,
-  'the neighboring page follows the finger continuously during a horizontal gesture');
-assert.match(daySwipeCode,/commit\?\(-width\*\(1\+direction\)\):-width/,
-  'a completed swipe settles directly onto the adjacent page while a cancelled swipe returns to center');
-assert.match(daySwipeCode,/selected=addDays\(selected,direction\);render\(\)/,
-  'the selected date changes only after the adjacent page finishes moving into place');
-assert.match(daySwipeCode,/Math\.abs\(dx\)<=65\|\|Math\.abs\(dx\)<=Math\.abs\(dy\)\*1\.35/,
-  'short or predominantly vertical gestures do not change the day');
-assert.match(daySwipeCode,/daySwipeEl\.addEventListener\('pointercancel',[\s\S]*?settleDaySwipe\(false,0,width\)/,
-  'interrupted pointer gestures return the track to the current day');
-console.log('two-page day swipe integration: assertions passed');
-
-
