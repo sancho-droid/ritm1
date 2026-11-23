@@ -88,6 +88,36 @@ function localDateTime(dateKey,minutes){
   if(!year||!month||!day)return NaN;
   return new Date(year,month-1,day,Math.floor(minutes/60),minutes%60).getTime();
 }
+
+/** Time shown in the left schedule rail: planned start, except genuine early completion. */
+export function timelineTimeForTask(task,now=new Date()){
+  const planned=parseClock(task?.time);
+  if(planned===null)return null;
+  if(!task?.done)return task.time;
+  const actual=parseClock(task?.actualTime);
+  if(actual===null)return task.time;
+  const taskDate=task?.occurrenceDate||task?.displayDate||task?.date;
+  const scheduledAt=taskDate?localDateTime(taskDate,planned):NaN;
+  const completedAt=Date.parse(task?.doneAt||'');
+  const completedBeforeSchedule=Number.isFinite(completedAt)&&Number.isFinite(scheduledAt)
+    ? completedAt<scheduledAt
+    : task?.completionKind==='early'||(!task?.completionKind&&actual<planned);
+  const completionIsPast=!Number.isFinite(completedAt)||completedAt<=now.getTime();
+  return completedBeforeSchedule&&completionIsPast?task.actualTime:task.time;
+}
+
+/** Dynamic hidden boundaries for the visible timed-task range, not a 24-hour scale. */
+export function timeScaleBounds(tasks,now=new Date()){
+  let start=Infinity,end=-Infinity;
+  for(const task of tasks||[]){
+    const planned=parseClock(task?.time);
+    if(planned===null)continue;
+    const label=parseClock(timelineTimeForTask(task,now)??task.time);
+    if(label!==null)start=Math.min(start,label);
+    end=Math.max(end,planned+durationOf(task));
+  }
+  return Number.isFinite(start)&&Number.isFinite(end)?{start,end}:null;
+}
 export function sortChronologically(tasks){return [...tasks].sort((a,b)=>{const am=parseClock(a?.time),bm=parseClock(b?.time);if(am===null&&bm===null)return 0;if(am===null)return 1;if(bm===null)return-1;return am-bm})}
 export function intervalsFor(tasks,{includeCompleted=false,dayEnd=DAY_END_MINUTES}={}){const list=[];for(const task of tasks||[]){const start=parseClock(task?.time);if(start===null||task?.scheduleMode==='parallel'||(!includeCompleted&&task?.done))continue;const end=Math.min(dayEnd,start+durationOf(task));if(end>start)list.push({start,end,task})}list.sort((a,b)=>a.start-b.start||a.end-b.end);const merged=[];for(const item of list){const last=merged.at(-1);if(last&&item.start<last.end){last.end=Math.max(last.end,item.end);last.tasks.push(item.task)}else merged.push({start:item.start,end:item.end,tasks:[item.task]})}return merged}
 export function freeIntervals(tasks,{nowMinutes=null,dayEnd=DAY_END_MINUTES,minGap=15}={}){const occupied=intervalsFor(tasks,{dayEnd});const gaps=[];let cursor=Math.max(0,nowMinutes??0);for(const block of occupied){if(block.end<=cursor)continue;if(block.start-cursor>=minGap)gaps.push({start:cursor,end:block.start,duration:block.start-cursor});cursor=Math.max(cursor,block.end)}if(dayEnd-cursor>=minGap)gaps.push({start:cursor,end:dayEnd,duration:dayEnd-cursor});return gaps}
