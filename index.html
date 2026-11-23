@@ -124,7 +124,7 @@ input,select,textarea{font-size:16px}
   .menu-modal{margin:0;width:min(300px,calc(100% - 20px));border-radius:18px}
 }
 .check{display:inline-grid!important;place-items:center!important;width:22px!important;height:22px!important;min-width:22px!important;min-height:22px!important;max-width:22px!important;max-height:22px!important;aspect-ratio:1/1!important;flex:0 0 22px!important;border-radius:50%!important;padding:0!important;line-height:1!important;appearance:none;-webkit-appearance:none}.task{touch-action:pan-y}.schedule-list .taskbody{touch-action:none;cursor:grab}.schedule-list .taskbody:active{cursor:grabbing}.date-picker-modal{width:min(420px,100%)}.date-picker-modal .calday{min-height:48px;text-align:center;align-items:center;justify-content:center}.date-picker-modal .daynum{font-size:15px}.date-picker-actions{display:flex;justify-content:space-between;gap:8px;margin-top:14px}
-.date-picker-modal #datePickerGrid{touch-action:none;user-select:none}
+.date-picker-modal #datePickerGrid{touch-action:none;user-select:none}.date-picker-modal .calday.detail-selected{outline:2px solid var(--accent);outline-offset:1px}
 .date-picker-day-panel{margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--panel2)}
 .date-picker-day-panel .sectionhead{margin:0 0 8px}
 .date-picker-day-task{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 2px;border-top:1px solid var(--line);font-size:13px}
@@ -917,7 +917,7 @@ $('#dateTodayBtn').onclick=()=>{datePickerDetailDate=key(today);datePickerMonth=
 $('#datePickerDayClose').onclick=()=>{datePickerDetailDate=null;renderDatePickerDayDetails()};
 $('#datePickerDayGo').onclick=()=>{if(!datePickerDetailDate)return;selected=dateObj(datePickerDetailDate);closeModal('datePickerModal');render()};
 let dateCalendarSwipeY=null;
-$('#datePickerGrid').addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;dateCalendarSwipeY=e.clientY});
+$('#datePickerGrid').addEventListener('pointerdown',e=>{dateCalendarSwipeY=e.clientY;try{$('#datePickerGrid').setPointerCapture(e.pointerId)}catch{}});
 $('#datePickerGrid').addEventListener('pointerup',e=>{if(dateCalendarSwipeY===null)return;const dy=e.clientY-dateCalendarSwipeY;dateCalendarSwipeY=null;if(Math.abs(dy)>45)changeDatePickerMonth(dy<0?1:-1)});
 $('#datePickerGrid').addEventListener('pointercancel',()=>{dateCalendarSwipeY=null});
 function renderWeekStrip(){
