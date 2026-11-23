@@ -2,10 +2,32 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as TimeEngine from './time-engine.js';
 
+// Hidden one-second start offset applies only to calculations, never to stored/displayed clock strings.
+const adjacentFirst = { id: 'first', time: '12:00', duration: 60 };
+const adjacentSecond = { id: 'second', time: '13:00', duration: 120 };
+const firstInterval = TimeEngine.conflictInterval(adjacentFirst);
+const secondInterval = TimeEngine.conflictInterval(adjacentSecond);
+assert.equal(firstInterval.start, 12 * 60 + 1 / 60, 'every task start is shifted by exactly one second in conflict calculations');
+assert.equal(firstInterval.end, 13 * 60, 'the first task keeps its original calculated end');
+assert.equal(secondInterval.start, 13 * 60 + 1 / 60, 'the next task starts one calculation-second after the shared displayed minute');
+assert.equal(secondInterval.end, 15 * 60, 'the next task keeps its original calculated end');
+assert.equal(firstInterval.start < secondInterval.end && secondInterval.start < firstInterval.end, false,
+  'tasks ending and starting at the same displayed minute do not conflict');
+const sameStartFirst = TimeEngine.conflictInterval({ id: 'same-a', time: '12:00', duration: 60 });
+const sameStartSecond = TimeEngine.conflictInterval({ id: 'same-b', time: '12:00', duration: 60 });
+assert.equal(sameStartFirst.start < sameStartSecond.end && sameStartSecond.start < sameStartFirst.end, true,
+  'two tasks assigned the same start time still conflict');
+assert.equal(adjacentFirst.time, '12:00', 'the stored/displayed start string remains unchanged');
+assert.equal(adjacentSecond.time, '13:00', 'the stored/displayed start string remains unchanged for the adjacent task');
+assert.equal(TimeEngine.conflictInterval({ time: '', duration: 30 }), null, 'tasks without a start time do not create a timed conflict interval');
+assert.equal(TimeEngine.conflictInterval({ time: '23:59', duration: 2 }).end, 24 * 60 + 1,
+  'an interval crossing midnight retains its original end boundary');
+console.log('hidden one-second conflict interval: assertions passed');
+
 const html = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
 const serviceWorker = readFileSync(new URL('./sw.js', import.meta.url), 'utf8');
-assert.match(html, /import \* as TimeEngine from '\.\/time-engine\.js\?v=20261123-5'/);
-assert.match(serviceWorker, /'\.\/time-engine\.js\?v=20261123-5'/, 'service worker precaches the versioned module URL used by the app');
+assert.match(html, /import \* as TimeEngine from '\.\/time-engine\.js\?v=20261123-7'/);
+assert.match(serviceWorker, /'\.\/time-engine\.js\?v=20261123-7'/, 'service worker precaches the versioned module URL used by the app');
 assert.match(html, /\.timed-schedule-list \.task\{grid-template-columns:52px minmax\(0,1fr\) auto\}/);
 assert.match(html, /\.timed-schedule-list \.taskbody\{grid-column:2\}/);
 assert.match(html, /\.timed-schedule-list \.tasktools\{grid-column:3\}/);
