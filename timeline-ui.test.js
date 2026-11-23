@@ -19,14 +19,15 @@ assert.match(html, /dayEndBoundary\.dataset\.minute=timeScale\?String\(timeScale
 assert.match(html, /completionKind:r\?\.completionKind\?\?t\.completionKind/);
 assert.match(html, /completionKind:r\.completionKind\?\?t\.completionKind/);
 assert.match(html, /\.current-time-bead\{position:absolute/);
-assert.match(html, /TimeEngine\.timeScaleRatio\(start,end,minute\)/, 'bead position uses the dynamic time scale');
-assert.match(html, /startMarker\.getBoundingClientRect\(\)\.top/);
-assert.match(html, /endMarker\.getBoundingClientRect\(\)/);
-assert.match(html, /endRect\.top-rootRect\.top/);
+assert.match(html, /TimeEngine\.timeScalePosition\(anchors,minute\)/, 'bead position follows actual schedule anchors');
+assert.match(html, /if\(!list\.querySelector\('\.task'\)\)\{bead\.style\.display='none'/, 'bead stays hidden when the timed schedule is empty');
+assert.match(html, /item\.classList\.contains\('task'\)&&item\._task/);
+assert.match(html, /item\.dataset\.startMinute/);
+assert.match(html, /addAnchor\(plannedTime\+TimeEngine\.durationOf\(task\),rect\.bottom\)/);
 assert.match(html, /new ResizeObserver\(updateCurrentTimeBead\)/, 'bead recalculates after card or boundary geometry changes');
 assert.match(html, /setInterval\(\(\)=>\{updateCurrentTimeBead\(\)/, 'bead follows the live clock');
-assert.match(html, /ratio===null\)\{bead\.style\.display='none'/, 'bead hides outside the dynamic range and on other dates');
-assert.match(html, /bead\.style\.top=\(startY\+ratio\*\(endY-startY\)\)/, 'bead overlays measured marker distance without changing card layout');
+assert.match(html, /position===null\)\{bead\.style\.display='none'/, 'bead hides outside available schedule anchors and on other dates');
+assert.match(html, /bead\.style\.top=position\+'px'/, 'bead overlays the interpolated schedule position without changing card layout');
 console.log('left time rail UI integration: assertions passed');
 
 const desktopRailRule = html.indexOf('.timed-schedule-list .task{grid-template-columns:52px');
