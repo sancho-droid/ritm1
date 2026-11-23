@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v1028-fixed-linear-drag-scale';
+const CACHE = 'ritm-v1029-date-independent-drag-marker';
 const FILES = ['./', './index.html', './manifest.webmanifest', './time-engine.js?v=20261123-6', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
