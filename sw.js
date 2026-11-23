@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v1023-drag-conflict-resolution';
+const CACHE = 'ritm-v1024-full-card-timeline-drop';
 const FILES = ['./', './index.html', './manifest.webmanifest', './time-engine.js?v=20261123-5', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {

@@ -61,15 +61,30 @@ assert.match(html, /bead\.style\.left=\(targetColon-beadColonOffset-rootRect\.le
 assert.match(html, /@media\(max-width:600px\)\{\.current-time-bead\{width:41px;/,
   'mobile bead is centered on the 43px time rail');
 console.log('proportional bead geometry and centered rail integration: assertions passed');
-assert.match(html,/class="drag-handle"/, 'task cards expose a visible drag affordance');
-assert.match(html,/dragHandle\.addEventListener\('pointerdown'/, 'drag handle receives pointer input');
+assert.doesNotMatch(html,/class="drag-handle"/, 'task cards no longer show a separate drag button');
+assert.match(html,/dragSurface\.addEventListener\('pointerdown'/, 'the full task card is the drag surface');
+assert.match(html,/\.schedule-list \.taskbody\{touch-action:none;cursor:grab\}/, 'the full card surface supports pointer drag on touch devices');
+assert.match(html,/e\.target\.closest\('button,input,select,textarea,a,\[data-no-drag\]'\)/, 'task actions remain interactive and do not start a drag');
+assert.doesNotMatch(html,/\.task\.drag-source\{[^}]*outline:1px dashed/, 'the old card position has no dashed outline');
 assert.match(html,/else if\(list\)render\(\);/, 'an abandoned unscheduled reorder restores the original rendered order');
 assert.match(html,/if\(list\)render\(\);\s*\}\);/, 'pointer cancellation restores an unscheduled list after live DOM reordering');
 assert.match(html,/function dragTimeScaleAnchors\(state,list\)/, 'drag anchors use measured task and free-gap geometry');
 assert.doesNotMatch(html,/if\(!task\|\|task\.done\|\|task\.isFamily\|\|!task\.time\)/, 'completed, family and dragged task cards remain part of the visual time geometry');
 assert.match(html,/TimeEngine\.timelineTimeForTask\(task,now\)\?\?task\.time/, 'drag anchors use the same displayed time as the current-time bead');
 assert.match(html,/if\(!task\.done\)\{\s*const raw=Number\(task\.duration\)/, 'completed cards use point anchors rather than blocking their original duration');
-assert.match(html,/TimeEngine\.timeScaleMinuteAtPosition\(anchors,topY\)/, 'drag converts the card top edge back to timeline minutes');
+assert.match(html,/const topY=e\.clientY-state\.grabOffsetY,centerY=topY\+state\.ghostHeight\/2/, 'drag time is measured from the dragged card center');
+assert.match(html,/TimeEngine\.timeScaleMinuteAtPosition\(anchors,centerY\)/, 'drag converts the card center back to timeline minutes');
+assert.doesNotMatch(html,/TimeEngine\.timeScaleMinuteAtPosition\(anchors,topY\)/, 'drag no longer maps the card top edge to a time');
+assert.match(html,/marker\.style\.top=\(centerY-rootRect\.top\)\+'px'/, 'the displayed time bead and its time calculation share the same center coordinate');
+assert.match(html,/Math\.round\(minute\)/, 'drag preview preserves minute-level precision');
+assert.doesNotMatch(html,/Math\.round\(minute\/5\)\*5/, 'drag preview does not quantize the timeline to five-minute steps');
+assert.match(html,/marker\.textContent=state\.task\.time\|\|'—'/, 'undated tasks receive a visible preview bead when entering the timeline');
+assert.match(html,/if\(!t\.isFamily&&!\(t\.time&&t\.done\)\)dragSurface\.addEventListener/, 'family and completed timed cards are not draggable');
+assert.match(html,/const root=\$\('#scheduledTasks'\),list=root\?\.querySelector\('\.timed-schedule-list'\),bead=root\?\.querySelector\('\.current-time-bead'\)/, 'all task drags create a timeline preview target');
+assert.match(html,/if\(state\.previewTime\)\{moveDraggedTaskToTime\(state\.task,state\.previewTime\);\}/, 'dropping a dated or undated card on the schedule commits its assigned time');
+assert.match(html,/state\.reorder=e\.clientX>=rect\.left&&e\.clientX<=rect\.right&&e\.clientY>=rect\.top&&e\.clientY<=rect\.bottom/, 'undated cards distinguish list sorting from dropping into the schedule');
+assert.match(html,/if\(state\.reorder\)\{[\s\S]*?return;\s*\}\s*\}\s*state\.reorder=false;updateTimedDragPreview\(state,e\)/, 'leaving the unscheduled list switches from sorting to timeline placement');
+assert.match(html,/if\(state\.reorder&&list\)\{/, 'sorting within the unscheduled list remains supported');
 assert.match(html,/function moveDraggedTaskToTime\(task,time,\{allowOverlap=false\}=\{\}\)/, 'successful drag has a dedicated persistence path with explicit overlap choice');
 assert.match(html,/conflicts=findTaskConflicts\(task,date,time\)/, 'drag gathers every overlapping blocking task before committing');
 assert.match(html,/function showDragConflict\(task,date,time,conflicts\)/, 'drag opens a conflict decision dialog');
@@ -80,7 +95,14 @@ assert.match(html,/function openDragTimeEditor\(\)/, 'change-time action opens a
 assert.match(html,/findTaskConflicts\(task,date,time\);if\(conflicts.length\)/, 'a second conflict after changing time requires another decision');
 assert.match(html,/moveDraggedTaskToTime\(pendingDragMove.task,pendingDragMove.time,\{allowOverlap:true\}\)/, 'combine explicitly commits an overlapping placement');
 assert.match(html,/if\(other\.done\|\|sameTaskOccurrence\(candidate,other\)\|\|other\?\.scheduleMode==='parallel'\)continue;/, 'completed tasks do not block a time slot after they release it');
-assert.match(html,/if\(t\.isFamily\|\|\(t\.time&&t\.done\)\)dragHandle\.remove\(\)/, 'family and completed timed cards are not draggable');
+
+const dragPreviewAnchors = [{ minute: 13 * 60, y: 100 }, { minute: 14 * 60, y: 200 }];
+const draggedCardCenter = 115;
+const mappedDragMinute = TimeEngine.timeScaleMinuteAtPosition(dragPreviewAnchors, draggedCardCenter);
+assert.equal(TimeEngine.formatClock(Math.round(mappedDragMinute)), '13:09',
+  'a card centered over 13:09 previews 13:09, not the time at its top edge');
+assert.equal(TimeEngine.formatClock(Math.round(TimeEngine.timeScaleMinuteAtPosition(dragPreviewAnchors, 100))), '13:00',
+  'regression fixture demonstrates why using the card top edge produced an earlier time');
 
 const firstTaskAnchors = TimeEngine.timeScaleTaskAnchors(12 * 60, 30, 100, 200);
 const nextTaskAnchors = TimeEngine.timeScaleTaskAnchors(12 * 60 + 30, 30, 212, 312);
