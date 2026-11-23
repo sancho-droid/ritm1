@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v1027-drag-bead-visual-push';
+const CACHE = 'ritm-v1028-drag-expanded-time-scale';
 const FILES = ['./', './index.html', './manifest.webmanifest', './time-engine.js?v=20261123-5', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
