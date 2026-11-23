@@ -44,6 +44,10 @@ assert.match(html, /},1000\);/,
   'bead geometry refreshes every second');
 assert.match(html, /\.current-time-bead\{position:absolute;z-index:7;left:26px;top:0;[^}]*transform:translate\(-50%,-50%\)[^}]*transition:top \.9s linear/,
   'desktop bead is centered on the 52px time rail');
-assert.match(html, /@media\(max-width:600px\)\{\.current-time-bead\{left:21\.5px;width:41px;/,
+assert.match(html, /\.current-time-bead\{position:absolute;z-index:7;left:0;top:0;/,
+  'bead horizontal position is measured from the real grid track rather than hardcoded');
+assert.match(html, /const railWidth=Math\.max\(0,bodyRect\.left-cardRect\.left-gap\);\s*bead\.style\.left=\(cardRect\.left-rootRect\.left\+railWidth\/2\)\+'px';/,
+  'bead is centered on the measured first grid column at every breakpoint');
+assert.match(html, /@media\(max-width:600px\)\{\.current-time-bead\{width:41px;/,
   'mobile bead is centered on the 43px time rail');
 console.log('proportional bead geometry and centered rail integration: assertions passed');
