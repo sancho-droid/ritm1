@@ -63,6 +63,8 @@ assert.match(html, /@media\(max-width:600px\)\{\.current-time-bead\{width:41px;/
 console.log('proportional bead geometry and centered rail integration: assertions passed');
 assert.match(html,/class="drag-handle"/, 'task cards expose a visible drag affordance');
 assert.match(html,/dragHandle\.addEventListener\('pointerdown'/, 'drag handle receives pointer input');
+assert.match(html,/else if\(list\)render\(\);/, 'an abandoned unscheduled reorder restores the original rendered order');
+assert.match(html,/if\(list\)render\(\);\s*\}\);/, 'pointer cancellation restores an unscheduled list after live DOM reordering');
 assert.match(html,/function dragTimeScaleAnchors\(state,list\)/, 'drag anchors use measured task and free-gap geometry');
 assert.doesNotMatch(html,/if\(!task\|\|task\.done\|\|task\.isFamily\|\|!task\.time\)/, 'completed, family and dragged task cards remain part of the visual time geometry');
 assert.match(html,/TimeEngine\.timelineTimeForTask\(task,now\)\?\?task\.time/, 'drag anchors use the same displayed time as the current-time bead');
