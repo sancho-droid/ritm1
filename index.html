@@ -1070,7 +1070,7 @@ function openQuickAdd(source='day',value='',baseDate=null,options={}){
   $('#quickAddText').value=value;renderQuickPreview();showModal('quickAddModal');setTimeout(()=>$('#quickAddText').focus(),80);
 }
 $('#quickInlineForm').onsubmit=e=>{e.preventDefault();const value=$('#quickInlineInput').value.trim();if(!value)return;openQuickAdd('day',value);$('#quickInlineInput').value=''};
-$('#quickFab').onclick=()=>openQuickAdd(tab==='day'?'day':'other');
+$('#quickFab').onclick=()=>{if(tab==='day'){openTask();return}openQuickAdd('other')};
 $('#quickAddText').addEventListener('input',renderQuickPreview);
 $('#quickAddToShelfBtn').onclick=()=>{const parsed=parseQuickTask($('#quickAddText').value,quickAddDate||selected);if(!parsed?.name){alert('Напиши название дела.');return}db.shelf=db.shelf||[];db.shelf.push({id:crypto.randomUUID(),name:parsed.name,category:parsed.category||'Личное',createdAt:new Date().toISOString()});quickAddGap=null;quickAddShelfItemId=null;closeModal('quickAddModal');$('#quickAddText').value='';persist()};
 
