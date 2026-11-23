@@ -256,9 +256,9 @@ assert.equal(timeScalePosition(timeScaleTaskAnchors(637,220,100,320),747),210,
   'bead is proportional to elapsed time inside a task card');
 assert.equal(timeScalePosition(timeScaleTaskAnchors(637,15,100,160),644.5),130,
   'a 15-minute task uses its full card height');
-assert.deepEqual(timeScaleTaskAnchors(600,0,100,160),[{minute:600,y:100},{minute:601,y:160}],
-  'a point task uses its visible top and bottom card edges as anchors');
-assert.equal(timeScalePosition(timeScaleTaskAnchors(600,0,100,160),600),100);
+assert.deepEqual(timeScaleTaskAnchors(600,0,100,160),[{minute:600,y:130},{minute:601,y:160}],
+  'a point task keeps the established midpoint anchor for the current-time bead');
+assert.equal(timeScalePosition(timeScaleTaskAnchors(600,0,100,160),600),130);
 assert.equal(timeScalePosition(timeScaleTaskAnchors(600,0,100,160),601),160);
 console.log('task-proportional current-time bead anchors: assertions passed');
 
