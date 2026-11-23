@@ -678,13 +678,13 @@ function freeGapsForTasks(tasks,dateKey,allDayTasks=tasks){
     if(!task.time||task.scheduleMode==='parallel')continue;
     const s=TimeEngine.parseClock(task.time);if(s===null)continue;
     let duration=TimeEngine.durationOf(task),start=s;
-    if(task._priorDate){const overflow=Math.max(0,s+duration-1440);if(overflow<=0)continue;start=0;duration=overflow}
+    if(task._priorDate){const overflow=Math.max(0,s+duration-1440);if(overflow<=0)continue;start=0;duration=overflow;if(task.done){const completedAt=Date.parse(task.doneAt||'');if(Number.isFinite(completedAt)){const completedDate=new Date(completedAt);if(key(completedDate)===dateKey)duration=Math.max(0,Math.min(duration,completedDate.getHours()*60+completedDate.getMinutes()));}}}
     else if(s+duration>1440)duration=1440-s;
     if(task.done&&!task._priorDate){
       const completedAt=Date.parse(task.doneAt||'');if(Number.isFinite(completedAt)){
         const completedDate=new Date(completedAt);
         if(key(completedDate)===dateKey){const cm=completedDate.getHours()*60+completedDate.getMinutes();duration=Math.max(0,cm-s);}
-      }else{const actual=TimeEngine.parseClock(task.actualTime);if(actual!==null)duration=Math.max(0,Math.min(duration,actual-s))}
+      }else{const actual=TimeEngine.parseClock(task.actualTime);if(actual!==null)duration=Math.max(0,actual-s)}
     }
     if(duration>0)occupied.push({start,end:Math.min(dayEnd,start+duration),index:task._priorDate?-1:tasks.indexOf(task)});
   }
