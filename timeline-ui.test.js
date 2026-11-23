@@ -81,7 +81,7 @@ assert.match(html,/else anchors\.push\(\{minute:start,y:rect\.top\},\{minute:sta
 assert.match(html,/taskDuration===0&&centerY>=cardRect\.top&&centerY<=cardRect\.bottom\)\{markerY=centerY;break\}/, 'drag preview bead stays physically attached to a durationless card while it is crossed');
 assert.match(html,/marker\.style\.transition='none'/, 'drag preview bead has no easing delay and remains attached to the dragged card');
 assert.doesNotMatch(html,/TimeEngine\.timeScaleMinuteAtPosition\(anchors,topY\)/, 'drag no longer maps the card top edge to a time');
-assert.match(html,/marker\.style\.top=\(\(snappedPosition\?\?centerY\)-rootRect\.top\)\+'px'/, 'drag bead is positioned at the snapped five-minute mark');
+assert.match(html,/marker\.style\.top=\(markerY-rootRect\.top\)\+'px'/, 'drag bead follows the snapped time position or stays attached to a durationless card');
 assert.match(html,/Math\.round\(minute\/5\)\*5/, 'drag preview snaps to five-minute increments');
 assert.match(html,/TimeEngine\.timeScalePosition\(anchors,snapped\)/, 'preview bead is positioned at the snapped five-minute mark');
 assert.match(html,/now\.getSeconds\(\)\/60/, 'live current-time bead retains second-level precision independently of drag snapping');
