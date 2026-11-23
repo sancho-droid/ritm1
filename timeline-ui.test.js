@@ -88,7 +88,7 @@ assert.doesNotMatch(html,/TimeEngine\.timeScalePosition\(anchors,snapped\)/, 'pr
 assert.match(html,/function dragItemRect\(item\)/, 'drag geometry can ignore temporary visual transforms');
 assert.match(html,/while\(node&&node!==list\)/, 'drag geometry removes transforms from the full ancestor chain');
 assert.match(html,/function updateDragDisplacement\(state,e\)/, 'neighboring schedule cards receive temporary visual displacement');
-assert.match(html,/item\.style\.transform='translateY\('\+shift\+'px'\)/, 'neighboring cards move visually without changing their layout data');
+assert.match(html,/item\.style\.transform='translateY\('\+shift\+'px\)'/, 'neighboring cards move visually without changing their layout data');
 assert.match(html,/item\.style\.removeProperty\('transform'\)/, 'temporary visual displacement can be removed');
 assert.match(html,/state\.reorder=false;updateDragDisplacement\(state,e\);updateTimedDragPreview\(state,e\)/, 'schedule displacement updates during pointer movement');
 assert.match(html,/clearTimeout\(state\.timer\);clearDragDisplacement\(\);state\.ghost\?\.remove\(\)/, 'all displaced cards return to their original visual positions when dragging ends');
