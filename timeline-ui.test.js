@@ -18,6 +18,14 @@ assert.match(html, /dayStartBoundary\.dataset\.minute=timeScale\?String\(timeSca
 assert.match(html, /dayEndBoundary\.dataset\.minute=timeScale\?String\(timeScale\.end\):''/);
 assert.match(html, /completionKind:r\?\.completionKind\?\?t\.completionKind/);
 assert.match(html, /completionKind:r\.completionKind\?\?t\.completionKind/);
+assert.match(html, /\.current-time-bead\\{position:absolute/);
+assert.match(html, /TimeEngine\\.timeScaleRatio\\(start,end,minute\\)/, 'bead position uses the dynamic time scale');
+assert.match(html, /startMarker\\.getBoundingClientRect\\(\\)\\.top/);
+assert.match(html, /endMarker\\.getBoundingClientRect\\(\\)\\.top/);
+assert.match(html, /new ResizeObserver\\(updateCurrentTimeBead\\)/, 'bead recalculates after card or boundary geometry changes');
+assert.match(html, /setInterval\\(\\(\\)=>\\{updateCurrentTimeBead\\(\\)/, 'bead follows the live clock');
+assert.match(html, /ratio===null\\)\\{bead\\.style\\.display='none'/, 'bead hides outside the dynamic range and on other dates');
+assert.match(html, /bead\\.style\\.top=\\(startY\\+ratio\\*\\(endY-startY\\)\\)/, 'bead overlays measured marker distance without changing card layout');
 console.log('left time rail UI integration: assertions passed');
 
 const desktopRailRule = html.indexOf('.timed-schedule-list .task{grid-template-columns:52px');
