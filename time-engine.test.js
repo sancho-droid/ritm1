@@ -162,8 +162,8 @@ assert.deepEqual(gapCalc([{time:'08:00',duration:120,done:true,doneAt:'2026-11-2
 assert.deepEqual(gapCalc([{time:'08:00',duration:120,done:true,actualTime:'08:30'}], '2026-11-24'),[
  {start:'00:00',end:'08:00',duration:480,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'},
  {start:'08:30',end:'24:00',duration:930,date:'2026-11-24',afterIndex:0,id:'2026-11-24-gap-1'}]);
-assert.deepEqual(gapCalc([{time:'23:00',duration:120}], '2026-11-24',{previous:[{time:'23:00',duration:120}]}),[{start:'00:00',end:'01:00',duration:60,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}]);
-assert.deepEqual(gapCalc([], '2026-11-24',{previous:[{time:'23:00',duration:120,dayBoundary:'end'}]}),[{start:'00:00',end:'01:00',duration:60,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}]);
+assert.deepEqual(gapCalc([], '2026-11-24',{previous:[{time:'23:00',duration:120}]}),[{start:'01:00',end:'24:00',duration:1380,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}]);
+assert.deepEqual(gapCalc([], '2026-11-24',{previous:[{time:'23:00',duration:120,dayBoundary:'end'}]}),[{start:'01:00',end:'24:00',duration:1380,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}]);
 assert.deepEqual(gapCalc([], '2026-11-24',{previous:[{time:'23:00',duration:120,done:true,doneAt:'2026-11-23T23:30:00'}]}),[{start:'00:00',end:'24:00',duration:1440,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}]);
 assert.deepEqual(gapCalc([], '2026-11-24',{previous:[{time:'23:00',duration:120,done:true,doneAt:'2026-11-24T00:30:00'}]}),[{start:'00:30',end:'24:00',duration:1410,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}]);
 assert.deepEqual(gapCalc([], '2026-11-24',{previous:[{time:'23:00',duration:120,done:true,actualTime:'00:30'}]}),[{start:'00:30',end:'24:00',duration:1410,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}]);
