@@ -666,11 +666,15 @@ let touchDragState=null;
 let dragScrollFrame=0,pendingDragScroll=0;
 function queueDragScroll(delta){pendingDragScroll+=delta;if(dragScrollFrame)return;dragScrollFrame=requestAnimationFrame(()=>{window.scrollBy(0,pendingDragScroll);pendingDragScroll=0;dragScrollFrame=0})}
 function dragItemRect(item){
-  const rect=item.getBoundingClientRect(),transform=getComputedStyle(item).transform;
-  let translateY=0;
-  if(transform&&transform!=='none'){
-    const is3d=transform.startsWith('matrix3d('),values=transform.slice(is3d?9:7,-1).split(',');
-    translateY=Number(values[is3d?13:5])||0;
+  const rect=item.getBoundingClientRect(),list=item.closest('.timed-schedule-list');
+  let translateY=0,node=item;
+  while(node&&node!==list){
+    const transform=getComputedStyle(node).transform;
+    if(transform&&transform!=='none'){
+      const is3d=transform.startsWith('matrix3d('),values=transform.slice(is3d?9:7,-1).split(',');
+      translateY+=Number(values[is3d?13:5])||0;
+    }
+    node=node.parentElement;
   }
   return{top:rect.top-translateY,bottom:rect.bottom-translateY,left:rect.left,right:rect.right,height:rect.height};
 }
