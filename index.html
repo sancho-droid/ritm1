@@ -245,6 +245,8 @@ input,select,textarea{font-size:16px}
 .timed-schedule-list .task-time-rail{grid-column:1;grid-row:1;justify-self:start;align-self:center;padding:0;color:var(--muted);font-size:11px;line-height:1;font-variant-numeric:tabular-nums;text-align:left;white-space:nowrap;pointer-events:none}
 .current-time-bead{position:absolute;z-index:7;left:0;top:0;width:48px;height:20px;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%);border:2px solid var(--panel);border-radius:999px;background:var(--accent);color:#fff;box-shadow:0 2px 7px #0003;font-size:10px;font-weight:750;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;transition:top .9s linear}
 @media(max-width:600px){.current-time-bead{width:41px;height:19px;font-size:10px}}
+.drag-time-bead{z-index:9;transition:none}
+.task .drag-handle:hover,.task .drag-handle:focus-visible{background:var(--soft);color:var(--accent);outline:none}
 @media(max-width:600px){.timed-schedule-list .task{grid-template-columns:43px minmax(0,1fr) auto}}
 
 .time-clear-wrap{position:relative;width:100%}.time-clear-wrap input{width:100%}.time-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;border-radius:8px;background:var(--soft);color:var(--muted);font-size:11px;padding:5px 8px;min-height:28px}
@@ -581,7 +583,7 @@ body.keyboard-open .mobile-dock,body.keyboard-open .quick-fab{display:none!impor
 <div class="modalback" id="quickAddModal"><div class="modal quick-add-modal"><div class="quick-add-head"><h3>Быстрое добавление</h3><button type="button" class="btn" data-close="quickAddModal" aria-label="Закрыть">×</button></div><form id="quickAddForm"><div class="field"><label for="quickAddText">Напиши задачу обычными словами</label><input id="quickAddText" type="text" maxlength="180" autocomplete="off" placeholder="Например: завтра в 18:30 купить продукты" required></div><div id="quickAddPreview" class="quick-preview"><span class="muted">Дата, время и продолжительность появятся здесь</span></div><div class="modalfoot"><button type="button" class="btn" data-close="quickAddModal">Отмена</button><button type="button" class="btn" id="quickAddToShelfBtn">На полку</button><button type="submit" class="primary">Добавить задачу</button></div></form></div></div>
 <nav class="mobile-dock" id="mobileDock"><button class="active" data-tab="day"><span>⌂</span>День</button><button data-tab="family"><span>♡</span>Семья</button><button data-tab="lists"><span>☷</span>Списки</button><button data-tab="diary"><span>▤</span>Дневник</button><button data-tab="habits"><span>✓</span>Привычки</button><button data-tab="child"><span>☆</span>Ребёнок</button></nav>
 <script type="module">
-import * as TimeEngine from './time-engine.js?v=20261123-4';
+import * as TimeEngine from './time-engine.js?v=20261123-5';
 const $=s=>document.querySelector(s), pad=n=>String(n).padStart(2,'0'), key=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 let today=new Date();let selected=new Date(today.getFullYear(),today.getMonth(),today.getDate());let editing=null;let movingTask=null;let deletingTask=null;let tab='day';let theme=localStorage.getItem('ritm_theme')||'light';
 const seed={tasks:[],family:[{id:'f1',name:'Забрать заказ',date:key(new Date(today.getFullYear(),today.getMonth(),today.getDate()+1)),time:'18:30',author:'Супруга',note:'Пункт выдачи рядом с домом',audience:'all',state:'background'},{id:'f2',name:'Семейный ужин',date:key(new Date(today.getFullYear(),today.getMonth(),today.getDate()+2)),time:'19:00',author:'Супруга',note:'Вместе выбрать, что приготовить',audience:'all',state:'background'},{id:'f3',name:'Оплатить интернет',date:key(new Date(today.getFullYear(),today.getMonth(),today.getDate())),time:'',author:'Я',note:'До конца дня',audience:'all',state:'active'}],lists:[{id:'l1',name:'Покупки',type:'Покупки',items:[{id:'i1',name:'Молоко',done:false},{id:'i2',name:'Фрукты',done:false},{id:'i3',name:'Кофе',done:true}]},{id:'l2',name:'Домашние дела',type:'Домашние дела',items:[{id:'i4',name:'Проверить лампочку в прихожей',done:false}]}]};
@@ -634,7 +636,7 @@ function applyTaskCompletion(target,done){
     }
   }
 }
-function taskCard(t){let d=document.createElement('div');d.className='task'+(!t.time?' unscheduled':'');d.draggable=false;d.dataset.taskId=t.seriesId||t.id;d.dataset.occurrenceDate=t.occurrenceDate||'';d._task=t;d.innerHTML=`<div class="taskbody"><div class="taskhead"><button class="check" type="button" aria-label="Выполнено"></button><span class="task-icon"></span><span class="tasktitle"></span><span class="tag"><i class="category-dot"></i><span class="category-name"></span></span></div><div class="taskmeta"></div></div><div class="tasktools"><button class="edit-action" type="button" title="Действия" aria-label="Действия">✎</button></div>`;if(t.time){const rail=document.createElement('span');rail.className='task-time-rail';rail.textContent=TimeEngine.timelineTimeForTask(t,new Date())||t.time;d.insertBefore(rail,d.firstChild)}renderTaskIcon(d.querySelector('.task-icon'),t.icon||'');d.querySelector('.task-icon').classList.toggle('hidden',!t.icon);d.querySelector('.tasktitle').textContent=t.name;if(isImportantTask(t)){const star=document.createElement('span');star.className='important-task-star';star.textContent='★';star.setAttribute('aria-label','Важная задача');d.querySelector('.taskhead').insertBefore(star,d.querySelector('.tag'))}const tag=d.querySelector('.tag');tag.style.setProperty('--category-color',categoryColor(t.category||'Личное'));d.querySelector('.category-name').textContent=t.category||'Личное';if(t.time){const range=document.createElement('span');range.className='task-time-range';const duration=Number(t.duration)||0;const end=t.endTime||(duration>0?minutesToClock(taskStartMinutes(t)+duration):'');range.textContent=end&&end!==t.time?t.time+' – '+end:t.time;d.querySelector('.taskmeta').append(range)}if(t.note){const note=document.createElement('span');note.textContent=t.note;d.querySelector('.taskmeta').append(note)}d.querySelector('.taskbody').classList.toggle('done',!!t.done);d.querySelector('.check').classList.toggle('checked',!!t.done);d.querySelector('.check').textContent=t.done?'✓':'';d.querySelector('.check').onclick=()=>{
+function taskCard(t){let d=document.createElement('div');d.className='task'+(!t.time?' unscheduled':'');d.draggable=false;d.dataset.taskId=t.seriesId||t.id;d.dataset.occurrenceDate=t.occurrenceDate||'';d._task=t;d.innerHTML=`<div class="taskbody"><div class="taskhead"><button class="drag-handle" type="button" aria-label="Перетащить задачу" title="Перетащить задачу">⋮⋮</button><button class="check" type="button" aria-label="Выполнено"></button><span class="task-icon"></span><span class="tasktitle"></span><span class="tag"><i class="category-dot"></i><span class="category-name"></span></span></div><div class="taskmeta"></div></div><div class="tasktools"><button class="edit-action" type="button" title="Действия" aria-label="Действия">✎</button></div>`;if(t.time){const rail=document.createElement('span');rail.className='task-time-rail';rail.textContent=TimeEngine.timelineTimeForTask(t,new Date())||t.time;d.insertBefore(rail,d.firstChild)}renderTaskIcon(d.querySelector('.task-icon'),t.icon||'');d.querySelector('.task-icon').classList.toggle('hidden',!t.icon);d.querySelector('.tasktitle').textContent=t.name;if(isImportantTask(t)){const star=document.createElement('span');star.className='important-task-star';star.textContent='★';star.setAttribute('aria-label','Важная задача');d.querySelector('.taskhead').insertBefore(star,d.querySelector('.tag'))}const tag=d.querySelector('.tag');tag.style.setProperty('--category-color',categoryColor(t.category||'Личное'));d.querySelector('.category-name').textContent=t.category||'Личное';if(t.time){const range=document.createElement('span');range.className='task-time-range';const duration=Number(t.duration)||0;const end=t.endTime||(duration>0?minutesToClock(taskStartMinutes(t)+duration):'');range.textContent=end&&end!==t.time?t.time+' – '+end:t.time;d.querySelector('.taskmeta').append(range)}if(t.note){const note=document.createElement('span');note.textContent=t.note;d.querySelector('.taskmeta').append(note)}d.querySelector('.taskbody').classList.toggle('done',!!t.done);d.querySelector('.check').classList.toggle('checked',!!t.done);d.querySelector('.check').textContent=t.done?'✓':'';d.querySelector('.check').onclick=()=>{
   if(t.isFamily){
     const original=db.family.find(x=>x.id===t.sourceId);
     if(original)original.personalDone=!original.personalDone;
@@ -657,13 +659,139 @@ function taskCard(t){let d=document.createElement('div');d.className='task'+(!t.
     }else applyTaskCompletion(task,!task.done);
   }else applyTaskCompletion(t,!t.done);
   persist();
-};if(t.isFamily)d.querySelector('.tasktools').replaceChildren();else d.querySelector('.edit-action').onclick=()=>openTaskActionMenu(t,d.querySelector('.tasktools'));if(!t.isFamily&&!t.time&&d.closest('.unscheduled-list')){const handle=d.querySelector('.taskbody');handle.setAttribute('aria-label','Зажми карточку, чтобы изменить порядок');handle.addEventListener('pointerdown',e=>{if(!e.isPrimary||(e.button!==undefined&&e.button!==0))return;if(touchDragState){clearTimeout(touchDragState.timer);touchDragState.ghost?.remove()}const handleRect=handle.getBoundingClientRect(),blocked=!!e.target.closest('button,input,select,textarea,a');const state={task:t,source:d,card:handle,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,lastX:e.clientX,lastY:e.clientY,ghostLeft:handleRect.left,ghostWidth:handleRect.width,ghostHeight:handleRect.height,grabOffsetY:e.clientY-handleRect.top,started:false,scrolling:false,noDrag:blocked,timer:null,ghost:null};touchDragState=state;if(!blocked)state.timer=setTimeout(()=>startTaskDrag(state),300)})}return d}
+};if(t.isFamily)d.querySelector('.tasktools').replaceChildren();else d.querySelector('.edit-action').onclick=()=>openTaskActionMenu(t,d.querySelector('.tasktools'));const dragHandle=d.querySelector('.drag-handle');if(t.isFamily||(t.time&&t.done))dragHandle.remove();else dragHandle.addEventListener('pointerdown',e=>{if(!e.isPrimary||(e.button!==undefined&&e.button!==0))return;e.preventDefault();if(touchDragState){clearTimeout(touchDragState.timer);touchDragState.ghost?.remove();touchDragState.marker?.remove();touchDragState.source?.classList.remove('dragging','drag-source')}const card=d.querySelector('.taskbody')||d,rect=card.getBoundingClientRect();const state={task:t,source:d,card,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,lastX:e.clientX,lastY:e.clientY,ghostLeft:rect.left,ghostWidth:rect.width,ghostHeight:rect.height,grabOffsetY:e.clientY-rect.top,startTopY:rect.top,startScrollY:window.scrollY,started:false,scrolling:false,moved:false,reorder:!t.time&&!!d.closest('.unscheduled-list'),timer:null,ghost:null,marker:null,previewTime:null};touchDragState=state;if(e.pointerType==='mouse')startTaskDrag(state);else state.timer=setTimeout(()=>startTaskDrag(state),300)});return d}
 let touchDragState=null;
-let dragScrollFrame=0,pendingDragScroll=0;function queueDragScroll(delta){pendingDragScroll+=delta;if(dragScrollFrame)return;dragScrollFrame=requestAnimationFrame(()=>{window.scrollBy(0,pendingDragScroll);pendingDragScroll=0;dragScrollFrame=0})}function startTaskDrag(state){if(touchDragState!==state||state.started||state.noDrag)return;state.started=true;state.scrolling=false;clearTimeout(state.timer);state.source.classList.add('dragging','drag-source');const ghost=state.card.cloneNode(true);ghost.classList.add('drag-ghost');ghost.style.width=state.ghostWidth+'px';ghost.style.height=state.ghostHeight+'px';ghost.style.minHeight=state.ghostHeight+'px';ghost.style.maxHeight=state.ghostHeight+'px';ghost.style.left=state.ghostLeft+'px';ghost.style.top=(state.lastY-state.grabOffsetY)+'px';ghost.style.boxSizing='border-box';ghost.style.overflow='hidden';document.body.append(ghost);state.ghost=ghost}
-document.addEventListener('pointermove',e=>{const state=touchDragState;if(!state||e.pointerId!==state.pointerId)return;const deltaY=state.lastY-e.clientY;state.lastX=e.clientX;state.lastY=e.clientY;if(!state.started){if(Math.hypot(e.clientX-state.startX,e.clientY-state.startY)>16){clearTimeout(state.timer);state.scrolling=true}if(state.scrolling){e.preventDefault();queueDragScroll(deltaY)}return}e.preventDefault();const list=state.source.closest('.unscheduled-list');if(!list)return;const rect=list.getBoundingClientRect();state.reorder=e.clientX>=rect.left&&e.clientX<=rect.right&&e.clientY>=rect.top&&e.clientY<=rect.bottom;if(state.ghost){state.ghost.style.left=state.ghostLeft+'px';state.ghost.style.top=(e.clientY-state.grabOffsetY)+'px'}if(state.reorder){const siblings=[...list.querySelectorAll('.unscheduled-task')].filter(el=>el!==state.source);const target=siblings.find(el=>e.clientY<el.getBoundingClientRect().top+el.getBoundingClientRect().height/2);if(target)list.insertBefore(state.source,target);else list.append(state.source)}});
-document.addEventListener('pointerup',e=>{const state=touchDragState;if(!state||e.pointerId!==state.pointerId)return;clearTimeout(state.timer);touchDragState=null;if(state.started){const list=state.source.closest('.unscheduled-list');state.ghost?.remove();state.source.classList.remove('dragging','drag-source');if(list){const rows=[...list.querySelectorAll('.unscheduled-task')];rows.forEach((row,index)=>{const task=row._task;if(task.seriesId){const original=db.tasks.find(x=>x.id===task.seriesId);if(original?.repeat&&original.repeat.type!=='none'){const k=occurrenceKey(task.seriesId,task.occurrenceDate);db.occurrences[k]={...(db.occurrences[k]||{}),freeOrder:index}}else if(original)original.freeOrder=index}else{const original=db.tasks.find(x=>x.id===task.id);if(original)original.freeOrder=index}});persist()}}else state.ghost?.remove()});
-document.addEventListener('pointercancel',e=>{const state=touchDragState;if(!state||e.pointerId!==state.pointerId)return;clearTimeout(state.timer);state.ghost?.remove();state.source.classList.remove('dragging','drag-source');touchDragState=null;});
-
+let dragScrollFrame=0,pendingDragScroll=0;
+function queueDragScroll(delta){pendingDragScroll+=delta;if(dragScrollFrame)return;dragScrollFrame=requestAnimationFrame(()=>{window.scrollBy(0,pendingDragScroll);pendingDragScroll=0;dragScrollFrame=0})}
+function dragTimeScaleAnchors(state,list){
+  if(!list)return[];
+  const anchors=[];
+  for(const item of list.children){
+    if(item.classList.contains('task')){
+      const task=item._task;
+      if(!task||task.done||task.isFamily||!task.time||sameTaskOccurrence(task,state.task))continue;
+      const start=TimeEngine.parseClock(task.time),card=item.querySelector('.taskbody')||item,rect=card.getBoundingClientRect();
+      if(start===null||rect.height<=0)continue;
+      anchors.push(...TimeEngine.timeScaleTaskAnchors(start,taskDurationMinutes(task),rect.top,rect.bottom));
+    }else if(item.classList.contains('free-time-compact')||item.classList.contains('free-time-gap')){
+      const start=Number(item.dataset.startMinute),end=Number(item.dataset.endMinute),rect=item.getBoundingClientRect();
+      if(rect.height>0&&Number.isFinite(start)&&Number.isFinite(end))anchors.push({minute:start,y:rect.top},{minute:end,y:rect.bottom});
+    }
+  }
+  return anchors;
+}
+function startTaskDrag(state){
+  if(touchDragState!==state||state.started)return;
+  state.started=true;state.scrolling=false;clearTimeout(state.timer);
+  state.source.classList.add('dragging','drag-source');
+  const ghost=state.card.cloneNode(true);
+  ghost.classList.add('drag-ghost');ghost.style.width=state.ghostWidth+'px';ghost.style.height=state.ghostHeight+'px';
+  ghost.style.minHeight=state.ghostHeight+'px';ghost.style.maxHeight=state.ghostHeight+'px';
+  ghost.style.left=state.ghostLeft+'px';ghost.style.top=(state.lastY-state.grabOffsetY)+'px';
+  ghost.style.boxSizing='border-box';ghost.style.overflow='hidden';document.body.append(ghost);state.ghost=ghost;
+  if(state.task.time){
+    const root=$('#scheduledTasks'),list=root?.querySelector('.timed-schedule-list'),bead=root?.querySelector('.current-time-bead'),rail=list?.querySelector('.task-time-rail');
+    if(root&&list){
+      const marker=document.createElement('div');marker.className='current-time-bead drag-time-bead';marker.setAttribute('aria-hidden','true');marker.textContent=state.task.time;
+      const rootRect=root.getBoundingClientRect(),railRect=rail?.getBoundingClientRect(),width=window.matchMedia('(max-width: 600px)').matches?41:48;
+      marker.style.left=bead?.style.left||(railRect?(railRect.left-rootRect.left+(railRect.width-width)/2)+'px':'0px');
+      root.append(marker);state.marker=marker;
+    }
+  }
+}
+function updateTimedDragPreview(state,e){
+  const root=$('#scheduledTasks'),list=root?.querySelector('.timed-schedule-list'),marker=state.marker;
+  if(!root||!list||!marker){state.previewTime=null;return}
+  const anchors=dragTimeScaleAnchors(state,list);
+  if(anchors.length<2){state.previewTime=null;marker.style.display='none';return}
+  const topY=e.clientY-state.grabOffsetY,rootRect=root.getBoundingClientRect();
+  const minY=Math.min(...anchors.map(point=>point.y)),maxY=Math.max(...anchors.map(point=>point.y));
+  const inside=topY>=minY&&topY<=maxY&&e.clientX>=rootRect.left&&e.clientX<=rootRect.right;
+  if(!inside){state.previewTime=null;marker.style.display='none';return}
+  const originalTop=state.startTopY-(window.scrollY-state.startScrollY),threshold=Math.max(4,state.ghostHeight*.06);
+  const minute=Math.abs(topY-originalTop)<=threshold?TimeEngine.parseClock(state.task.time):TimeEngine.timeScaleMinuteAtPosition(anchors,topY);
+  if(minute===null){state.previewTime=null;marker.style.display='none';return}
+  const snapped=Math.max(0,Math.min(1439,Math.round(minute/5)*5));
+  state.previewTime=Math.abs(topY-originalTop)<=threshold?state.task.time:TimeEngine.formatClock(snapped);
+  marker.textContent=state.previewTime;marker.style.top=(topY+state.ghostHeight/2-rootRect.top)+'px';marker.style.display='flex';
+}
+document.addEventListener('pointermove',e=>{
+  const state=touchDragState;if(!state||e.pointerId!==state.pointerId)return;
+  const deltaY=state.lastY-e.clientY;state.lastX=e.clientX;state.lastY=e.clientY;
+  if(!state.started){
+    if(Math.hypot(e.clientX-state.startX,e.clientY-state.startY)>16){clearTimeout(state.timer);state.scrolling=true}
+    if(state.scrolling){e.preventDefault();queueDragScroll(deltaY)}
+    return;
+  }
+  e.preventDefault();if(Math.hypot(e.clientX-state.startX,e.clientY-state.startY)>3)state.moved=true;
+  if(e.clientY<64)queueDragScroll(-14);else if(e.clientY>window.innerHeight-64)queueDragScroll(14);
+  if(state.ghost){state.ghost.style.left=state.ghostLeft+'px';state.ghost.style.top=(e.clientY-state.grabOffsetY)+'px'}
+  const unscheduledList=state.source.closest('.unscheduled-list');
+  if(unscheduledList){
+    const rect=unscheduledList.getBoundingClientRect();
+    state.reorder=e.clientX>=rect.left&&e.clientX<=rect.right&&e.clientY>=rect.top&&e.clientY<=rect.bottom;
+    if(state.reorder){
+      const siblings=[...unscheduledList.querySelectorAll('.unscheduled-task')].filter(el=>el!==state.source);
+      const target=siblings.find(el=>e.clientY<el.getBoundingClientRect().top+el.getBoundingClientRect().height/2);
+      if(target)unscheduledList.insertBefore(state.source,target);else unscheduledList.append(state.source);
+    }
+    return;
+  }
+  state.reorder=false;updateTimedDragPreview(state,e);
+});
+function clearTaskDrag(state){
+  clearTimeout(state.timer);state.ghost?.remove();state.marker?.remove();
+  state.source?.classList.remove('dragging','drag-source');
+}
+document.addEventListener('pointerup',e=>{
+  const state=touchDragState;if(!state||e.pointerId!==state.pointerId)return;
+  if(state.started&&!state.reorder&&state.task.time&&state.moved)updateTimedDragPreview(state,e);
+  touchDragState=null;clearTaskDrag(state);
+  if(!state.started||!state.moved)return;
+  const list=state.source.closest('.unscheduled-list');
+  if(state.reorder&&list){
+    const rows=[...list.querySelectorAll('.unscheduled-task')];
+    rows.forEach((row,index)=>{
+      const task=row._task;
+      if(task.seriesId){
+        const original=db.tasks.find(x=>x.id===task.seriesId);
+        if(original?.repeat&&original.repeat.type!=='none'){
+          const k=occurrenceKey(task.seriesId,task.occurrenceDate);db.occurrences[k]={...(db.occurrences[k]||{}),freeOrder:index};
+        }else if(original)original.freeOrder=index;
+      }else{
+        const original=db.tasks.find(x=>x.id===task.id);if(original)original.freeOrder=index;
+      }
+    });
+    persist();
+  }else if(state.task.time&&state.previewTime)moveDraggedTaskToTime(state.task,state.previewTime);
+});
+document.addEventListener('pointercancel',e=>{
+  const state=touchDragState;if(!state||e.pointerId!==state.pointerId)return;
+  touchDragState=null;clearTaskDrag(state);
+});
+function moveDraggedTaskToTime(task,time){
+  if(!task||!time)return;
+  const date=task.displayDate||task.occurrenceDate||task.date||key(selected);
+  const conflict=findTaskConflict(task,date,time);
+  if(conflict){
+    alert('Перемещение отменено: «'+task.name+'» пересекается с задачей «'+conflict.task.name+'». Фиксированное событие не сдвинуто.');
+    return;
+  }
+  const duration=taskDurationMinutes(task),start=TimeEngine.parseClock(time);
+  if(start===null)return;
+  const newEnd=(Number(task.duration)>0||task.endTime)?minutesToClock((start+duration)%1440):task.endTime||'';
+  if(task.seriesId){
+    const original=db.tasks.find(x=>x.id===task.seriesId);
+    if(original?.repeat&&original.repeat.type!=='none'){
+      const k=occurrenceKey(task.seriesId,task.occurrenceDate);
+      db.occurrences[k]={...(db.occurrences[k]||{}),time,endTime:newEnd};
+    }else if(original){original.time=time;original.endTime=newEnd}
+  }else{
+    const original=db.tasks.find(x=>x.id===task.id);
+    if(original){original.time=time;original.endTime=newEnd}
+  }
+  persist();
+}
 function isImportantTask(t){return String(t?.category||'').trim().toLocaleLowerCase('ru-RU')==='важное'}function hasImportantTaskOnDate(d){return tasksForDate(d).some(isImportantTask)}function countForDate(d){return tasksForDate(d).length+db.family.filter(x=>x.state==='active'&&!x.hidden&&!x.sourceTaskId&&x.date===key(d)).length}
 function renderCalendar(){$('#dayContent').classList.remove('hidden');}
 let datePickerMonth=new Date(selected.getFullYear(),selected.getMonth(),1);
