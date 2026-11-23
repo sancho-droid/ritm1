@@ -71,7 +71,7 @@ assert.match(html,/TimeEngine\.timelineTimeForTask\(task,now\)\?\?task\.time/, '
 assert.match(html,/if\(!task\.done\)\{\s*const raw=Number\(task\.duration\)/, 'completed cards use point anchors rather than blocking their original duration');
 assert.match(html,/TimeEngine\.timeScaleMinuteAtPosition\(anchors,topY\)/, 'drag converts the card top edge back to timeline minutes');
 assert.match(html,/function moveDraggedTaskToTime\(task,time,\{allowOverlap=false\}=\{\}\)/, 'successful drag has a dedicated persistence path with explicit overlap choice');
-assert.match(html,/const conflicts=findTaskConflicts\(task,date,time\);/, 'drag gathers every overlapping blocking task before committing');
+assert.match(html,/conflicts=findTaskConflicts\(task,date,time\)/, 'drag gathers every overlapping blocking task before committing');
 assert.match(html,/function showDragConflict\(task,date,time,conflicts\)/, 'drag opens a conflict decision dialog');
 assert.match(html,/id="dragConflictCombine"/, 'user can explicitly combine overlapping tasks');
 assert.match(html,/id="dragConflictChange"/, 'user can choose a different time after a conflict');
