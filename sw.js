@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v1025-drag-alignment-five-minute-grid';
+const CACHE = 'ritm-v1026-drag-point-card-time-lock';
 const FILES = ['./', './index.html', './manifest.webmanifest', './time-engine.js?v=20261123-5', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
