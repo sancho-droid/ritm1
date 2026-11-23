@@ -100,7 +100,7 @@ assert.match(html,/if\(state\.source\.closest\('\.unscheduled-list'\)\)\{\s*cons
 assert.match(html,/state\.ghostLeft=referenceRect\.left;state\.ghostWidth=referenceRect\.width;/, 'undated drag ghost uses the same horizontal left edge and width as scheduled task cards');
 assert.match(html,/ghost\.style\.height=state\.ghostHeight\+'px'/, 'undated drag ghost preserves the original card height');
 assert.match(html,/TimeEngine\.timeScaleMinuteAtPosition\(anchors,centerDocumentY\)/, 'drag converts the card center against the fixed document-space ruler');
-assert.match(html,/centerDocumentY=centerY\\+window\\.scrollY/, 'scrolling does not move the ruler relative to the page content');
+assert.ok(html.includes('centerDocumentY=centerY+window.scrollY'), 'scrolling does not move the ruler relative to the page content');
 assert.match(html,/const minY=anchors\[0\]\.y,maxY=anchors\[1\]\.y/, 'drag range is bounded by the fixed top and bottom edges');
 assert.match(html,/const markerY=centerY/, 'drag preview bead stays attached to the dragged card center across every crossed card');
 assert.doesNotMatch(html,/taskDuration===0&&centerY>=cardRect\.top&&centerY<=cardRect\.bottom/, 'crossed cards cannot take control of the preview bead position');
