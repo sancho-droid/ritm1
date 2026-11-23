@@ -118,7 +118,12 @@ assert.match(html,/state\.reorder=false;updateDragDisplacement\(state,e\);update
 assert.match(html,/clearTimeout\(state\.timer\);clearDragDisplacement\(\);state\.ghost\?\.remove\(\)/, 'all displaced cards return to their original visual positions when dragging ends');
 assert.match(html,/now\.getSeconds\(\)\/60/, 'live current-time bead retains second-level precision independently of drag snapping');
 assert.doesNotMatch(html,/Math\.round\(minute\)\)/, 'drag preview no longer uses one-minute precision');
-assert.match(html,/marker\.textContent=state\.task\.time\|\|'—'/, 'undated tasks receive a visible preview bead when entering the timeline');
+assert.match(html,/marker\.textContent=state\.task\.time\|\|'00:00'/, 'undated tasks start with a measurable clock-shaped bead so its colon can align to the live time axis');
+assert.match(html,/function commitDraggedTaskWithoutTime\(task\)/, 'timed tasks have a dedicated path back to the undated list');
+assert.match(html,/original\.time='';original\.endTime=''/, 'returning a task to the undated list clears its start and end while retaining its duration');
+assert.match(html,/state\.dropToUnscheduled=true/, 'dragging a timed task over the undated list activates the return drop target');
+assert.match(html,/if\(state\.dropToUnscheduled\)\{moveDraggedTaskToUnscheduled\(state\.task\);\}/, 'dropping a timed task in the undated list clears its scheduled time');
+assert.match(html,/className='unscheduled-list unscheduled-drop-zone'/, 'an empty undated list receives a temporary visible drop target during drag');
 assert.match(html,/if\(!t\.isFamily&&!\(t\.time&&t\.done\)\)dragSurface\.addEventListener/, 'family and completed timed cards are not draggable');
 assert.match(html,/const root=\$\('#scheduledTasks'\),list=root\?\.querySelector\('\.timed-schedule-list'\),bead=root\?\.querySelector\('\.current-time-bead'\)/, 'all task drags create a timeline preview target');
 assert.match(html,/if\(state\.previewTime\)\{moveDraggedTaskToTime\(state\.task,state\.previewTime\);\}/, 'dropping a dated or undated card on the schedule commits its assigned time');
