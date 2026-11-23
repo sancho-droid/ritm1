@@ -722,7 +722,7 @@ function updateTimedDragPreview(state,e){
   const nearOriginal=!!state.task.time&&Math.abs(topY-originalTop)<=threshold;
   const minute=nearOriginal?TimeEngine.parseClock(state.task.time):TimeEngine.timeScaleMinuteAtPosition(anchors,centerY);
   if(minute===null){state.previewTime=null;marker.style.display='none';return}
-  const snapped=Math.max(0,Math.min(1439,Math.round(minute/5)*5));
+  const snapped=Math.max(0,Math.min(1439,Math.round(minute)));
   state.previewTime=nearOriginal?state.task.time:TimeEngine.formatClock(snapped);
   marker.textContent=state.previewTime;marker.style.top=(centerY-rootRect.top)+'px';marker.style.display='flex';
 }
