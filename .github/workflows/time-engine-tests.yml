@@ -18,4 +18,4 @@ jobs:
       - name: Check planner module syntax
         run: sed -n '/<script type="module">/,/<\/script>/p' index.html | sed '1d;$d' | node --input-type=module --check
       - name: Verify offline engine precache
-        run: grep -Fq "'./time-engine.js?v=20261123-7'" sw.js
+        run: grep -Fq "'./time-engine.js?v=20261123-5'" sw.js

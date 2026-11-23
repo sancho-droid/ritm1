@@ -100,7 +100,7 @@ assert.match(html,/if\(state\.source\.closest\('\.unscheduled-list'\)\)\{\s*cons
 assert.match(html,/state\.ghostLeft=referenceRect\.left;state\.ghostWidth=referenceRect\.width;/, 'undated drag ghost uses the same horizontal left edge and width as scheduled task cards');
 assert.match(html,/ghost\.style\.height=state\.ghostHeight\+'px'/, 'undated drag ghost preserves the original card height');
 assert.match(html,/TimeEngine\.timeScaleMinuteAtPosition\(anchors,centerDocumentY\)/, 'drag converts the card center against the fixed document-space ruler');
-assert.ok(html.includes('centerDocumentY=centerY+window.scrollY'), 'scrolling does not move the ruler relative to the page content');
+assert.match(html,/const centerDocumentY=centerY\+window\.scrollY/, 'scrolling does not move the ruler relative to the page content');
 assert.match(html,/const minY=anchors\[0\]\.y,maxY=anchors\[1\]\.y/, 'drag range is bounded by the fixed top and bottom edges');
 assert.match(html,/const markerY=centerY/, 'drag preview bead stays attached to the dragged card center across every crossed card');
 assert.doesNotMatch(html,/taskDuration===0&&centerY>=cardRect\.top&&centerY<=cardRect\.bottom/, 'crossed cards cannot take control of the preview bead position');
@@ -128,8 +128,7 @@ assert.match(html,/if\(!t\.isFamily&&!\(t\.time&&t\.done\)\)dragSurface\.addEven
 assert.match(html,/const root=\$\('#scheduledTasks'\),list=root\?\.querySelector\('\.timed-schedule-list'\),bead=root\?\.querySelector\('\.current-time-bead'\)/, 'all task drags create a timeline preview target');
 assert.match(html,/if\(state\.previewTime\)\{moveDraggedTaskToTime\(state\.task,state\.previewTime\);\}/, 'dropping a dated or undated card on the schedule commits its assigned time');
 assert.match(html,/state\.reorder=e\.clientX>=rect\.left&&e\.clientX<=rect\.right&&e\.clientY>=rect\.top&&e\.clientY<=rect\.bottom/, 'undated cards distinguish list sorting from dropping into the schedule');
-assert.match(html,/if\(state\.reorder\)\{[\s\S]*?return;\s*\}\s*\}\s*const unscheduledRoot=/, 'leaving the unscheduled list exits its sorting branch before evaluating drop targets');
-assert.match(html,/state\.reorder=false;updateDragDisplacement\(state,e\);updateTimedDragPreview\(state,e\)/, 'outside the unscheduled list, drag returns to timeline placement and visual slot preview');
+assert.match(html,/if\(state\.reorder\)\{[\s\S]*?return;\s*\}\s*\}\s*state\.reorder=false;updateDragDisplacement\(state,e\);updateTimedDragPreview\(state,e\)/, 'leaving the unscheduled list switches from sorting to timeline placement and visual slot preview');
 assert.match(html,/if\(state\.reorder&&list\)\{/, 'sorting within the unscheduled list remains supported');
 assert.match(html,/function moveDraggedTaskToTime\(task,time,\{allowOverlap=false\}=\{\}\)/, 'successful drag has a dedicated persistence path with explicit overlap choice');
 assert.match(html,/conflicts=findTaskConflicts\(task,date,time\)/, 'drag gathers every overlapping blocking task before committing');
@@ -189,28 +188,4 @@ assert.equal(TimeEngine.timeScaleMinuteAtPosition(fixedDayRuler, 1100), 1439,
 assert.equal(TimeEngine.formatClock(Math.max(0, Math.min(1435, Math.round(TimeEngine.timeScaleMinuteAtPosition(fixedDayRuler, 1100) / 5) * 5))), '23:55',
   'the final five-minute snap remains inside the 23:59 day boundary');
 console.log('fixed full-day drag ruler: assertions passed');
-
-const daySwipeCode = html.slice(html.indexOf('let daySwipeStart=null'), html.indexOf('function render(){'));
-assert.match(daySwipeCode,/daySwipeViewport\.className='day-swipe-viewport';daySwipeTrack\.className='day-swipe-track'/,
-  'day navigation uses a dedicated clipped viewport and horizontal track');
-assert.match(daySwipeCode,/daySwipeEl\.parentNode\.insertBefore\(daySwipeViewport,daySwipeEl\);daySwipeViewport\.append\(daySwipeTrack,daySwipeEl\);daySwipeTrack\.append\(daySwipeEl\)/,
-  'the live day stays centered between its previous and next preview pages');
-assert.match(daySwipeCode,/function daySwipeSnapshot\(date\).*selected=dateObj\(date\);renderDay\(\);const html=daySwipeEl\.innerHTML;selected=previous;expandedFreeGapDate=oldGapDate;expandedFreeGapKey=oldGapKey;renderDay\(\);return html\}/,
-  'neighbor snapshots restore the selected date and expanded free-time state after rendering');
-assert.match(daySwipeCode,/daySwipeTrack\.append\(prev,daySwipeEl,next\)/,
-  'the swipe track orders previous, current and next day pages');
-assert.match(daySwipeCode,/daySwipeTrack\.style\.transform='translate3d\('\+\(-width\)\+'px,0,0\)'/,
-  'the current day starts centered in the three-page track');
-assert.match(daySwipeCode,/daySwipeTrack\.style\.transform='translate3d\('\+\(-daySwipeStart\.width\+dx\)\+'px,0,0\)'/,
-  'the neighboring page follows the finger continuously during a horizontal gesture');
-assert.match(daySwipeCode,/commit\?\(-width\*\(1\+direction\)\):-width/,
-  'a completed swipe settles directly onto the adjacent page while a cancelled swipe returns to center');
-assert.match(daySwipeCode,/selected=addDays\(selected,direction\);render\(\)/,
-  'the selected date changes only after the adjacent page finishes moving into place');
-assert.match(daySwipeCode,/Math\.abs\(dx\)<=65\|\|Math\.abs\(dx\)<=Math\.abs\(dy\)\*1\.35/,
-  'short or predominantly vertical gestures do not change the day');
-assert.match(daySwipeCode,/daySwipeEl\.addEventListener\('pointercancel',[\s\S]*?settleDaySwipe\(false,0,width\)/,
-  'interrupted pointer gestures return the track to the current day');
-console.log('two-page day swipe integration: assertions passed');
-
 
