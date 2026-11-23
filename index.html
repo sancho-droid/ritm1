@@ -908,18 +908,18 @@ function renderDatePicker(){
  const first=new Date(datePickerMonth.getFullYear(),datePickerMonth.getMonth(),1),offset=(first.getDay()+6)%7,start=addDays(first,-offset);
  $('#dateMonthTitle').textContent=new Intl.DateTimeFormat('ru-RU',{month:'long',year:'numeric'}).format(datePickerMonth);
  ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].forEach(x=>{const h=document.createElement('div');h.className='weekday';h.textContent=x;root.append(h)});
- for(let i=0;i<42;i++){const d=addDays(start,i),k=key(d),b=document.createElement('button');b.type='button';b.className='calday'+(d.getMonth()!==datePickerMonth.getMonth()?' outside':'')+(k===key(selected)?' selected':'')+(k===datePickerDetailDate?' detail-selected':'')+(k===key(today)?' today':'');const n=document.createElement('span');n.className='daynum';n.textContent=d.getDate();b.append(n);if(hasImportantTaskOnDate(d))b.classList.add('has-important-task');b.onclick=()=>{datePickerDetailDate=k;renderDatePicker();renderDatePickerDayDetails()};root.append(b)}
+ for(let i=0;i<42;i++){const d=addDays(start,i),k=key(d),b=document.createElement('button');b.type='button';b.className='calday'+(d.getMonth()!==datePickerMonth.getMonth()?' outside':'')+(k===key(selected)?' selected':'')+(k===datePickerDetailDate?' detail-selected':'')+(k===key(today)?' today':'');const n=document.createElement('span');n.className='daynum';n.textContent=d.getDate();b.append(n);if(hasImportantTaskOnDate(d))b.classList.add('has-important-task');b.onclick=()=>{if(dateCalendarSwipeTriggered){dateCalendarSwipeTriggered=false;return}datePickerDetailDate=k;renderDatePicker();renderDatePickerDayDetails()};root.append(b)}
  renderDatePickerDayDetails();
 }
 function changeDatePickerMonth(delta){datePickerMonth=new Date(datePickerMonth.getFullYear(),datePickerMonth.getMonth()+delta,1);renderDatePicker()}
 function openDatePicker(){datePickerMonth=new Date(selected.getFullYear(),selected.getMonth(),1);datePickerDetailDate=null;renderDatePicker();showModal('datePickerModal')}
 $('#datePrevMonth').onclick=()=>changeDatePickerMonth(-1);$('#dateNextMonth').onclick=()=>changeDatePickerMonth(1);
-$('#dateTodayBtn').onclick=()=>{datePickerDetailDate=key(today);datePickerMonth=new Date(today.getFullYear(),today.getMonth(),1);renderDatePicker()};
+$('#dateTodayBtn').onclick=()=>{selected=new Date(today.getFullYear(),today.getMonth(),today.getDate());closeModal('datePickerModal');render()};
 $('#datePickerDayClose').onclick=()=>{datePickerDetailDate=null;renderDatePickerDayDetails()};
 $('#datePickerDayGo').onclick=()=>{if(!datePickerDetailDate)return;selected=dateObj(datePickerDetailDate);closeModal('datePickerModal');render()};
-let dateCalendarSwipeY=null;
-$('#datePickerGrid').addEventListener('pointerdown',e=>{dateCalendarSwipeY=e.clientY});
-$('#datePickerGrid').addEventListener('pointerup',e=>{if(dateCalendarSwipeY===null)return;const dy=e.clientY-dateCalendarSwipeY;dateCalendarSwipeY=null;if(Math.abs(dy)>45)changeDatePickerMonth(dy<0?1:-1)});
+let dateCalendarSwipeY=null,dateCalendarSwipeTriggered=false;
+$('#datePickerGrid').addEventListener('pointerdown',e=>{dateCalendarSwipeY=e.clientY;dateCalendarSwipeTriggered=false});
+$('#datePickerGrid').addEventListener('pointerup',e=>{if(dateCalendarSwipeY===null)return;const dy=e.clientY-dateCalendarSwipeY;dateCalendarSwipeY=null;if(Math.abs(dy)>45){dateCalendarSwipeTriggered=true;changeDatePickerMonth(dy<0?1:-1)}});
 $('#datePickerGrid').addEventListener('pointercancel',()=>{dateCalendarSwipeY=null});
 function renderWeekStrip(){
  const root=$('#weekStrip');root.replaceChildren();const names=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
