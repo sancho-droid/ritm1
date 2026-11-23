@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v1022-restored-timeline-drag';
+const CACHE = 'ritm-v1023-drag-conflict-resolution';
 const FILES = ['./', './index.html', './manifest.webmanifest', './time-engine.js?v=20261123-5', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
