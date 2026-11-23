@@ -24,7 +24,7 @@ assert.match(html, /TimeEngine\.timeScalePosition\(anchors,minute\)/, 'bead posi
 assert.match(html, /if\(!list\.querySelector\('\.task'\)\)\{bead\.style\.display='none'/, 'bead stays hidden when the timed schedule is empty');
 assert.match(html, /item\.classList\.contains\('task'\)&&item\._task/);
 assert.match(html, /item\.dataset\.startMinute/);
-assert.match(html, /TimeEngine\.timeScaleTaskAnchors\(display,duration,rect\.top-rootRect\.top,rect\.bottom-rootRect\.top\)/, 'task anchors use full card geometry');
+assert.match(html, /const card=item\.querySelector\('\.taskbody'\)\|\|item/);\nassert.match(html, /TimeEngine\.timeScaleTaskAnchors\(display,duration,cardRect\.top-rootRect\.top,cardRect\.bottom-rootRect\.top\)/, 'task anchors use the visible bordered card, not the outer task row');
 assert.match(html, /new ResizeObserver\(updateCurrentTimeBead\)/, 'bead recalculates after card or boundary geometry changes');
 assert.match(html, /setInterval\(\(\)=>\{updateCurrentTimeBead\(\)/, 'bead follows the live clock');
 assert.match(html, /position===null\)\{bead\.style\.display='none'/, 'bead hides outside available schedule anchors and on other dates');
@@ -37,7 +37,7 @@ const legacyMobileGrid = html.indexOf('.schedule-list .task,.unscheduled-list .s
 assert.ok(desktopRailRule > 0 && desktopRailRule > legacyMobileGrid, 'rail grid overrides legacy mobile grid');
 assert.ok(mobileRailRule > legacyMobileGrid, 'mobile rail grid overrides legacy mobile grid');
 
-assert.match(html, /TimeEngine\.timeScaleTaskAnchors\(display,duration,rect\.top-rootRect\.top,rect\.bottom-rootRect\.top\)/,
+assert.match(html, /TimeEngine\.timeScaleTaskAnchors\(display,duration,cardRect\.top-rootRect\.top,cardRect\.bottom-rootRect\.top\)/,
   'bead uses each visible bordered card top and bottom as its interval anchors');
 assert.match(html, /now\.getSeconds\(\)\/60/,
   'bead interpolates continuously between minute ticks');
