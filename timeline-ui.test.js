@@ -68,6 +68,7 @@ assert.doesNotMatch(html,/if\(!task\|\|task\.done\|\|task\.isFamily\|\|!task\.ti
 assert.match(html,/TimeEngine\.timeScaleMinuteAtPosition\(anchors,topY\)/, 'drag converts the card top edge back to timeline minutes');
 assert.match(html,/function moveDraggedTaskToTime\(task,time\)/, 'successful drag has a dedicated persistence path');
 assert.match(html,/const conflict=findTaskConflict\(task,date,time\);/, 'drag rejects conflicting drops before changing task data');
+assert.match(html,/if\(other\.done\|\|sameTaskOccurrence\(candidate,other\)\|\|other\?\.scheduleMode==='parallel'\)continue;/, 'completed tasks do not block a time slot after they release it');
 assert.match(html,/if\(t\.isFamily\|\|\(t\.time&&t\.done\)\)dragHandle\.remove\(\)/, 'family and completed timed cards are not draggable');
 
 const firstTaskAnchors = TimeEngine.timeScaleTaskAnchors(12 * 60, 30, 100, 200);
