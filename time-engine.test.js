@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {DAY_START_MINUTES,DAY_END_MINUTES,parseClock,formatClock,durationOf,syncSleepToWake,overnightContinuation,sortChronologically,intervalsFor,freeIntervals,findNextFreeGap,freeTimeAnchorIndex,conflicts,orderTimedTasksForDisplay,inferDayBoundary,assignDayBoundaryRoles,dayBoundaryIssue,dayBoundaryWindow,freeGapsForDay,timelineTimeForTask,timeScaleBounds,timeScaleRatio,timeScalePosition,timeScaleTaskAnchors,} from './time-engine.js';
+import {DAY_START_MINUTES,DAY_END_MINUTES,parseClock,formatClock,durationOf,syncSleepToWake,overnightContinuation,sortChronologically,intervalsFor,freeIntervals,findNextFreeGap,freeTimeAnchorIndex,conflicts,orderTimedTasksForDisplay,inferDayBoundary,assignDayBoundaryRoles,dayBoundaryIssue,dayBoundaryWindow,freeGapsForDay,timelineTimeForTask,timeScaleBounds,timeScaleRatio,timeScalePosition,timeScaleTaskAnchors,timeScaleMinuteAtPosition,} from './time-engine.js';
 assert.equal(parseClock('00:00'),0);assert.equal(parseClock('19:09'),1149);assert.equal(parseClock('23:59'),1439);assert.equal(parseClock('24:00'),null);assert.equal(parseClock('9:00'),null);assert.equal(parseClock('bad'),null);assert.equal(formatClock(1149),'19:09');assert.equal(formatClock(1440),'23:59');
 assert.deepEqual(sortChronologically([{id:'a',time:'20:15'},{id:'b',time:'17:20'},{id:'c',time:'19:00'},{id:'d',time:''}]).map(x=>x.time),['17:20','19:00','20:15','']);assert.deepEqual(sortChronologically([{id:'z',time:'09:00'},{id:'a',time:'09:00'}]).map(x=>x.id),['z','a']);
 assert.equal(durationOf({time:'23:30',endTime:'00:15'}),45);assert.deepEqual(intervalsFor([{time:'17:20',duration:30},{time:'17:45',duration:30},{time:'18:15',duration:15,done:true},{time:'19:00',duration:20}]).map(x=>[x.start,x.end]),[[1040,1095],[1140,1160]]);
@@ -257,7 +257,26 @@ assert.equal(timeScalePosition(timeScaleTaskAnchors(637,220,100,320),747),210,
 assert.equal(timeScalePosition(timeScaleTaskAnchors(637,15,100,160),644.5),130,
   'a 15-minute task uses its full card height');
 assert.deepEqual(timeScaleTaskAnchors(600,0,100,160),[{minute:600,y:130},{minute:601,y:160}],
-  'a point task is centered at its assigned minute and moves below the card by the next minute');
+  'a point task keeps the established midpoint anchor for the current-time bead');
 assert.equal(timeScalePosition(timeScaleTaskAnchors(600,0,100,160),600),130);
 assert.equal(timeScalePosition(timeScaleTaskAnchors(600,0,100,160),601),160);
 console.log('task-proportional current-time bead anchors: assertions passed');
+
+
+// Drag uses the exact inverse of the same measured piecewise geometry as the current-time bead.
+const inverseGeometry=[
+ {minute:360,y:100},{minute:480,y:145},{minute:510,y:205},
+ {minute:600,y:230},{minute:660,y:250},{minute:690,y:310}
+];
+for(let minute=360;minute<=690;minute+=3){
+ const y=timeScalePosition(inverseGeometry,minute);
+ assert.ok(Math.abs(timeScaleMinuteAtPosition(inverseGeometry,y)-minute)<1e-7,
+   'Y-to-time inversion must round-trip variable task/free-gap geometry at '+minute);
+}
+const sharedMinuteGap=[{minute:480,y:100},{minute:510,y:150},{minute:510,y:162},{minute:540,y:222}];
+assert.equal(timeScaleMinuteAtPosition(sharedMinuteGap,156),510,'visual gap between adjacent card edges maps to their shared minute');
+assert.equal(timeScaleMinuteAtPosition(sharedMinuteGap,100),480);
+assert.equal(timeScaleMinuteAtPosition(sharedMinuteGap,222),540);
+assert.equal(timeScaleMinuteAtPosition(sharedMinuteGap,99),null,'drag cannot extrapolate above measured anchors');
+assert.equal(timeScaleMinuteAtPosition(sharedMinuteGap,223),null,'drag cannot extrapolate below measured anchors');
+console.log('inverse drag timeline geometry: assertions passed');

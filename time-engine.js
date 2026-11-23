@@ -165,6 +165,39 @@ export function timeScalePosition(anchors,minute){
   }
   return groups[groups.length-1].firstY;
 }
+/** Invert the rendered timeline geometry. Vertical space between two edges
+ * that share a minute belongs to that same minute; gaps between distinct
+ * minute anchors are interpolated linearly. Values outside the measured scale
+ * are rejected rather than extrapolated.
+ */
+export function timeScaleMinuteAtPosition(anchors,y){
+  if(!Array.isArray(anchors)||!Number.isFinite(y))return null;
+  const sorted=anchors.filter(point=>Number.isFinite(point?.minute)&&Number.isFinite(point?.y))
+    .sort((a,b)=>a.minute-b.minute||a.y-b.y);
+  if(sorted.length<2)return null;
+  const groups=[];
+  for(const point of sorted){
+    const last=groups[groups.length-1];
+    if(last&&point.minute===last.minute){last.lastY=point.y;continue;}
+    groups.push({minute:point.minute,firstY:point.y,lastY:point.y});
+  }
+  if(groups.length<2)return null;
+  for(let i=1;i<groups.length;i++){
+    const previous=groups[i-1],current=groups[i];
+    current.firstY=Math.max(previous.lastY,current.firstY);
+    current.lastY=Math.max(current.firstY,current.lastY);
+  }
+  if(y<groups[0].firstY||y>groups[groups.length-1].lastY)return null;
+  for(let i=0;i<groups.length;i++){
+    const current=groups[i],next=groups[i+1];
+    if(y>=current.firstY&&y<=current.lastY)return current.minute;
+    if(next&&y>current.lastY&&y<next.firstY){
+      const span=next.firstY-current.lastY;
+      return span>0?current.minute+(y-current.lastY)*(next.minute-current.minute)/span:current.minute;
+    }
+  }
+  return y===groups[groups.length-1].lastY?groups[groups.length-1].minute:null;
+}
 export function sortChronologically(tasks){return [...tasks].sort((a,b)=>{const am=parseClock(a?.time),bm=parseClock(b?.time);if(am===null&&bm===null)return 0;if(am===null)return 1;if(bm===null)return-1;return am-bm})}
 export function intervalsFor(tasks,{includeCompleted=false,dayEnd=DAY_END_MINUTES}={}){const list=[];for(const task of tasks||[]){const start=parseClock(task?.time);if(start===null||task?.scheduleMode==='parallel'||(!includeCompleted&&task?.done))continue;const end=Math.min(dayEnd,start+durationOf(task));if(end>start)list.push({start,end,task})}list.sort((a,b)=>a.start-b.start||a.end-b.end);const merged=[];for(const item of list){const last=merged.at(-1);if(last&&item.start<last.end){last.end=Math.max(last.end,item.end);last.tasks.push(item.task)}else merged.push({start:item.start,end:item.end,tasks:[item.task]})}return merged}
 export function freeIntervals(tasks,{nowMinutes=null,dayEnd=DAY_END_MINUTES,minGap=15}={}){const occupied=intervalsFor(tasks,{dayEnd});const gaps=[];let cursor=Math.max(0,nowMinutes??0);for(const block of occupied){if(block.end<=cursor)continue;if(block.start-cursor>=minGap)gaps.push({start:cursor,end:block.start,duration:block.start-cursor});cursor=Math.max(cursor,block.end)}if(dayEnd-cursor>=minGap)gaps.push({start:cursor,end:dayEnd,duration:dayEnd-cursor});return gaps}
