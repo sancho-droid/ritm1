@@ -721,6 +721,18 @@ function startTaskDrag(state){
     if(reference){const referenceRect=reference.getBoundingClientRect();state.ghostLeft=referenceRect.left;state.ghostWidth=referenceRect.width;}
   }
   state.source.classList.add('dragging','drag-source');
+  // When the free list is empty, expose a temporary drop target during a timed-task drag.
+  const unscheduledRoot=$('#unscheduled'),unscheduledDivider=$('#dayContent .unscheduled-divider');
+  if(!state.source.closest('.unscheduled-list')&&state.task.time&&unscheduledRoot&&!unscheduledRoot.querySelector('.unscheduled-list')){
+    state.unscheduledRoot=unscheduledRoot;state.unscheduledDivider=unscheduledDivider;
+    state.unscheduledWasHidden=unscheduledRoot.classList.contains('hidden');
+    state.unscheduledDividerWasHidden=!!unscheduledDivider?.classList.contains('hidden');
+    unscheduledRoot.classList.remove('hidden');unscheduledDivider?.classList.remove('hidden');
+    const zone=document.createElement('div');zone.className='unscheduled-list unscheduled-drop-zone';
+    zone.textContent='Перетащи сюда, чтобы убрать время';
+    Object.assign(zone.style,{minHeight:'58px',display:'flex',alignItems:'center',justifyContent:'center',border:'1px dashed var(--line)',borderRadius:'14px',color:'var(--muted)',fontSize:'12px',padding:'12px'});
+    unscheduledRoot.append(zone);state.dropZone=zone;
+  }
   const ghost=state.card.cloneNode(true);
   ghost.classList.add('drag-ghost');ghost.style.width=state.ghostWidth+'px';ghost.style.height=state.ghostHeight+'px';
   ghost.style.minHeight=state.ghostHeight+'px';ghost.style.maxHeight=state.ghostHeight+'px';
@@ -729,7 +741,7 @@ function startTaskDrag(state){
   {
     const root=$('#scheduledTasks'),list=root?.querySelector('.timed-schedule-list'),bead=root?.querySelector('.current-time-bead'),rail=list?.querySelector('.task-time-rail');
     if(root&&list){
-      const marker=document.createElement('div');marker.className='current-time-bead drag-time-bead';marker.setAttribute('aria-hidden','true');marker.textContent=state.task.time||'—';
+      const marker=document.createElement('div');marker.className='current-time-bead drag-time-bead';marker.setAttribute('aria-hidden','true');marker.textContent=state.task.time||'00:00';
       const width=window.matchMedia('(max-width: 600px)').matches?41:48;
       // The drag marker is absolutely positioned against this root on every date.
       // The live bead may be hidden outside today, so never reuse its stale/unset left.
@@ -782,6 +794,7 @@ document.addEventListener('pointermove',e=>{
   if(e.clientY<64)queueDragScroll(-14);else if(e.clientY>window.innerHeight-64)queueDragScroll(14);
   if(state.ghost){state.ghost.style.left=state.ghostLeft+'px';state.ghost.style.top=(e.clientY-state.grabOffsetY)+'px'}
   const unscheduledList=state.source.closest('.unscheduled-list');
+  state.dropToUnscheduled=false;
   if(unscheduledList){
     const rect=unscheduledList.getBoundingClientRect();
     state.reorder=e.clientX>=rect.left&&e.clientX<=rect.right&&e.clientY>=rect.top&&e.clientY<=rect.bottom;
@@ -794,10 +807,21 @@ document.addEventListener('pointermove',e=>{
       return;
     }
   }
+  const unscheduledRoot=$('#unscheduled'),unscheduledRect=unscheduledRoot?.getBoundingClientRect();
+  if(!unscheduledList&&state.task.time&&unscheduledRect&&e.clientX>=unscheduledRect.left&&e.clientX<=unscheduledRect.right&&e.clientY>=unscheduledRect.top&&e.clientY<=unscheduledRect.bottom){
+    state.dropToUnscheduled=true;state.reorder=false;clearDragDisplacement();
+    state.previewTime=null;if(state.marker)state.marker.style.display='none';
+    return;
+  }
   state.reorder=false;updateDragDisplacement(state,e);updateTimedDragPreview(state,e);
 });
 function clearTaskDrag(state){
   clearTimeout(state.timer);clearDragDisplacement();state.ghost?.remove();state.marker?.remove();
+  if(state.dropZone){
+    state.dropZone.remove();
+    if(state.unscheduledWasHidden)state.unscheduledRoot?.classList.add('hidden');
+    if(state.unscheduledDividerWasHidden)state.unscheduledDivider?.classList.add('hidden');
+  }
   state.source?.classList.remove('dragging','drag-source');
 }
 document.addEventListener('pointerup',e=>{
@@ -806,7 +830,8 @@ document.addEventListener('pointerup',e=>{
   touchDragState=null;clearTaskDrag(state);
   if(!state.started||!state.moved)return;
   const list=state.source.closest('.unscheduled-list');
-  if(state.previewTime){moveDraggedTaskToTime(state.task,state.previewTime);}
+  if(state.dropToUnscheduled){moveDraggedTaskToUnscheduled(state.task);}
+  else if(state.previewTime){moveDraggedTaskToTime(state.task,state.previewTime);}
   else if(state.reorder&&list){
     const rows=[...list.querySelectorAll('.unscheduled-task')];
     rows.forEach((row,index)=>{
@@ -830,6 +855,22 @@ document.addEventListener('pointercancel',e=>{
 let pendingDragMove=null;
 function showDragConflict(task,date,time,conflicts){pendingDragMove={task,date,time};const list=$('#dragConflictList');list.replaceChildren();conflicts.forEach(({task:other,date:conflictDate})=>{const row=document.createElement('div');row.className='drag-conflict-item';const name=document.createElement('strong');name.textContent=other.name||'Без названия';const meta=document.createElement('span');meta.textContent=(other.time||'Без времени')+(other.endTime&&other.endTime!==other.time?' – '+other.endTime:'')+' · '+labelDate(dateObj(conflictDate));row.append(name,meta);list.append(row)});$('#dragConflictTitle').textContent='Пересечение по времени';$('#dragConflictIntro').textContent='«'+task.name+'» пересекается с '+conflicts.length+' '+(conflicts.length===1?'задачей':'задачами')+'. Выбери, как поступить.';showModal('dragConflictModal')}
 function commitDraggedTaskTime(task,date,time){const duration=taskDurationMinutes(task),start=TimeEngine.parseClock(time);if(start===null)return false;const hasDuration=Number(task.duration)>0||!!task.endTime,newEnd=hasDuration?minutesToClock((start+duration)%1440):'';if(task.seriesId){const original=db.tasks.find(x=>x.id===task.seriesId);if(original?.repeat&&original.repeat.type!=='none'){const k=occurrenceKey(task.seriesId,task.occurrenceDate);db.occurrences[k]={...(db.occurrences[k]||{}),time,endTime:newEnd}}else if(original){original.time=time;original.endTime=newEnd}}else{const original=db.tasks.find(x=>x.id===task.id);if(original){original.time=time;original.endTime=newEnd}}pendingDragMove=null;closeModal('dragConflictModal');closeModal('dragTimeModal');persist();return true}
+function commitDraggedTaskWithoutTime(task){
+  if(!task?.time)return false;
+  if(task.seriesId){
+    const original=db.tasks.find(x=>x.id===task.seriesId);
+    if(original?.repeat&&original.repeat.type!=='none'){
+      const occurrenceDate=task.occurrenceDate||task.displayDate||task.date||key(selected),k=occurrenceKey(task.seriesId,occurrenceDate);
+      db.occurrences[k]={...(db.occurrences[k]||{}),time:'',endTime:''};
+    }else if(original){original.time='';original.endTime='';}
+    else return false;
+  }else{
+    const original=db.tasks.find(x=>x.id===task.id);if(!original)return false;
+    original.time='';original.endTime='';
+  }
+  pendingDragMove=null;persist();return true;
+}
+function moveDraggedTaskToUnscheduled(task){return commitDraggedTaskWithoutTime(task)}
 function moveDraggedTaskToTime(task,time,{allowOverlap=false}={}){if(!task||!time)return false;if(time===task.time)return true;const date=task.displayDate||task.occurrenceDate||task.date||key(selected),conflicts=findTaskConflicts(task,date,time);if(conflicts.length&&!allowOverlap){showDragConflict(task,date,time,conflicts);return false}return commitDraggedTaskTime(task,date,time)}
 function openDragTimeEditor(){if(!pendingDragMove)return;closeModal('dragConflictModal');const task=pendingDragMove.task,duration=Number(task.duration)>0||!!task.endTime?formatDuration(taskDurationMinutes(task)):'Без длительности';$('#dragTimeTaskName').textContent=task.name;$('#dragTimeDuration').textContent='Длительность: '+duration;$('#dragTimeValue').value=pendingDragMove.time;showModal('dragTimeModal')}
 $('#dragConflictCombine').onclick=()=>{if(pendingDragMove)moveDraggedTaskToTime(pendingDragMove.task,pendingDragMove.time,{allowOverlap:true})};
