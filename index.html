@@ -665,12 +665,18 @@ let dragScrollFrame=0,pendingDragScroll=0;
 function queueDragScroll(delta){pendingDragScroll+=delta;if(dragScrollFrame)return;dragScrollFrame=requestAnimationFrame(()=>{window.scrollBy(0,pendingDragScroll);pendingDragScroll=0;dragScrollFrame=0})}
 function dragTimeScaleAnchors(state,list){
   if(!list)return[];
-  const anchors=[];let previousPointTask=false;
+  const anchors=[];let previousPointTask=false;const now=new Date();
   for(const item of list.children){
     if(item.classList.contains('task')){
       const task=item._task;
-      if(!task||task.done||task.isFamily||!task.time){previousPointTask=false;continue}
-      const start=TimeEngine.parseClock(task.time),duration=taskDurationMinutes(task),card=item.querySelector('.taskbody')||item,rect=card.getBoundingClientRect();
+      if(!task||!task.time){previousPointTask=false;continue}
+      const start=TimeEngine.parseClock(TimeEngine.timelineTimeForTask(task,now)??task.time),card=item.querySelector('.taskbody')||item,rect=card.getBoundingClientRect();
+      let duration=0;
+      if(!task.done){
+        const raw=Number(task.duration);
+        if(Number.isFinite(raw)&&raw>0)duration=Math.round(raw);
+        else if(task.endTime){const end=TimeEngine.parseClock(task.endTime);if(end!==null&&start!==null){duration=end-start;if(duration<0)duration+=TimeEngine.DAY_MINUTES}}
+      }
       if(start===null||rect.height<=0){previousPointTask=false;continue}
       anchors.push(...TimeEngine.timeScaleTaskAnchors(start,duration,rect.top,rect.bottom));
       previousPointTask=duration===0;
