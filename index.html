@@ -239,6 +239,7 @@ input,select,textarea{font-size:16px}
 .task.drag-source{opacity:.28;outline:1px dashed var(--accent);outline-offset:3px}
 .task.dragging{opacity:.25}
 .schedule-list .task,.schedule-list .task *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+@media(max-width:600px){.schedule-list .task,.unscheduled-list .schedule-task{grid-template-columns:minmax(0,1fr) auto;gap:5px}.schedule-list .taskbody,.unscheduled-list .schedule-task .taskbody{padding:9px 8px}.schedule-list .tasktitle{font-size:13px}.schedule-list .tasktools button,.unscheduled-list .schedule-task .tasktools button{min-width:30px;padding:4px}.tag{font-size:10px}.category-dot{width:7px;height:7px}}
 /* A separate, row-aligned time rail. It follows card geometry and never scales rows by duration. */
 .timed-schedule-list .task{grid-template-columns:52px minmax(0,1fr) auto}
 .timed-schedule-list .taskbody{grid-column:2}
@@ -246,7 +247,7 @@ input,select,textarea{font-size:16px}
 .timed-schedule-list .task-time-rail{grid-column:1;grid-row:1;justify-self:end;align-self:center;padding-right:2px;color:var(--muted);font-size:11px;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
 .timed-schedule-list .task-time-range{display:none}
 @media(max-width:600px){.timed-schedule-list .task{grid-template-columns:43px minmax(0,1fr) auto}}
-@media(max-width:600px){.schedule-list .task,.unscheduled-list .schedule-task{grid-template-columns:minmax(0,1fr) auto;gap:5px}.schedule-list .taskbody,.unscheduled-list .schedule-task .taskbody{padding:9px 8px}.schedule-list .tasktitle{font-size:13px}.schedule-list .tasktools button,.unscheduled-list .schedule-task .tasktools button{min-width:30px;padding:4px}.tag{font-size:10px}.category-dot{width:7px;height:7px}}
+
 .time-clear-wrap{position:relative;width:100%}.time-clear-wrap input{width:100%}.time-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;border-radius:8px;background:var(--soft);color:var(--muted);font-size:11px;padding:5px 8px;min-height:28px}
 #taskModal .time-clear-wrap input{padding-right:72px}
 @media(max-width:600px){.schedule-list .task-icon{width:34px;height:34px;flex-basis:34px}.schedule-list .task-icon svg{width:30px;height:30px}.schedule-list .tag{width:82px;min-width:82px}}

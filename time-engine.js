@@ -96,7 +96,7 @@ export function timelineTimeForTask(task,now=new Date()){
   if(!task?.done)return task.time;
   const actual=parseClock(task?.actualTime);
   if(actual===null)return task.time;
-  const taskDate=task?.occurrenceDate||task?.displayDate||task?.date;
+  const taskDate=task?.displayDate||task?.occurrenceDate||task?.date;
   const scheduledAt=taskDate?localDateTime(taskDate,planned):NaN;
   const completedAt=Date.parse(task?.doneAt||'');
   const completedBeforeSchedule=Number.isFinite(completedAt)&&Number.isFinite(scheduledAt)

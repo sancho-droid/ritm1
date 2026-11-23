@@ -16,3 +16,9 @@ assert.match(html, /dayEndBoundary\.dataset\.minute=timeScale\?String\(timeScale
 assert.match(html, /completionKind:r\?\.completionKind\?\?t\.completionKind/);
 assert.match(html, /completionKind:r\.completionKind\?\?t\.completionKind/);
 console.log('left time rail UI integration: assertions passed');
+
+const desktopRailRule = html.indexOf('.timed-schedule-list .task{grid-template-columns:52px');
+const mobileRailRule = html.indexOf('.timed-schedule-list .task{grid-template-columns:43px');
+const legacyMobileGrid = html.indexOf('.schedule-list .task,.unscheduled-list .schedule-task{grid-template-columns:minmax(0,1fr) auto');
+assert.ok(desktopRailRule > 0 && desktopRailRule > legacyMobileGrid, 'rail grid overrides legacy mobile grid');
+assert.ok(mobileRailRule > legacyMobileGrid, 'mobile rail grid overrides legacy mobile grid');
