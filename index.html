@@ -746,7 +746,7 @@ function updateCurrentTimeBead(){
   bead.textContent=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
   bead.setAttribute('aria-label','Текущее время '+bead.textContent);
   // Re-measure after text changes so the colon remains on the exact same axis.
-  bead.style.top=position+'px';bead.style.display='flex';
+  const initialPosition=bead.dataset.positioned!=='true';if(initialPosition)bead.style.transition='none';bead.style.top=position+'px';bead.style.display='flex';if(initialPosition){bead.getBoundingClientRect();bead.style.removeProperty('transition');bead.dataset.positioned='true'}
 }
 function mountCurrentTimeBead(list,divider){
   const root=$('#scheduledTasks');root.style.position='relative';
