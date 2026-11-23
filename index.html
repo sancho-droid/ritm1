@@ -123,7 +123,7 @@ input,select,textarea{font-size:16px}
   .menu-back{align-items:flex-start;justify-content:flex-start;padding:calc(env(safe-area-inset-top) + 10px) 10px 0}
   .menu-modal{margin:0;width:min(300px,calc(100% - 20px));border-radius:18px}
 }
-.check{display:inline-grid!important;place-items:center!important;width:22px!important;height:22px!important;min-width:22px!important;min-height:22px!important;max-width:22px!important;max-height:22px!important;aspect-ratio:1/1!important;flex:0 0 22px!important;border-radius:50%!important;padding:0!important;line-height:1!important;appearance:none;-webkit-appearance:none}.drag-handle{display:none;align-items:center;justify-content:center;width:26px;height:28px;flex:0 0 26px;border-radius:8px;color:var(--muted);font-size:17px;letter-spacing:-3px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}.task .drag-handle{display:inline-flex}.task{touch-action:pan-y}.task .drag-handle{touch-action:none}.task.unscheduled .drag-handle:active{background:var(--soft);color:var(--accent)}.date-picker-modal{width:min(420px,100%)}.date-picker-modal .calday{min-height:48px;text-align:center;align-items:center;justify-content:center}.date-picker-modal .daynum{font-size:15px}.date-picker-actions{display:flex;justify-content:space-between;gap:8px;margin-top:14px}
+.check{display:inline-grid!important;place-items:center!important;width:22px!important;height:22px!important;min-width:22px!important;min-height:22px!important;max-width:22px!important;max-height:22px!important;aspect-ratio:1/1!important;flex:0 0 22px!important;border-radius:50%!important;padding:0!important;line-height:1!important;appearance:none;-webkit-appearance:none}.drag-handle{display:none;align-items:center;justify-content:center;width:26px;min-width:26px;height:28px;min-height:28px;flex:0 0 26px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--muted);font-size:17px;letter-spacing:-3px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}.task .drag-handle{display:inline-flex}.task{touch-action:pan-y}.task .drag-handle{touch-action:none}.task.unscheduled .drag-handle:active{background:var(--soft);color:var(--accent)}.date-picker-modal{width:min(420px,100%)}.date-picker-modal .calday{min-height:48px;text-align:center;align-items:center;justify-content:center}.date-picker-modal .daynum{font-size:15px}.date-picker-actions{display:flex;justify-content:space-between;gap:8px;margin-top:14px}
 /* v0.7.1 task creation form: mobile width and visual correction */
 #taskModal{align-items:center;justify-content:center;padding:16px}
 #taskModal .task-modal-form{width:min(490px,100%);min-width:0;max-width:100%;padding:22px;overflow-x:hidden}
@@ -665,17 +665,20 @@ let dragScrollFrame=0,pendingDragScroll=0;
 function queueDragScroll(delta){pendingDragScroll+=delta;if(dragScrollFrame)return;dragScrollFrame=requestAnimationFrame(()=>{window.scrollBy(0,pendingDragScroll);pendingDragScroll=0;dragScrollFrame=0})}
 function dragTimeScaleAnchors(state,list){
   if(!list)return[];
-  const anchors=[];
+  const anchors=[];let previousPointTask=false;
   for(const item of list.children){
     if(item.classList.contains('task')){
       const task=item._task;
-      if(!task||task.done||task.isFamily||!task.time||sameTaskOccurrence(task,state.task))continue;
-      const start=TimeEngine.parseClock(task.time),card=item.querySelector('.taskbody')||item,rect=card.getBoundingClientRect();
-      if(start===null||rect.height<=0)continue;
-      anchors.push(...TimeEngine.timeScaleTaskAnchors(start,taskDurationMinutes(task),rect.top,rect.bottom));
+      if(!task||task.done||task.isFamily||!task.time||sameTaskOccurrence(task,state.task)){previousPointTask=false;continue}
+      const start=TimeEngine.parseClock(task.time),duration=taskDurationMinutes(task),card=item.querySelector('.taskbody')||item,rect=card.getBoundingClientRect();
+      if(start===null||rect.height<=0){previousPointTask=false;continue}
+      anchors.push(...TimeEngine.timeScaleTaskAnchors(start,duration,rect.top,rect.bottom));
+      previousPointTask=duration===0;
     }else if(item.classList.contains('free-time-compact')||item.classList.contains('free-time-gap')){
-      const start=Number(item.dataset.startMinute),end=Number(item.dataset.endMinute),rect=item.getBoundingClientRect();
+      let start=Number(item.dataset.startMinute);const end=Number(item.dataset.endMinute),rect=item.getBoundingClientRect();
+      if(previousPointTask&&Number.isFinite(start))start+=1;
       if(rect.height>0&&Number.isFinite(start)&&Number.isFinite(end))anchors.push({minute:start,y:rect.top},{minute:end,y:rect.bottom});
+      previousPointTask=false;
     }
   }
   return anchors;
