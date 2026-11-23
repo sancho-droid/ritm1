@@ -238,5 +238,5 @@ assert.equal(timeScalePosition([{minute:0,y:10},{minute:60,y:70},{minute:120,y:1
 assert.equal(timeScalePosition([{minute:0,y:10},{minute:60,y:70},{minute:120,y:130}],60),70);
 assert.equal(timeScalePosition([{minute:0,y:10},{minute:60,y:70}],-1),null);
 assert.equal(timeScalePosition([{minute:0,y:10},{minute:60,y:70}],61),null);
-assert.equal(timeScalePosition([{minute:0,y:10},{minute:60,y:70},{minute:30,y:80}],45),55);
+assert.equal(timeScalePosition([{minute:0,y:10},{minute:60,y:70},{minute:30,y:80}],45),80,'overlapping visual anchors never make the bead move backwards');
 assert.equal(timeScalePosition([{minute:0,y:10},{minute:0,y:20},{minute:60,y:80}],0),20);
