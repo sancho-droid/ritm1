@@ -1,5 +1,5 @@
 const CACHE = 'ritm-v1021-instant-bead-position';
-const FILES = ['./', './index.html', './manifest.webmanifest', './time-engine.js', './icons/icon-192.svg', './icons/icon-512.svg'];
+const FILES = ['./', './index.html', './manifest.webmanifest', './time-engine.js?v=20261123-4', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES.map(file => new Request(file, { cache: 'reload' })))).then(() => self.skipWaiting()));
