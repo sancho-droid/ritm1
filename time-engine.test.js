@@ -176,4 +176,4 @@ console.log('independent free-gap engine: regression and boundary assertions pas
 
 // Legacy actualTime for a task crossing midnight must be interpreted as an overnight clock when it wraps.
 assert.deepEqual(gapCalc([{time:'23:00',duration:120,done:true,actualTime:'00:30'}], '2026-11-24'),[{start:'00:00',end:'23:00',duration:1380,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}]);
-assert.deepEqual(gapCalc([{time:'23:00',duration:120,done:true,actualTime:'23:30'}], '2026-11-24'),[{start:'00:00',end:'23:00',duration:1380,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}]);
+assert.deepEqual(gapCalc([{time:'23:00',duration:120,done:true,actualTime:'23:30'}], '2026-11-24'),[{start:'00:00',end:'23:00',duration:1380,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'},{start:'23:30',end:'24:00',duration:30,date:'2026-11-24',afterIndex:0,id:'2026-11-24-gap-1'}]);
