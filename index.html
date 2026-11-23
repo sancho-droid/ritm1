@@ -669,7 +669,7 @@ function dragTimeScaleAnchors(state,list){
   for(const item of list.children){
     if(item.classList.contains('task')){
       const task=item._task;
-      if(!task||task.done||task.isFamily||!task.time||sameTaskOccurrence(task,state.task)){previousPointTask=false;continue}
+      if(!task||task.done||task.isFamily||!task.time){previousPointTask=false;continue}
       const start=TimeEngine.parseClock(task.time),duration=taskDurationMinutes(task),card=item.querySelector('.taskbody')||item,rect=card.getBoundingClientRect();
       if(start===null||rect.height<=0){previousPointTask=false;continue}
       anchors.push(...TimeEngine.timeScaleTaskAnchors(start,duration,rect.top,rect.bottom));
