@@ -52,6 +52,9 @@ export function dayBoundaryIssue(tasks){
   return null;
 }
 export function durationOf(task){const d=Number(task?.duration);if(Number.isFinite(d)&&d>0)return Math.round(d);const s=parseClock(task?.time),e=parseClock(task?.endTime);if(s!==null&&e!==null){let diff=e-s;if(diff<0)diff+=DAY_MINUTES;if(diff>0)return diff}return 1}
+
+/** Hidden calculation interval: starts one second after the displayed minute, while the original end stays unchanged. */
+export function conflictInterval(task){const start=parseClock(task?.time);if(start===null)return null;return {start:start+1/60,end:start+durationOf(task)}}
 export function orderTimedTasksForDisplay(tasks,date,now=new Date()){
   const dateKey=typeof date==='string'?date:localDateKey(date);
   const todayKey=localDateKey(now);
