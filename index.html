@@ -693,6 +693,10 @@ function dragTimeScaleAnchors(state,list){
 function startTaskDrag(state){
   if(touchDragState!==state||state.started)return;
   state.started=true;state.scrolling=false;clearTimeout(state.timer);
+  if(state.source.closest('.unscheduled-list')){
+    const reference=$('#scheduledTasks .timed-schedule-list .taskbody');
+    if(reference){const referenceRect=reference.getBoundingClientRect();state.ghostLeft=referenceRect.left;state.ghostWidth=referenceRect.width;}
+  }
   state.source.classList.add('dragging','drag-source');
   const ghost=state.card.cloneNode(true);
   ghost.classList.add('drag-ghost');ghost.style.width=state.ghostWidth+'px';ghost.style.height=state.ghostHeight+'px';
@@ -718,13 +722,12 @@ function updateTimedDragPreview(state,e){
   const minY=Math.min(...anchors.map(point=>point.y)),maxY=Math.max(...anchors.map(point=>point.y));
   const inside=centerY>=minY&&centerY<=maxY&&e.clientX>=rootRect.left&&e.clientX<=rootRect.right;
   if(!inside){state.previewTime=null;marker.style.display='none';return}
-  const originalTop=state.startTopY-(window.scrollY-state.startScrollY),threshold=Math.max(4,state.ghostHeight*.06);
-  const nearOriginal=!!state.task.time&&Math.abs(topY-originalTop)<=threshold;
-  const minute=nearOriginal?TimeEngine.parseClock(state.task.time):TimeEngine.timeScaleMinuteAtPosition(anchors,centerY);
+  const minute=TimeEngine.timeScaleMinuteAtPosition(anchors,centerY);
   if(minute===null){state.previewTime=null;marker.style.display='none';return}
-  const snapped=Math.max(0,Math.min(1439,Math.round(minute)));
-  state.previewTime=nearOriginal?state.task.time:TimeEngine.formatClock(snapped);
-  marker.textContent=state.previewTime;marker.style.top=(centerY-rootRect.top)+'px';marker.style.display='flex';
+  const snapped=Math.max(0,Math.min(1435,Math.round(minute/5)*5));
+  const snappedPosition=TimeEngine.timeScalePosition(anchors,snapped);
+  state.previewTime=TimeEngine.formatClock(snapped);
+  marker.textContent=state.previewTime;marker.style.top=((snappedPosition??centerY)-rootRect.top)+'px';marker.style.display='flex';
 }
 document.addEventListener('pointermove',e=>{
   const state=touchDragState;if(!state||e.pointerId!==state.pointerId)return;
