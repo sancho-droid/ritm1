@@ -683,7 +683,7 @@ function freeGapsForTasks(tasks,dateKey,allDayTasks=tasks){
     if(task.done&&!task._priorDate){
       const completedAt=Date.parse(task.doneAt||'');if(Number.isFinite(completedAt)){
         const completedDate=new Date(completedAt);
-        if(key(completedDate)===dateKey){const cm=completedDate.getHours()*60+completedDate.getMinutes();duration=Math.max(0,Math.min(duration,cm-s));}
+        if(key(completedDate)===dateKey){const cm=completedDate.getHours()*60+completedDate.getMinutes();duration=Math.max(0,cm-s);}
       }else{const actual=TimeEngine.parseClock(task.actualTime);if(actual!==null)duration=Math.max(0,Math.min(duration,actual-s))}
     }
     if(duration>0)occupied.push({start,end:Math.min(dayEnd,start+duration),index:task._priorDate?-1:tasks.indexOf(task)});
