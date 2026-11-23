@@ -38,7 +38,7 @@ assert.ok(desktopRailRule > 0 && desktopRailRule > legacyMobileGrid, 'rail grid 
 assert.ok(mobileRailRule > legacyMobileGrid, 'mobile rail grid overrides legacy mobile grid');
 
 assert.match(html, /TimeEngine\.timeScaleTaskAnchors\(display,duration,rect\.top-rootRect\.top,rect\.bottom-rootRect\.top\)/,
-  'bead uses each task card top and bottom as its interval anchors');
+  'bead uses each visible bordered card top and bottom as its interval anchors');
 assert.match(html, /now\.getSeconds\(\)\/60/,
   'bead interpolates continuously between minute ticks');
 assert.match(html, /},1000\);/,
