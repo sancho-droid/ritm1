@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v1014-overnight-legacy-time-heuristic';
+const CACHE = 'ritm-v1015-time-engine-cache-bust';
 const FILES = ['./', './index.html', './manifest.webmanifest', './time-engine.js', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
