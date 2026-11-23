@@ -4,8 +4,8 @@ import * as TimeEngine from './time-engine.js';
 
 const html = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
 const serviceWorker = readFileSync(new URL('./sw.js', import.meta.url), 'utf8');
-assert.match(html, /import \* as TimeEngine from '\.\/time-engine\.js\?v=20261123-4'/);
-assert.match(serviceWorker, /'\.\/time-engine\.js\?v=20261123-4'/, 'service worker precaches the versioned module URL used by the app');
+assert.match(html, /import \* as TimeEngine from '\.\/time-engine\.js\?v=20261123-5'/);
+assert.match(serviceWorker, /'\.\/time-engine\.js\?v=20261123-5'/, 'service worker precaches the versioned module URL used by the app');
 assert.match(html, /\.timed-schedule-list \.task\{grid-template-columns:52px minmax\(0,1fr\) auto\}/);
 assert.match(html, /\.timed-schedule-list \.taskbody\{grid-column:2\}/);
 assert.match(html, /\.timed-schedule-list \.tasktools\{grid-column:3\}/);
@@ -61,6 +61,13 @@ assert.match(html, /bead\.style\.left=\(targetColon-beadColonOffset-rootRect\.le
 assert.match(html, /@media\(max-width:600px\)\{\.current-time-bead\{width:41px;/,
   'mobile bead is centered on the 43px time rail');
 console.log('proportional bead geometry and centered rail integration: assertions passed');
+assert.match(html,/class="drag-handle"/, 'task cards expose a visible drag affordance');
+assert.match(html,/handle\.addEventListener\('pointerdown'/, 'drag handle receives pointer input');
+assert.match(html,/function dragTimeScaleAnchors\(state,list\)/, 'drag anchors use measured task and free-gap geometry');
+assert.match(html,/TimeEngine\.timeScaleMinuteAtPosition\(anchors,topY\)/, 'drag converts the card top edge back to timeline minutes');
+assert.match(html,/function moveDraggedTaskToTime\(task,time\)/, 'successful drag has a dedicated persistence path');
+assert.match(html,/const conflict=findTaskConflict\(task,date,time\);/, 'drag rejects conflicting drops before changing task data');
+assert.match(html,/if\(t\.isFamily\|\|\(t\.time&&t\.done\)\)dragHandle\.remove\(\)/, 'family and completed timed cards are not draggable');
 
 const firstTaskAnchors = TimeEngine.timeScaleTaskAnchors(12 * 60, 30, 100, 200);
 const nextTaskAnchors = TimeEngine.timeScaleTaskAnchors(12 * 60 + 30, 30, 212, 312);
