@@ -210,8 +210,8 @@ assert.equal(timelineTimeForTask({...earlyRailTask,doneAt:'2026-11-23T12:00:00',
 assert.equal(timelineTimeForTask({...earlyRailTask,doneAt:'2026-11-23T12:15:00',actualTime:'12:15',completionKind:'on-time-or-late'},railNow),'12:00','late completion keeps planned time');
 assert.equal(timelineTimeForTask({...earlyRailTask,doneAt:'2026-11-23T11:30:00',actualTime:'11:30',completionKind:'early'},railNow),'12:00','future completion timestamp is not shown yet');
 assert.equal(timelineTimeForTask({time:'',done:true,actualTime:'08:30'},railNow),null,'untimed task has no rail label');
-assert.equal(timelineTimeForTask({...earlyRailTask,doneAt:'2026-11-23T08:30:00',completionKind:'on-time-or-late'},railNow),'12:00','completion classification prevents false early display');
 assert.equal(timelineTimeForTask({time:'12:00',done:true,actualTime:'08:30',completionKind:'early'},railNow),'08:30','legacy early completion without doneAt remains supported');
+assert.equal(timelineTimeForTask({...earlyRailTask,displayDate:'2026-11-23',occurrenceDate:'2026-11-22'},railNow),'08:30','moved occurrence uses its displayed date, not its source occurrence key');
 assert.deepEqual(
   timeScaleBounds([
     {time:'06:00',duration:30},
