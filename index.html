@@ -123,7 +123,7 @@ input,select,textarea{font-size:16px}
   .menu-back{align-items:flex-start;justify-content:flex-start;padding:calc(env(safe-area-inset-top) + 10px) 10px 0}
   .menu-modal{margin:0;width:min(300px,calc(100% - 20px));border-radius:18px}
 }
-.check{display:inline-grid!important;place-items:center!important;width:22px!important;height:22px!important;min-width:22px!important;min-height:22px!important;max-width:22px!important;max-height:22px!important;aspect-ratio:1/1!important;flex:0 0 22px!important;border-radius:50%!important;padding:0!important;line-height:1!important;appearance:none;-webkit-appearance:none}.drag-handle{display:none;align-items:center;justify-content:center;width:26px;min-width:26px;height:28px;min-height:28px;flex:0 0 26px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--muted);font-size:17px;letter-spacing:-3px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}.task .drag-handle{display:inline-flex}.task{touch-action:pan-y}.task .drag-handle{touch-action:none}.task.unscheduled .drag-handle:active{background:var(--soft);color:var(--accent)}.date-picker-modal{width:min(420px,100%)}.date-picker-modal .calday{min-height:48px;text-align:center;align-items:center;justify-content:center}.date-picker-modal .daynum{font-size:15px}.date-picker-actions{display:flex;justify-content:space-between;gap:8px;margin-top:14px}
+.check{display:inline-grid!important;place-items:center!important;width:22px!important;height:22px!important;min-width:22px!important;min-height:22px!important;max-width:22px!important;max-height:22px!important;aspect-ratio:1/1!important;flex:0 0 22px!important;border-radius:50%!important;padding:0!important;line-height:1!important;appearance:none;-webkit-appearance:none}.task{touch-action:pan-y}.schedule-list .taskbody{touch-action:none;cursor:grab}.schedule-list .taskbody:active{cursor:grabbing}.date-picker-modal{width:min(420px,100%)}.date-picker-modal .calday{min-height:48px;text-align:center;align-items:center;justify-content:center}.date-picker-modal .daynum{font-size:15px}.date-picker-actions{display:flex;justify-content:space-between;gap:8px;margin-top:14px}
 /* v0.7.1 task creation form: mobile width and visual correction */
 #taskModal{align-items:center;justify-content:center;padding:16px}
 #taskModal .task-modal-form{width:min(490px,100%);min-width:0;max-width:100%;padding:22px;overflow-x:hidden}
@@ -234,7 +234,7 @@ input,select,textarea{font-size:16px}
 .category-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .task-time-range{display:inline-block;margin-right:8px;color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
 .drag-ghost{position:fixed;z-index:11;pointer-events:none;opacity:.96;transform:none!important;filter:drop-shadow(0 14px 18px #0005);border-radius:15px;overflow:hidden}
-.task.drag-source{opacity:.28;outline:1px dashed var(--accent);outline-offset:3px}
+.task.drag-source{opacity:.12;outline:0}
 .task.dragging{opacity:.25}
 .schedule-list .task,.schedule-list .task *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 @media(max-width:600px){.schedule-list .task,.unscheduled-list .schedule-task{grid-template-columns:minmax(0,1fr) auto;gap:5px}.schedule-list .taskbody,.unscheduled-list .schedule-task .taskbody{padding:9px 8px}.schedule-list .tasktitle{font-size:13px}.schedule-list .tasktools button,.unscheduled-list .schedule-task .tasktools button{min-width:30px;padding:4px}.tag{font-size:10px}.category-dot{width:7px;height:7px}}
@@ -246,7 +246,6 @@ input,select,textarea{font-size:16px}
 .current-time-bead{position:absolute;z-index:7;left:0;top:0;width:48px;height:20px;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%);border:2px solid var(--panel);border-radius:999px;background:var(--accent);color:#fff;box-shadow:0 2px 7px #0003;font-size:10px;font-weight:750;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;transition:top .9s linear}
 @media(max-width:600px){.current-time-bead{width:41px;height:19px;font-size:10px}}
 .drag-time-bead{z-index:9;transition:none}
-.task .drag-handle:hover,.task .drag-handle:focus-visible{background:var(--soft);color:var(--accent);outline:none}
 @media(max-width:600px){.timed-schedule-list .task{grid-template-columns:43px minmax(0,1fr) auto}}
 
 .time-clear-wrap{position:relative;width:100%}.time-clear-wrap input{width:100%}.time-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;border-radius:8px;background:var(--soft);color:var(--muted);font-size:11px;padding:5px 8px;min-height:28px}
@@ -638,7 +637,7 @@ function applyTaskCompletion(target,done){
     }
   }
 }
-function taskCard(t){let d=document.createElement('div');d.className='task'+(!t.time?' unscheduled':'');d.draggable=false;d.dataset.taskId=t.seriesId||t.id;d.dataset.occurrenceDate=t.occurrenceDate||'';d._task=t;d.innerHTML=`<div class="taskbody"><div class="taskhead"><button class="drag-handle" type="button" aria-label="Перетащить задачу" title="Перетащить задачу">⋮⋮</button><button class="check" type="button" aria-label="Выполнено"></button><span class="task-icon"></span><span class="tasktitle"></span><span class="tag"><i class="category-dot"></i><span class="category-name"></span></span></div><div class="taskmeta"></div></div><div class="tasktools"><button class="edit-action" type="button" title="Действия" aria-label="Действия">✎</button></div>`;if(t.time){const rail=document.createElement('span');rail.className='task-time-rail';rail.textContent=TimeEngine.timelineTimeForTask(t,new Date())||t.time;d.insertBefore(rail,d.firstChild)}renderTaskIcon(d.querySelector('.task-icon'),t.icon||'');d.querySelector('.task-icon').classList.toggle('hidden',!t.icon);d.querySelector('.tasktitle').textContent=t.name;if(isImportantTask(t)){const star=document.createElement('span');star.className='important-task-star';star.textContent='★';star.setAttribute('aria-label','Важная задача');d.querySelector('.taskhead').insertBefore(star,d.querySelector('.tag'))}const tag=d.querySelector('.tag');tag.style.setProperty('--category-color',categoryColor(t.category||'Личное'));d.querySelector('.category-name').textContent=t.category||'Личное';if(t.time){const range=document.createElement('span');range.className='task-time-range';const duration=Number(t.duration)||0;const end=t.endTime||(duration>0?minutesToClock(taskStartMinutes(t)+duration):'');range.textContent=end&&end!==t.time?t.time+' – '+end:t.time;d.querySelector('.taskmeta').append(range)}if(t.note){const note=document.createElement('span');note.textContent=t.note;d.querySelector('.taskmeta').append(note)}d.querySelector('.taskbody').classList.toggle('done',!!t.done);d.querySelector('.check').classList.toggle('checked',!!t.done);d.querySelector('.check').textContent=t.done?'✓':'';d.querySelector('.check').onclick=()=>{
+function taskCard(t){let d=document.createElement('div');d.className='task'+(!t.time?' unscheduled':'');d.draggable=false;d.dataset.taskId=t.seriesId||t.id;d.dataset.occurrenceDate=t.occurrenceDate||'';d._task=t;d.innerHTML=`<div class="taskbody"><div class="taskhead"><button class="check" type="button" aria-label="Выполнено"></button><span class="task-icon"></span><span class="tasktitle"></span><span class="tag"><i class="category-dot"></i><span class="category-name"></span></span></div><div class="taskmeta"></div></div><div class="tasktools"><button class="edit-action" type="button" title="Действия" aria-label="Действия">✎</button></div>`;if(t.time){const rail=document.createElement('span');rail.className='task-time-rail';rail.textContent=TimeEngine.timelineTimeForTask(t,new Date())||t.time;d.insertBefore(rail,d.firstChild)}renderTaskIcon(d.querySelector('.task-icon'),t.icon||'');d.querySelector('.task-icon').classList.toggle('hidden',!t.icon);d.querySelector('.tasktitle').textContent=t.name;if(isImportantTask(t)){const star=document.createElement('span');star.className='important-task-star';star.textContent='★';star.setAttribute('aria-label','Важная задача');d.querySelector('.taskhead').insertBefore(star,d.querySelector('.tag'))}const tag=d.querySelector('.tag');tag.style.setProperty('--category-color',categoryColor(t.category||'Личное'));d.querySelector('.category-name').textContent=t.category||'Личное';if(t.time){const range=document.createElement('span');range.className='task-time-range';const duration=Number(t.duration)||0;const end=t.endTime||(duration>0?minutesToClock(taskStartMinutes(t)+duration):'');range.textContent=end&&end!==t.time?t.time+' – '+end:t.time;d.querySelector('.taskmeta').append(range)}if(t.note){const note=document.createElement('span');note.textContent=t.note;d.querySelector('.taskmeta').append(note)}d.querySelector('.taskbody').classList.toggle('done',!!t.done);d.querySelector('.check').classList.toggle('checked',!!t.done);d.querySelector('.check').textContent=t.done?'✓':'';d.querySelector('.check').onclick=()=>{
   if(t.isFamily){
     const original=db.family.find(x=>x.id===t.sourceId);
     if(original)original.personalDone=!original.personalDone;
@@ -661,7 +660,7 @@ function taskCard(t){let d=document.createElement('div');d.className='task'+(!t.
     }else applyTaskCompletion(task,!task.done);
   }else applyTaskCompletion(t,!t.done);
   persist();
-};if(t.isFamily)d.querySelector('.tasktools').replaceChildren();else d.querySelector('.edit-action').onclick=()=>openTaskActionMenu(t,d.querySelector('.tasktools'));const dragHandle=d.querySelector('.drag-handle');if(t.isFamily||(t.time&&t.done))dragHandle.remove();else dragHandle.addEventListener('pointerdown',e=>{if(!e.isPrimary||(e.button!==undefined&&e.button!==0))return;e.preventDefault();if(touchDragState){clearTimeout(touchDragState.timer);touchDragState.ghost?.remove();touchDragState.marker?.remove();touchDragState.source?.classList.remove('dragging','drag-source')}const card=d.querySelector('.taskbody')||d,rect=card.getBoundingClientRect();const state={task:t,source:d,card,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,lastX:e.clientX,lastY:e.clientY,ghostLeft:rect.left,ghostWidth:rect.width,ghostHeight:rect.height,grabOffsetY:e.clientY-rect.top,startTopY:rect.top,startScrollY:window.scrollY,started:false,scrolling:false,moved:false,reorder:!t.time&&!!d.closest('.unscheduled-list'),timer:null,ghost:null,marker:null,previewTime:null};touchDragState=state;if(e.pointerType==='mouse')startTaskDrag(state);else state.timer=setTimeout(()=>startTaskDrag(state),300)});return d}
+};if(t.isFamily)d.querySelector('.tasktools').replaceChildren();else d.querySelector('.edit-action').onclick=()=>openTaskActionMenu(t,d.querySelector('.tasktools'));const dragSurface=d.querySelector('.taskbody');if(!t.isFamily&&!(t.time&&t.done))dragSurface.addEventListener('pointerdown',e=>{if(e.target.closest('button,input,select,textarea,a,[data-no-drag]'))return;if(!e.isPrimary||(e.button!==undefined&&e.button!==0))return;e.preventDefault();if(touchDragState){clearTimeout(touchDragState.timer);touchDragState.ghost?.remove();touchDragState.marker?.remove();touchDragState.source?.classList.remove('dragging','drag-source')}const card=dragSurface,rect=card.getBoundingClientRect();const state={task:t,source:d,card,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,lastX:e.clientX,lastY:e.clientY,ghostLeft:rect.left,ghostWidth:rect.width,ghostHeight:rect.height,grabOffsetY:e.clientY-rect.top,startTopY:rect.top,startScrollY:window.scrollY,started:false,scrolling:false,moved:false,reorder:!t.time&&!!d.closest('.unscheduled-list'),timer:null,ghost:null,marker:null,previewTime:null};touchDragState=state;if(e.pointerType==='mouse')startTaskDrag(state);else state.timer=setTimeout(()=>startTaskDrag(state),300)});return d}
 let touchDragState=null;
 let dragScrollFrame=0,pendingDragScroll=0;
 function queueDragScroll(delta){pendingDragScroll+=delta;if(dragScrollFrame)return;dragScrollFrame=requestAnimationFrame(()=>{window.scrollBy(0,pendingDragScroll);pendingDragScroll=0;dragScrollFrame=0})}
@@ -700,10 +699,10 @@ function startTaskDrag(state){
   ghost.style.minHeight=state.ghostHeight+'px';ghost.style.maxHeight=state.ghostHeight+'px';
   ghost.style.left=state.ghostLeft+'px';ghost.style.top=(state.lastY-state.grabOffsetY)+'px';
   ghost.style.boxSizing='border-box';ghost.style.overflow='hidden';document.body.append(ghost);state.ghost=ghost;
-  if(state.task.time){
+  {
     const root=$('#scheduledTasks'),list=root?.querySelector('.timed-schedule-list'),bead=root?.querySelector('.current-time-bead'),rail=list?.querySelector('.task-time-rail');
     if(root&&list){
-      const marker=document.createElement('div');marker.className='current-time-bead drag-time-bead';marker.setAttribute('aria-hidden','true');marker.textContent=state.task.time;
+      const marker=document.createElement('div');marker.className='current-time-bead drag-time-bead';marker.setAttribute('aria-hidden','true');marker.textContent=state.task.time||'—';
       const rootRect=root.getBoundingClientRect(),railRect=rail?.getBoundingClientRect(),width=window.matchMedia('(max-width: 600px)').matches?41:48;
       marker.style.left=bead?.style.left||(railRect?(railRect.left-rootRect.left+(railRect.width-width)/2)+'px':'0px');
       root.append(marker);state.marker=marker;
@@ -715,16 +714,17 @@ function updateTimedDragPreview(state,e){
   if(!root||!list||!marker){state.previewTime=null;return}
   const anchors=dragTimeScaleAnchors(state,list);
   if(anchors.length<2){state.previewTime=null;marker.style.display='none';return}
-  const topY=e.clientY-state.grabOffsetY,rootRect=root.getBoundingClientRect();
+  const topY=e.clientY-state.grabOffsetY,centerY=topY+state.ghostHeight/2,rootRect=root.getBoundingClientRect();
   const minY=Math.min(...anchors.map(point=>point.y)),maxY=Math.max(...anchors.map(point=>point.y));
-  const inside=topY>=minY&&topY<=maxY&&e.clientX>=rootRect.left&&e.clientX<=rootRect.right;
+  const inside=centerY>=minY&&centerY<=maxY&&e.clientX>=rootRect.left&&e.clientX<=rootRect.right;
   if(!inside){state.previewTime=null;marker.style.display='none';return}
   const originalTop=state.startTopY-(window.scrollY-state.startScrollY),threshold=Math.max(4,state.ghostHeight*.06);
-  const minute=Math.abs(topY-originalTop)<=threshold?TimeEngine.parseClock(state.task.time):TimeEngine.timeScaleMinuteAtPosition(anchors,topY);
+  const nearOriginal=!!state.task.time&&Math.abs(topY-originalTop)<=threshold;
+  const minute=nearOriginal?TimeEngine.parseClock(state.task.time):TimeEngine.timeScaleMinuteAtPosition(anchors,centerY);
   if(minute===null){state.previewTime=null;marker.style.display='none';return}
   const snapped=Math.max(0,Math.min(1439,Math.round(minute/5)*5));
-  state.previewTime=Math.abs(topY-originalTop)<=threshold?state.task.time:TimeEngine.formatClock(snapped);
-  marker.textContent=state.previewTime;marker.style.top=(topY+state.ghostHeight/2-rootRect.top)+'px';marker.style.display='flex';
+  state.previewTime=nearOriginal?state.task.time:TimeEngine.formatClock(snapped);
+  marker.textContent=state.previewTime;marker.style.top=(centerY-rootRect.top)+'px';marker.style.display='flex';
 }
 document.addEventListener('pointermove',e=>{
   const state=touchDragState;if(!state||e.pointerId!==state.pointerId)return;
@@ -745,8 +745,9 @@ document.addEventListener('pointermove',e=>{
       const siblings=[...unscheduledList.querySelectorAll('.unscheduled-task')].filter(el=>el!==state.source);
       const target=siblings.find(el=>e.clientY<el.getBoundingClientRect().top+el.getBoundingClientRect().height/2);
       if(target)unscheduledList.insertBefore(state.source,target);else unscheduledList.append(state.source);
+      state.previewTime=null;if(state.marker)state.marker.style.display='none';
+      return;
     }
-    return;
   }
   state.reorder=false;updateTimedDragPreview(state,e);
 });
@@ -756,11 +757,12 @@ function clearTaskDrag(state){
 }
 document.addEventListener('pointerup',e=>{
   const state=touchDragState;if(!state||e.pointerId!==state.pointerId)return;
-  if(state.started&&!state.reorder&&state.task.time&&state.moved)updateTimedDragPreview(state,e);
+  if(state.started&&!state.reorder&&state.moved)updateTimedDragPreview(state,e);
   touchDragState=null;clearTaskDrag(state);
   if(!state.started||!state.moved)return;
   const list=state.source.closest('.unscheduled-list');
-  if(state.reorder&&list){
+  if(state.previewTime){moveDraggedTaskToTime(state.task,state.previewTime);}
+  else if(state.reorder&&list){
     const rows=[...list.querySelectorAll('.unscheduled-task')];
     rows.forEach((row,index)=>{
       const task=row._task;
@@ -774,8 +776,7 @@ document.addEventListener('pointerup',e=>{
       }
     });
     persist();
-  }else if(state.task.time&&state.previewTime)moveDraggedTaskToTime(state.task,state.previewTime);
-  else if(list)render();
+  }else if(list)render();
 });
 document.addEventListener('pointercancel',e=>{
   const state=touchDragState;if(!state||e.pointerId!==state.pointerId)return;
