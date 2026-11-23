@@ -678,7 +678,7 @@ function freeGapsForTasks(tasks,dateKey,allDayTasks=tasks){
     if(!task.time||task.scheduleMode==='parallel')continue;
     const s=TimeEngine.parseClock(task.time);if(s===null)continue;
     let duration=TimeEngine.durationOf(task),start=s;
-    if(task._priorDate){const overflow=Math.max(0,s+duration-1440);if(overflow<=0)continue;start=0;duration=overflow;if(task.done){const completedAt=Date.parse(task.doneAt||'');if(Number.isFinite(completedAt)){const completedDate=new Date(completedAt);if(key(completedDate)===dateKey)duration=Math.max(0,Math.min(duration,completedDate.getHours()*60+completedDate.getMinutes()));}}}
+    if(task._priorDate){const overflow=Math.max(0,s+duration-1440);if(overflow<=0)continue;start=0;duration=overflow;if(task.done){const completedAt=Date.parse(task.doneAt||'');if(Number.isFinite(completedAt)){const completedDate=new Date(completedAt);const completedKey=key(completedDate);if(completedKey===prevKey)duration=0;else if(completedKey===dateKey)duration=Math.max(0,Math.min(duration,completedDate.getHours()*60+completedDate.getMinutes()));}else{const actual=TimeEngine.parseClock(task.actualTime);if(actual!==null&&actual<=1440)duration=0;else if(actual!==null)duration=Math.max(0,Math.min(duration,actual-1440));}}}
     else if(s+duration>1440)duration=1440-s;
     if(task.done&&!task._priorDate){
       const completedAt=Date.parse(task.doneAt||'');if(Number.isFinite(completedAt)){
