@@ -68,16 +68,18 @@ assert.match(html,/e\.target\.closest\('button,input,select,textarea,a,\[data-no
 assert.doesNotMatch(html,/\.task\.drag-source\{[^}]*outline:1px dashed/, 'the old card position has no dashed outline');
 assert.match(html,/else if\(list\)render\(\);/, 'an abandoned unscheduled reorder restores the original rendered order');
 assert.match(html,/if\(list\)render\(\);\s*\}\);/, 'pointer cancellation restores an unscheduled list after live DOM reordering');
-assert.match(html,/function dragTimeScaleAnchors\(state,list\)/, 'drag anchors use measured task and free-gap geometry');
-assert.doesNotMatch(html,/if\(!task\|\|task\.done\|\|task\.isFamily\|\|!task\.time\)/, 'completed, family and dragged task cards remain part of the visual time geometry');
-assert.match(html,/TimeEngine\.timelineTimeForTask\(task,now\)\?\?task\.time/, 'drag anchors use the same displayed time as the current-time bead');
-assert.match(html,/if\(!task\.done\)\{\s*const raw=Number\(task\.duration\)/, 'completed cards use point anchors rather than blocking their original duration');
+assert.match(html,/function dragTimeScaleAnchors\(state,list\)/, 'drag uses one fixed full-day ruler rather than card-derived anchors');
+assert.match(html,/return \[\{minute:0,y:state\.dragScaleTop\},\{minute:1439,y:state\.dragScaleBottom\}\]/, 'the drag ruler always maps 00:00 to 23:59 across the captured available height');
+assert.match(html,/state\.dragScaleTop=\(startRect\?\.top\?\?listRect\?\.top\?\?NaN\)\+window\.scrollY/, 'the upper boundary is captured once when drag starts');
+assert.match(html,/state\.dragScaleBottom=\(endRect\?\.top\?\?listRect\?\.bottom\?\?NaN\)\+window\.scrollY/, 'the lower boundary is captured once when drag starts');
+assert.doesNotMatch(html.slice(html.indexOf('function dragTimeScaleAnchors'),html.indexOf('function startTaskDrag')), /getBoundingClientRect|_task|timeScaleTaskAnchors/, 'card geometry and task durations cannot resize or bend the drag ruler');
 assert.match(html,/const topY=e\.clientY-state\.grabOffsetY,centerY=topY\+state\.ghostHeight\/2/, 'drag time is measured from the dragged card center');
 assert.match(html,/if\(state\.source\.closest\('\.unscheduled-list'\)\)\{\s*const reference=\$\('#scheduledTasks \.timed-schedule-list \.taskbody'\)/, 'undated drag ghost aligns horizontally with timed cards, leaving the time rail unobstructed');
 assert.match(html,/state\.ghostLeft=referenceRect\.left;state\.ghostWidth=referenceRect\.width;/, 'undated drag ghost uses the same horizontal left edge and width as scheduled task cards');
 assert.match(html,/ghost\.style\.height=state\.ghostHeight\+'px'/, 'undated drag ghost preserves the original card height');
-assert.match(html,/TimeEngine\.timeScaleMinuteAtPosition\(anchors,centerY\)/, 'drag converts the card center back to timeline minutes');
-assert.match(html,/else anchors\.push\(\{minute:start,y:rect\.top\},\{minute:start,y:rect\.bottom\}\)/, 'a durationless task keeps its exact time across the full visible card height');
+assert.match(html,/TimeEngine\.timeScaleMinuteAtPosition\(anchors,centerDocumentY\)/, 'drag converts the card center against the fixed document-space ruler');
+assert.match(html,/const centerDocumentY=centerY\+window\.scrollY/, 'scrolling does not move the ruler relative to the page content');
+assert.match(html,/const minY=anchors\[0\]\.y,maxY=anchors\[1\]\.y/, 'drag range is bounded by the fixed top and bottom edges');
 assert.match(html,/const markerY=centerY/, 'drag preview bead stays attached to the dragged card center across every crossed card');
 assert.doesNotMatch(html,/taskDuration===0&&centerY>=cardRect\.top&&centerY<=cardRect\.bottom/, 'crossed cards cannot take control of the preview bead position');
 assert.match(html,/marker\.style\.transition='none'/, 'drag preview bead has no easing delay and remains attached to the dragged card');
@@ -149,3 +151,14 @@ for (const y of [162, 175, 190, 211, 212]) {
 assert.ok(TimeEngine.timeScaleMinuteAtPosition(pointTaskDragAnchors, 156) > 11 * 60 + 45,
   'only the visual gap between durationless cards interpolates between their times');
 console.log('durationless drag-card time lock: assertions passed');
+const fixedDayRuler = [{ minute: 0, y: 100 }, { minute: 1439, y: 1100 }];
+assert.equal(TimeEngine.timeScaleMinuteAtPosition(fixedDayRuler, 100), 0,
+  'the top edge of the available timeline always represents midnight');
+assert.equal(TimeEngine.timeScaleMinuteAtPosition(fixedDayRuler, 600), 719.5,
+  'the ruler distributes all 1,439 minute steps uniformly through the available height');
+assert.equal(TimeEngine.timeScaleMinuteAtPosition(fixedDayRuler, 1100), 1439,
+  'the bottom edge of the available timeline always represents 23:59');
+assert.equal(TimeEngine.formatClock(Math.max(0, Math.min(1435, Math.round(TimeEngine.timeScaleMinuteAtPosition(fixedDayRuler, 1100) / 5) * 5))), '23:55',
+  'the final five-minute snap remains inside the 23:59 day boundary');
+console.log('fixed full-day drag ruler: assertions passed');
+

@@ -585,7 +585,7 @@ body.keyboard-open .mobile-dock,body.keyboard-open .quick-fab{display:none!impor
 <div class="modalback" id="quickAddModal"><div class="modal quick-add-modal"><div class="quick-add-head"><h3>Быстрое добавление</h3><button type="button" class="btn" data-close="quickAddModal" aria-label="Закрыть">×</button></div><form id="quickAddForm"><div class="field"><label for="quickAddText">Напиши задачу обычными словами</label><input id="quickAddText" type="text" maxlength="180" autocomplete="off" placeholder="Например: завтра в 18:30 купить продукты" required></div><div id="quickAddPreview" class="quick-preview"><span class="muted">Дата, время и продолжительность появятся здесь</span></div><div class="modalfoot"><button type="button" class="btn" data-close="quickAddModal">Отмена</button><button type="button" class="btn" id="quickAddToShelfBtn">На полку</button><button type="submit" class="primary">Добавить задачу</button></div></form></div></div>
 <nav class="mobile-dock" id="mobileDock"><button class="active" data-tab="day"><span>⌂</span>День</button><button data-tab="family"><span>♡</span>Семья</button><button data-tab="lists"><span>☷</span>Списки</button><button data-tab="diary"><span>▤</span>Дневник</button><button data-tab="habits"><span>✓</span>Привычки</button><button data-tab="child"><span>☆</span>Ребёнок</button></nav>
 <script type="module">
-import * as TimeEngine from './time-engine.js?v=20261123-5';
+import * as TimeEngine from './time-engine.js?v=20261123-6';
 const $=s=>document.querySelector(s), pad=n=>String(n).padStart(2,'0'), key=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 let today=new Date();let selected=new Date(today.getFullYear(),today.getMonth(),today.getDate());let editing=null;let movingTask=null;let deletingTask=null;let tab='day';let theme=localStorage.getItem('ritm_theme')||'light';
 const seed={tasks:[],family:[{id:'f1',name:'Забрать заказ',date:key(new Date(today.getFullYear(),today.getMonth(),today.getDate()+1)),time:'18:30',author:'Супруга',note:'Пункт выдачи рядом с домом',audience:'all',state:'background'},{id:'f2',name:'Семейный ужин',date:key(new Date(today.getFullYear(),today.getMonth(),today.getDate()+2)),time:'19:00',author:'Супруга',note:'Вместе выбрать, что приготовить',audience:'all',state:'background'},{id:'f3',name:'Оплатить интернет',date:key(new Date(today.getFullYear(),today.getMonth(),today.getDate())),time:'',author:'Я',note:'До конца дня',audience:'all',state:'active'}],lists:[{id:'l1',name:'Покупки',type:'Покупки',items:[{id:'i1',name:'Молоко',done:false},{id:'i2',name:'Фрукты',done:false},{id:'i3',name:'Кофе',done:true}]},{id:'l2',name:'Домашние дела',type:'Домашние дела',items:[{id:'i4',name:'Проверить лампочку в прихожей',done:false}]}]};
@@ -702,34 +702,20 @@ function updateDragDisplacement(state,e){
   });
 }
 function dragTimeScaleAnchors(state,list){
-  if(!list)return[];
-  const anchors=[];let previousPointTask=false;const now=new Date();
-  for(const item of list.children){
-    if(item.classList.contains('task')){
-      const task=item._task;
-      if(!task||!task.time){previousPointTask=false;continue}
-      const start=TimeEngine.parseClock(TimeEngine.timelineTimeForTask(task,now)??task.time),card=item.querySelector('.taskbody')||item,rect=dragItemRect(card);
-      let duration=0;
-      if(!task.done){
-        const raw=Number(task.duration);
-        if(Number.isFinite(raw)&&raw>0)duration=Math.round(raw);
-        else if(task.endTime){const end=TimeEngine.parseClock(task.endTime);if(end!==null&&start!==null){duration=end-start;if(duration<0)duration+=TimeEngine.DAY_MINUTES}}
-      }
-      if(start===null||rect.height<=0){previousPointTask=false;continue}
-      if(duration>0)anchors.push(...TimeEngine.timeScaleTaskAnchors(start,duration,rect.top,rect.bottom));else anchors.push({minute:start,y:rect.top},{minute:start,y:rect.bottom});
-      previousPointTask=duration===0;
-    }else if(item.classList.contains('free-time-compact')||item.classList.contains('free-time-gap')){
-      let start=Number(item.dataset.startMinute);const end=Number(item.dataset.endMinute),rect=dragItemRect(item);
-      if(previousPointTask&&Number.isFinite(start))start+=1;
-      if(rect.height>0&&Number.isFinite(start)&&Number.isFinite(end))anchors.push({minute:start,y:rect.top},{minute:end,y:rect.bottom});
-      previousPointTask=false;
-    }
-  }
-  return anchors;
+  if(!list||!Number.isFinite(state.dragScaleTop)||!Number.isFinite(state.dragScaleBottom)||state.dragScaleBottom<=state.dragScaleTop)return[];
+  // A fixed 24-hour ruler: geometry is captured once at drag start and never
+  // depends on card heights, free gaps, or temporary visual displacement.
+  return [{minute:0,y:state.dragScaleTop},{minute:1439,y:state.dragScaleBottom}];
 }
 function startTaskDrag(state){
   if(touchDragState!==state||state.started)return;
   state.started=true;state.scrolling=false;clearTimeout(state.timer);
+  {
+    const start=$('#scheduledTasks .schedule-day-boundary-start'),end=$('#dayContent .schedule-day-boundary-end'),list=$('#scheduledTasks .timed-schedule-list');
+    const startRect=start?.getBoundingClientRect(),endRect=end?.getBoundingClientRect(),listRect=list?.getBoundingClientRect();
+    state.dragScaleTop=(startRect?.top??listRect?.top??NaN)+window.scrollY;
+    state.dragScaleBottom=(endRect?.top??listRect?.bottom??NaN)+window.scrollY;
+  }
   if(state.source.closest('.unscheduled-list')){
     const reference=$('#scheduledTasks .timed-schedule-list .taskbody');
     if(reference){const referenceRect=reference.getBoundingClientRect();state.ghostLeft=referenceRect.left;state.ghostWidth=referenceRect.width;}
@@ -755,11 +741,11 @@ function updateTimedDragPreview(state,e){
   if(!root||!list||!marker){state.previewTime=null;return}
   const anchors=dragTimeScaleAnchors(state,list);
   if(anchors.length<2){state.previewTime=null;marker.style.display='none';return}
-  const topY=e.clientY-state.grabOffsetY,centerY=topY+state.ghostHeight/2,rootRect=root.getBoundingClientRect();
-  const minY=Math.min(...anchors.map(point=>point.y)),maxY=Math.max(...anchors.map(point=>point.y));
-  const inside=centerY>=minY&&centerY<=maxY&&e.clientX>=rootRect.left&&e.clientX<=rootRect.right;
+  const topY=e.clientY-state.grabOffsetY,centerY=topY+state.ghostHeight/2,centerDocumentY=centerY+window.scrollY,rootRect=root.getBoundingClientRect();
+  const minY=anchors[0].y,maxY=anchors[1].y;
+  const inside=centerDocumentY>=minY&&centerDocumentY<=maxY&&e.clientX>=rootRect.left&&e.clientX<=rootRect.right;
   if(!inside){state.previewTime=null;marker.style.display='none';return}
-  const minute=TimeEngine.timeScaleMinuteAtPosition(anchors,centerY);
+  const minute=TimeEngine.timeScaleMinuteAtPosition(anchors,centerDocumentY);
   if(minute===null){state.previewTime=null;marker.style.display='none';return}
   const snapped=Math.max(0,Math.min(1435,Math.round(minute/5)*5));
   const markerY=centerY;
