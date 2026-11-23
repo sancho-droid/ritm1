@@ -35,3 +35,15 @@ const mobileRailRule = html.indexOf('.timed-schedule-list .task{grid-template-co
 const legacyMobileGrid = html.indexOf('.schedule-list .task,.unscheduled-list .schedule-task{grid-template-columns:minmax(0,1fr) auto');
 assert.ok(desktopRailRule > 0 && desktopRailRule > legacyMobileGrid, 'rail grid overrides legacy mobile grid');
 assert.ok(mobileRailRule > legacyMobileGrid, 'mobile rail grid overrides legacy mobile grid');
+
+assert.match(html, /TimeEngine\.timeScaleTaskAnchors\(display,duration,rect\.top-rootRect\.top,rect\.bottom-rootRect\.top\)/,
+  'bead uses each task card top and bottom as its interval anchors');
+assert.match(html, /now\.getSeconds\(\)\/60/,
+  'bead interpolates continuously between minute ticks');
+assert.match(html, /},1000\);/,
+  'bead geometry refreshes every second');
+assert.match(html, /\.current-time-bead\{position:absolute;z-index:7;left:26px;top:0;[^}]*transform:translate\(-50%,-50%\)/,
+  'desktop bead is centered on the 52px time rail');
+assert.match(html, /@media\(max-width:600px\)\{\.current-time-bead\{left:21\.5px;width:41px;/,
+  'mobile bead is centered on the 43px time rail');
+console.log('proportional bead geometry and centered rail integration: assertions passed');

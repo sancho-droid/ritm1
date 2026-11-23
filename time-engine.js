@@ -121,6 +121,14 @@ export function timeScaleBounds(tasks,now=new Date()){
 /** Map the current clock minute onto the dynamic visible time range. */
 export function timeScaleRatio(start,end,minute){if(!Number.isFinite(start)||!Number.isFinite(end)||!Number.isFinite(minute)||end<=start||minute<start||minute>end)return null;return (minute-start)/(end-start)}
 
+/** Build visual anchors for a task's actual timeline geometry. */
+export function timeScaleTaskAnchors(startMinute,duration,top,bottom){
+  if(!Number.isFinite(startMinute)||!Number.isFinite(top)||!Number.isFinite(bottom))return [];
+  const span=Number.isFinite(duration)&&duration>0?duration:0;
+  if(span>0)return [{minute:startMinute,y:top},{minute:startMinute+span,y:bottom}];
+  return [{minute:startMinute,y:(top+bottom)/2},{minute:startMinute+1,y:bottom}];
+}
+
 /** Interpolate a vertical position from real schedule anchors. */
 export function timeScalePosition(anchors,minute){
   if(!Array.isArray(anchors)||!Number.isFinite(minute))return null;
