@@ -126,7 +126,7 @@ export function timeScaleTaskAnchors(startMinute,duration,top,bottom){
   if(!Number.isFinite(startMinute)||!Number.isFinite(top)||!Number.isFinite(bottom))return [];
   const span=Number.isFinite(duration)&&duration>0?duration:0;
   if(span>0)return [{minute:startMinute,y:top},{minute:startMinute+span,y:bottom}];
-  return [{minute:startMinute,y:top},{minute:startMinute+1,y:bottom}];
+  return [{minute:startMinute,y:(top+bottom)/2},{minute:startMinute+1,y:bottom}];
 }
 
 /** Interpolate a vertical position from real schedule anchors.
