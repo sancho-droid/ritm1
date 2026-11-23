@@ -129,27 +129,34 @@ export function timeScaleTaskAnchors(startMinute,duration,top,bottom){
   return [{minute:startMinute,y:(top+bottom)/2},{minute:startMinute+1,y:bottom}];
 }
 
-/** Interpolate a vertical position from real schedule anchors. */
+/** Interpolate a vertical position from real schedule anchors.
+ * Equal-time anchors can represent two different card edges: the previous
+ * card's bottom and the next card's top. Keep both instead of flattening the
+ * visual gap. At the exact shared minute, use the first edge (previous bottom);
+ * immediately after it, continue from the last edge (next top).
+ */
 export function timeScalePosition(anchors,minute){
   if(!Array.isArray(anchors)||!Number.isFinite(minute))return null;
   const sorted=anchors.filter(point=>Number.isFinite(point?.minute)&&Number.isFinite(point?.y))
     .sort((a,b)=>a.minute-b.minute||a.y-b.y);
   if(sorted.length<2||minute<sorted[0].minute||minute>sorted[sorted.length-1].minute)return null;
-  const unique=[];
+  const groups=[];
   for(const point of sorted){
-    const last=unique[unique.length-1];
-    if(last&&point.minute===last.minute){last.y=Math.max(last.y,point.y);continue;}
-    unique.push({minute:point.minute,y:last?Math.max(last.y,point.y):point.y});
+    const last=groups[groups.length-1];
+    if(last&&point.minute===last.minute){last.lastY=point.y;continue;}
+    groups.push({minute:point.minute,firstY:point.y,lastY:point.y});
   }
-  if(unique.length<2||minute<unique[0].minute||minute>unique[unique.length-1].minute)return null;
-  for(let i=1;i<unique.length;i++){
-    const left=unique[i-1],right=unique[i];
-    if(minute<=right.minute){
-      const ratio=(minute-left.minute)/(right.minute-left.minute);
-      return left.y+ratio*(right.y-left.y);
+  if(groups.length<2||minute<groups[0].minute||minute>groups[groups.length-1].minute)return null;
+  for(let i=0;i<groups.length;i++){
+    const current=groups[i];
+    if(minute===current.minute)return current.firstY;
+    const next=groups[i+1];
+    if(next&&minute<next.minute){
+      const ratio=(minute-current.minute)/(next.minute-current.minute);
+      return current.lastY+ratio*(next.firstY-current.lastY);
     }
   }
-  return unique[unique.length-1].y;
+  return groups[groups.length-1].firstY;
 }
 export function sortChronologically(tasks){return [...tasks].sort((a,b)=>{const am=parseClock(a?.time),bm=parseClock(b?.time);if(am===null&&bm===null)return 0;if(am===null)return 1;if(bm===null)return-1;return am-bm})}
 export function intervalsFor(tasks,{includeCompleted=false,dayEnd=DAY_END_MINUTES}={}){const list=[];for(const task of tasks||[]){const start=parseClock(task?.time);if(start===null||task?.scheduleMode==='parallel'||(!includeCompleted&&task?.done))continue;const end=Math.min(dayEnd,start+durationOf(task));if(end>start)list.push({start,end,task})}list.sort((a,b)=>a.start-b.start||a.end-b.end);const merged=[];for(const item of list){const last=merged.at(-1);if(last&&item.start<last.end){last.end=Math.max(last.end,item.end);last.tasks.push(item.task)}else merged.push({start:item.start,end:item.end,tasks:[item.task]})}return merged}
