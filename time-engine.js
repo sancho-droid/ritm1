@@ -131,8 +131,7 @@ export function timeScalePosition(anchors,minute){
   for(const point of sorted){
     const last=unique[unique.length-1];
     if(last&&point.minute===last.minute){last.y=Math.max(last.y,point.y);continue;}
-    if(last&&point.y<last.y)continue;
-    unique.push({minute:point.minute,y:point.y});
+    unique.push({minute:point.minute,y:last?Math.max(last.y,point.y):point.y});
   }
   if(unique.length<2||minute<unique[0].minute||minute>unique[unique.length-1].minute)return null;
   for(let i=1;i<unique.length;i++){
