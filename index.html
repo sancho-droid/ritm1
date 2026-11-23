@@ -932,11 +932,12 @@ function renderWeekStrip(){
  const root=$('#weekStrip');root.replaceChildren();const names=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'],bounds=weekBounds(selected),start=dateObj(bounds.start);
  for(let i=0;i<7;i++){const d=addDays(start,i),k=key(d),b=document.createElement('button'),count=countForDate(d);b.type='button';b.className='week-day'+(k===key(selected)?' selected':'')+(count?' has-tasks':'')+(hasImportantTaskOnDate(d)?' has-important-task':'');b.setAttribute('aria-label',labelDate(d));const num=document.createElement('span');num.className='week-number';num.textContent=d.getDate();const n=document.createElement('span');n.className='week-name';n.textContent=names[i];const dot=document.createElement('i');dot.className='week-dot';b.append(num,n,dot);b.onclick=()=>{selected=d;render()};root.append(b)}
 }
-let weekPointer=null;
+let weekPointer=null,weekSwipeTriggered=false;
 const weekStripEl=$('#weekStrip');
-weekStripEl.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;weekPointer={x:e.clientX,y:e.clientY,id:e.pointerId};weekStripEl.classList.add('swipe-preview')});
+weekStripEl.addEventListener('pointerdown',e=>{weekPointer={x:e.clientX,y:e.clientY,id:e.pointerId};weekSwipeTriggered=false;weekStripEl.classList.add('swipe-preview')});
 weekStripEl.addEventListener('pointermove',e=>{if(!weekPointer||weekPointer.id!==e.pointerId)return;const dx=e.clientX-weekPointer.x,dy=e.clientY-weekPointer.y;if(Math.abs(dx)>Math.abs(dy)*1.15)weekStripEl.style.transform='translateX('+dx+'px)'});
-weekStripEl.addEventListener('pointerup',e=>{if(!weekPointer||weekPointer.id!==e.pointerId)return;const dx=e.clientX-weekPointer.x,dy=e.clientY-weekPointer.y;weekPointer=null;weekStripEl.classList.remove('swipe-preview');weekStripEl.style.transform='';if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.3){selected=addDays(selected,dx<0?7:-7);render()}});
+weekStripEl.addEventListener('pointerup',e=>{if(!weekPointer||weekPointer.id!==e.pointerId)return;const dx=e.clientX-weekPointer.x,dy=e.clientY-weekPointer.y;weekPointer=null;weekStripEl.classList.remove('swipe-preview');weekStripEl.style.transform='';if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.3){weekSwipeTriggered=true;selected=addDays(selected,dx<0?7:-7);render()}});
+weekStripEl.addEventListener('click',e=>{if(weekSwipeTriggered){e.preventDefault();e.stopPropagation();weekSwipeTriggered=false}},true);
 weekStripEl.addEventListener('pointercancel',()=>{weekPointer=null;weekStripEl.classList.remove('swipe-preview');weekStripEl.style.transform=''});
 function formatFreeDuration(minutes){if(minutes<60)return minutes+' '+(minutes%10===1&&minutes%100!==11?'минута':minutes%10>=2&&minutes%10<=4&&!(minutes%100>=12&&minutes%100<=14)?'минуты':'минут');const hours=Math.floor(minutes/60),mins=minutes%60;const hWord=hours%10===1&&hours%100!==11?'час':hours%10>=2&&hours%10<=4&&!(hours%100>=12&&hours%100<=14)?'часа':'часов';return hours+' '+hWord+(mins?' '+mins+' мин':'')}
 function freeGapsForTasks(tasks,dateKey,allDayTasks=tasks){
