@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {DAY_START_MINUTES,DAY_END_MINUTES,parseClock,formatClock,durationOf,syncSleepToWake,overnightContinuation,sortChronologically,intervalsFor,freeIntervals,findNextFreeGap,freeTimeAnchorIndex,conflicts,orderTimedTasksForDisplay,inferDayBoundary,assignDayBoundaryRoles,dayBoundaryIssue,dayBoundaryWindow,freeGapsForDay,timelineTimeForTask,timeScaleBounds,timeScaleRatio,timeScalePosition,timeScaleTaskAnchors,timeScaleMinuteAtPosition,} from './time-engine.js';
+import {DAY_START_MINUTES,DAY_END_MINUTES,parseClock,formatClock,durationOf,syncSleepToWake,overnightContinuation,sortChronologically,intervalsFor,freeIntervals,findNextFreeGap,freeTimeAnchorIndex,conflicts,orderTimedTasksForDisplay,inferDayBoundary,assignDayBoundaryRoles,dayBoundaryIssue,dayBoundaryWindow,freeGapsForDay,timelineTimeForTask,timeScaleBounds,timeScaleRatio,timeScalePosition,timeScaleTaskAnchors,timeScaleOverlapGroups,timeScaleMinuteAtPosition,} from './time-engine.js';
 assert.equal(parseClock('00:00'),0);assert.equal(parseClock('19:09'),1149);assert.equal(parseClock('23:59'),1439);assert.equal(parseClock('24:00'),null);assert.equal(parseClock('9:00'),null);assert.equal(parseClock('bad'),null);assert.equal(formatClock(1149),'19:09');assert.equal(formatClock(1440),'23:59');
 assert.deepEqual(sortChronologically([{id:'a',time:'20:15'},{id:'b',time:'17:20'},{id:'c',time:'19:00'},{id:'d',time:''}]).map(x=>x.time),['17:20','19:00','20:15','']);assert.deepEqual(sortChronologically([{id:'z',time:'09:00'},{id:'a',time:'09:00'}]).map(x=>x.id),['z','a']);
 assert.equal(durationOf({time:'23:30',endTime:'00:15'}),45);assert.deepEqual(intervalsFor([{time:'17:20',duration:30},{time:'17:45',duration:30},{time:'18:15',duration:15,done:true},{time:'19:00',duration:20}]).map(x=>[x.start,x.end]),[[1040,1095],[1140,1160]]);
@@ -222,6 +222,7 @@ assert.deepEqual(
   'dynamic bounds use first displayed time and final scheduled end'
 );
 assert.deepEqual(timeScaleBounds([{time:'23:00',duration:120}],railNow),{start:1380,end:1500},'overnight task extends the dynamic end boundary past midnight');
+assert.deepEqual(timeScaleBounds([{time:'12:00',duration:180,scheduleMode:'parallel'}],railNow),{start:720,end:721},'parallel tasks do not extend the occupied time scale');
 assert.equal(timeScaleBounds([{name:'no time',time:''}],railNow),null,'no timed tasks means no visible scale range');
 console.log('left time rail labels and dynamic bounds: assertions passed');
 
@@ -280,3 +281,90 @@ assert.equal(timeScaleMinuteAtPosition(sharedMinuteGap,222),540);
 assert.equal(timeScaleMinuteAtPosition(sharedMinuteGap,99),null,'drag cannot extrapolate above measured anchors');
 assert.equal(timeScaleMinuteAtPosition(sharedMinuteGap,223),null,'drag cannot extrapolate below measured anchors');
 console.log('inverse drag timeline geometry: assertions passed');
+
+
+// Overlapping tasks share one visual time group whose end follows the longest interval.
+const overlapNow=new Date(2026,10,24,12,30);
+assert.deepEqual(timeScaleOverlapGroups([
+  {id:'long',time:'12:00',duration:120},
+  {id:'short',time:'12:00',duration:60},
+  {id:'after',time:'14:00',duration:30}
+],overlapNow),[
+  {start:720,end:840,indices:[0,1],lanes:[0,1],laneCount:2},
+  {start:840,end:870,indices:[2],lanes:[0],laneCount:1}
+],'same-start tasks group to the longest end; touching tasks remain separate');
+assert.deepEqual(timeScaleOverlapGroups([
+  {id:'first',time:'12:00',duration:60},
+  {id:'second',time:'12:45',duration:75},
+  {id:'third',time:'13:50',duration:40}
+],overlapNow),[
+  {start:720,end:870,indices:[0,1,2],lanes:[0,1,0],laneCount:2}
+],'transitively overlapping tasks form one continuous group');
+assert.deepEqual(timeScaleOverlapGroups([
+  {id:'fixed',time:'12:00',duration:90},
+  {id:'parallel',time:'12:30',duration:30,scheduleMode:'parallel'}
+],overlapNow),[
+  {start:720,end:810,indices:[0,1],lanes:[0,1],laneCount:2}
+],'parallel tasks remain visible in the same visual time group');
+assert.deepEqual(timeScaleOverlapGroups([
+  {id:'completed',time:'13:00',duration:120,done:true,doneAt:'2026-11-24T12:15:00',actualTime:'12:15'},
+  {id:'active',time:'12:10',duration:60}
+],overlapNow),[
+  {start:730,end:790,indices:[1,0],lanes:[0,1],laneCount:2}
+],'completed tasks use their effective completion clock as a point event');
+assert.deepEqual(timeScaleOverlapGroups([
+  {id:'fixed-short',time:'12:00',duration:60},
+  {id:'parallel-long',time:'12:30',duration:180,scheduleMode:'parallel'}
+],overlapNow),[
+  {start:720,end:780,indices:[0,1],lanes:[0,1],laneCount:2}
+],'parallel task duration does not extend the occupied time group');
+console.log('overlapping timeline groups: regression assertions passed');
+
+// Free-time boundaries must use the union of all overlapping occupied intervals.
+assert.deepEqual(gapCalc([
+  {time:'12:00',duration:120},
+  {time:'12:00',duration:60}
+], '2026-11-24'),[
+  {start:'00:00',end:'12:00',duration:720,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'},
+  {start:'14:00',end:'24:00',duration:600,date:'2026-11-24',afterIndex:1,id:'2026-11-24-gap-1'}
+],'nested same-start tasks must leave free time only after the longer task ends');
+assert.deepEqual(gapCalc([
+  {time:'12:00',duration:60},
+  {time:'12:45',duration:75},
+  {time:'13:50',duration:40}
+], '2026-11-24'),[
+  {start:'00:00',end:'12:00',duration:720,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'},
+  {start:'14:30',end:'24:00',duration:570,date:'2026-11-24',afterIndex:2,id:'2026-11-24-gap-1'}
+],'transitively overlapping tasks must merge to the latest end');
+console.log('overlapping free-time intervals: regression assertions passed');
+
+// Non-overlapping tasks can reuse a lane inside one transitive overlap group.
+assert.deepEqual(timeScaleOverlapGroups([
+  {id:'first',time:'12:00',duration:120},
+  {id:'middle',time:'12:30',duration:30},
+  {id:'last',time:'13:00',duration:30}
+],overlapNow),[
+  {start:720,end:840,indices:[0,1,2],lanes:[0,1,1],laneCount:2}
+],'a lane is reused as soon as its previous task ends');
+
+assert.deepEqual(timeScaleOverlapGroups([
+  {id:'later',time:'13:30',duration:30},
+  {id:'long',time:'12:00',duration:120},
+  {id:'short',time:'12:15',duration:30}
+],overlapNow),[
+  {start:720,end:840,indices:[1,2,0],lanes:[0,1,1],laneCount:2}
+],'groups are ordered by effective clock time even when early-completed cards were reordered in the display list');
+console.log('overlap timeline lane assignment: assertions passed');
+
+// The bead remains inside the longer same-start task after the shorter task ends.
+const sameStartLong=120,sameStartShort=60,groupSpan=120;
+const sameStartGroupHeight=Math.max(96,Math.min(240,groupSpan*2));
+const sameStartScale=sameStartGroupHeight/groupSpan;
+const sameStartTop=100,shortCardBottom=sameStartTop+sameStartShort*sameStartScale,longCardBottom=sameStartTop+sameStartLong*sameStartScale;
+const sameStartBeadY=timeScalePosition([
+  {minute:720,y:sameStartTop},
+  {minute:840,y:longCardBottom}
+],810);
+assert.ok(sameStartBeadY>shortCardBottom&&sameStartBeadY<longCardBottom,
+  'at 13:30 the bead remains inside the 12:00–14:00 task after the 12:00–13:00 task has ended');
+console.log('same-start overlap bead alignment: regression assertion passed');

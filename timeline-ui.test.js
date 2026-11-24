@@ -26,8 +26,8 @@ console.log('hidden one-second conflict interval: assertions passed');
 
 const html = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
 const serviceWorker = readFileSync(new URL('./sw.js', import.meta.url), 'utf8');
-assert.match(html, /import \* as TimeEngine from '\.\/time-engine\.js\?v=20261123-7'/);
-assert.match(serviceWorker, /'\.\/time-engine\.js\?v=20261123-7'/, 'service worker precaches the versioned module URL used by the app');
+assert.match(html, /import \* as TimeEngine from '\.\/time-engine\.js\?v=20261124-1'/);
+assert.match(serviceWorker, /'\.\/time-engine\.js\?v=20261124-1'/, 'service worker precaches the versioned module URL used by the app');
 assert.match(html, /\.timed-schedule-list \.task\{grid-template-columns:52px minmax\(0,1fr\) auto\}/);
 assert.match(html, /\.timed-schedule-list \.taskbody\{grid-column:2\}/);
 assert.match(html, /\.timed-schedule-list \.tasktools\{grid-column:3\}/);
@@ -39,15 +39,34 @@ assert.match(html, /range\.className='task-time-range'/, 'task card still render
 assert.match(html, /range\.textContent=end&&end!==t\.time\?t\.time\+' – '\+end:t\.time/, 'task card shows start and end for timed tasks with a range');
 assert.match(html, /rail\.className='task-time-rail'/);
 assert.match(html, /TimeEngine\.timelineTimeForTask\(t,new Date\(\)\)/);
-assert.match(html, /TimeEngine\.timeScaleBounds\(timed,new Date\(\)\)/);
+assert.match(html, /TimeEngine\.timeScaleBounds\(timed,now\)/, 'the visible timeline bounds use one consistent render timestamp');
 assert.match(html, /dayStartBoundary\.dataset\.minute=timeScale\?String\(timeScale\.start\):''/);
 assert.match(html, /dayEndBoundary\.dataset\.minute=timeScale\?String\(timeScale\.end\):''/);
 assert.match(html, /completionKind:r\?\.completionKind\?\?t\.completionKind/);
 assert.match(html, /completionKind:r\.completionKind\?\?t\.completionKind/);
 assert.match(html, /\.current-time-bead\{position:absolute/);
 assert.match(html, /TimeEngine\.timeScalePosition\(anchors,minute\)/, 'bead position follows actual schedule anchors');
+assert.match(html, /if\(!task\.done&&task\.scheduleMode!=='parallel'\)/, 'a standalone parallel task is a point event for the current-time bead');
 assert.match(html, /if\(!list\.querySelector\('\.task'\)\)\{bead\.style\.display='none'/, 'bead stays hidden when the timed schedule is empty');
 assert.match(html, /item\.classList\.contains\('task'\)&&item\._task/);
+assert.match(html, /TimeEngine\.timeScaleOverlapGroups\(timed,now\)/,
+  'overlapping tasks are grouped before they are rendered');
+assert.match(html, /groupEl\.className='overlap-task-group'/,
+  'overlapping tasks are rendered in a shared visual group');
+assert.match(html, /item\.card\.style\.gridColumn=String\(\(group\.lanes\[item\.memberIndex\]\?\?item\.memberIndex\)\+2\)/,
+  'each overlapping task is placed in its own horizontal lane');
+assert.match(html, /item\.card\.style\.marginTop=item\.offset\+'px'/,
+  'later-starting overlapping tasks are offset to their actual start within the group');
+assert.match(html, /item\.card\.style\.height=Math\.max\(1,item\.height\)\+'px'/,
+  'each lane card height reflects its own task duration');
+assert.match(html, /groupEl\.style\.gridTemplateRows=groupHeight\+'px'/,
+  'the overlap group height follows the latest ending task');
+assert.match(html, /if\(item\.height<56\)item\.card\.classList\.add\('compact-overlap-task'\)/,
+  'very short overlapping tasks use a compact card treatment');
+assert.match(html, /item\.classList\.contains\('overlap-task-group'\)/,
+  'the current-time bead uses the shared overlap-group boundaries');
+assert.match(html, /state\.source\.closest\('\.overlap-task-group'\)/,
+  'drag displacement treats an overlap group as one timeline row');
 assert.match(html, /item\.dataset\.startMinute/);
 assert.match(html, /const card=item\.querySelector\('\.taskbody'\)\|\|item/);
 assert.match(html, /TimeEngine\.timeScaleTaskAnchors\(display,duration,cardRect\.top-rootRect\.top,cardRect\.bottom-rootRect\.top\)/, 'task anchors use the visible bordered card, not the outer task row');
@@ -200,6 +219,14 @@ assert.match(html, /\$\('#quickAddExpand'\)\.onclick=\(\)=>\{\s*const raw=\$\('#
 assert.match(html, /const parsed=raw\?parseQuickTask\(raw,quickAddDate\|\|selected\):null;/, 'empty quick-add input skips parsing instead of blocking expansion');
 assert.match(html, /if\(!parsed\?\.name\)\{\s*\$\('#taskDate'\)\.value=key\(quickAddDate\|\|selected\);\s*setTimeout\(\(\)=>\$\('#taskName'\)\.focus\(\),80\);\s*return;/, 'empty expansion opens a clean task form focused on its name');
 assert.match(html, /\$\('#taskName'\)\.value=parsed\.name;/, 'non-empty quick-add text is still transferred into the full task form');
+assert.match(html, /\.quick-add-expand-head\{min-height:0;min-width:0;[^}]*border:0;[^}]*background:transparent/,
+  'the expand action is styled as plain text without a button frame or fill');
+assert.match(html, /\.quick-add-expand-head:hover\{background:transparent/,
+  'hover does not restore a button background');
+assert.match(html, /\.overlap-task-group\{display:grid;grid-template-columns:52px repeat\(var\(--overlap-lanes,2\),minmax\(0,1fr\)\)/,
+  'overlapping tasks use separate desktop lanes');
+assert.match(html, /\.overlap-task-group\{grid-template-columns:43px repeat\(var\(--overlap-lanes,2\),minmax\(0,1fr\)\)/,
+  'overlapping task lanes keep the compact mobile time rail');
 console.log('bottom quick-add interface: assertions passed');
 assert.doesNotMatch(html, /\$\('#quickInlineForm'\)/, 'tab switching never touches the removed inline quick-add form');
 assert.doesNotMatch(html, /quickAddToShelfBtn/, 'quick-add markup and handlers contain no references to the removed shelf button');
@@ -212,3 +239,15 @@ assert.ok(html.includes('.quick-add-modal .quick-preview.has-choices{display:blo
 assert.ok(html.includes("box.classList.toggle('has-choices',!!quickParsed.ambiguity)"), 'ambiguity controls the clarification preview visibility');
 assert.ok(serviceWorker.includes("'./quick-add-parser.js?v=20261124-1'"), 'service worker precaches the versioned quick-add parser module');
 
+
+
+// Same-start and transitively overlapping tasks share a visual time group.
+const uiOverlapNow=new Date(2026,10,24,12,30);
+assert.deepEqual(TimeEngine.timeScaleOverlapGroups([
+  {id:'long',time:'12:00',duration:120},
+  {id:'short',time:'12:00',duration:60},
+  {id:'later',time:'13:30',duration:30}
+],uiOverlapNow),[
+  {start:720,end:840,indices:[0,1,2],lanes:[0,1,1],laneCount:2}
+],'the current-time bead uses the full interval of a same-start overlap group');
+console.log('overlap group UI integration: assertions passed');

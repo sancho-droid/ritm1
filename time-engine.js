@@ -117,7 +117,7 @@ export function timeScaleBounds(tasks,now=new Date()){
     if(planned===null)continue;
     const label=parseClock(timelineTimeForTask(task,now)??task.time);
     if(label!==null)start=Math.min(start,label);
-    end=Math.max(end,planned+durationOf(task));
+    end=Math.max(end,planned+(task?.scheduleMode==='parallel'?1:durationOf(task)));
   }
   return Number.isFinite(start)&&Number.isFinite(end)?{start,end}:null;
 }
@@ -130,6 +130,40 @@ export function timeScaleTaskAnchors(startMinute,duration,top,bottom){
   const span=Number.isFinite(duration)&&duration>0?duration:0;
   if(span>0)return [{minute:startMinute,y:top},{minute:startMinute+span,y:bottom}];
   return [{minute:startMinute,y:(top+bottom)/2},{minute:startMinute+1,y:bottom}];
+}
+
+/** Group visually overlapping timed tasks into one continuous time interval.
+ * The indices refer to the original input order so the UI can map each group
+ * back to its rendered cards. Completed tasks are point events at their
+ * effective display time; parallel tasks remain visible and join visual groups.
+ */
+export function timeScaleOverlapGroups(tasks,now=new Date()){
+  const entries=[];
+  (tasks||[]).forEach((task,index)=>{
+    const start=parseClock(timelineTimeForTask(task,now)??task?.time);
+    if(start===null)return;
+    const duration=task?.done||task?.scheduleMode==='parallel'?0:durationOf(task);
+    entries.push({index,start,end:start+Math.max(1,duration)});
+  });
+  // A task completed early can be moved in the display list. Grouping must
+  // follow effective clock time, not the order in which cards were rendered.
+  entries.sort((a,b)=>a.start-b.start||a.index-b.index);
+  const groups=[];
+  for(const entry of entries){
+    const {index,start,end}=entry;
+    const last=groups[groups.length-1];
+    if(last&&start<last.end){
+      let lane=last.laneEnds.findIndex(laneEnd=>laneEnd<=start);
+      if(lane<0){lane=last.laneEnds.length;last.laneEnds.push(end);}
+      else last.laneEnds[lane]=end;
+      last.start=Math.min(last.start,start);
+      last.end=Math.max(last.end,end);
+      last.indices.push(index);
+      last.lanes.push(lane);
+      last.laneCount=last.laneEnds.length;
+    }else groups.push({start,end,indices:[index],lanes:[0],laneCount:1,laneEnds:[end]});
+  }
+  return groups.map(({laneEnds,...group})=>group);
 }
 
 /** Interpolate a vertical position from real schedule anchors.

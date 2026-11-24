@@ -21,5 +21,5 @@ jobs:
         run: sed -n '/<script type="module">/,/<\/script>/p' index.html | sed '1d;$d' | node --input-type=module --check
       - name: Verify offline module precache
         run: |
-          grep -Fq "'./time-engine.js?v=20261123-7'" sw.js
+          grep -Fq "'./time-engine.js?v=20261124-1'" sw.js
           grep -Fq "'./quick-add-parser.js?v=20261124-1'" sw.js
