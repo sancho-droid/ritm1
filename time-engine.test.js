@@ -289,27 +289,27 @@ assert.deepEqual(timeScaleOverlapGroups([
   {id:'short',time:'12:00',duration:60},
   {id:'after',time:'14:00',duration:30}
 ],overlapNow),[
-  {start:720,end:840,indices:[0,1]},
-  {start:840,end:870,indices:[2]}
+  {start:720,end:840,indices:[0,1],lanes:[0,1],laneCount:2},
+  {start:840,end:870,indices:[2],lanes:[0],laneCount:1}
 ],'same-start tasks group to the longest end; touching tasks remain separate');
 assert.deepEqual(timeScaleOverlapGroups([
   {id:'first',time:'12:00',duration:60},
   {id:'second',time:'12:45',duration:75},
   {id:'third',time:'13:50',duration:40}
 ],overlapNow),[
-  {start:720,end:870,indices:[0,1,2]}
+  {start:720,end:870,indices:[0,1,2],lanes:[0,1,0],laneCount:2}
 ],'transitively overlapping tasks form one continuous group');
 assert.deepEqual(timeScaleOverlapGroups([
   {id:'fixed',time:'12:00',duration:90},
   {id:'parallel',time:'12:30',duration:30,scheduleMode:'parallel'}
 ],overlapNow),[
-  {start:720,end:810,indices:[0,1]}
+  {start:720,end:810,indices:[0,1],lanes:[0,1],laneCount:2}
 ],'parallel tasks remain visible in the same visual time group');
 assert.deepEqual(timeScaleOverlapGroups([
   {id:'completed',time:'13:00',duration:120,done:true,doneAt:'2026-11-24T12:15:00',actualTime:'12:15'},
   {id:'active',time:'12:10',duration:60}
 ],overlapNow),[
-  {start:730,end:790,indices:[1,0]}
+  {start:730,end:790,indices:[0,1],lanes:[0,1],laneCount:2}
 ],'completed tasks use their effective completion clock as a point event');
 console.log('overlapping timeline groups: regression assertions passed');
 
@@ -330,3 +330,13 @@ assert.deepEqual(gapCalc([
   {start:'14:30',end:'24:00',duration:570,date:'2026-11-24',afterIndex:2,id:'2026-11-24-gap-1'}
 ],'transitively overlapping tasks must merge to the latest end');
 console.log('overlapping free-time intervals: regression assertions passed');
+
+// Non-overlapping tasks can reuse a lane inside one transitive overlap group.
+assert.deepEqual(timeScaleOverlapGroups([
+  {id:'first',time:'12:00',duration:60},
+  {id:'middle',time:'12:30',duration:30},
+  {id:'last',time:'13:00',duration:60}
+],overlapNow),[
+  {start:720,end:840,indices:[0,1,2],lanes:[0,1,1],laneCount:2}
+],'a lane is reused as soon as its previous task ends');
+console.log('overlap timeline lane assignment: assertions passed');
