@@ -601,6 +601,21 @@ body.keyboard-open .mobile-dock,body.keyboard-open .quick-fab{display:none!impor
 
 .quick-add-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.quick-add-expand-head{min-height:0;min-width:0;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:0;background:transparent;color:var(--muted);font-size:13px;font-weight:500;padding:0;white-space:nowrap;-webkit-appearance:none;appearance:none}.quick-add-expand-head:hover{background:transparent;color:var(--accent);text-decoration:underline;text-underline-offset:3px}.quick-parse-choices{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.quick-parse-choice{border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--text);padding:7px 10px;font-size:12px;min-height:34px}.quick-parse-choice.active{border-color:var(--accent);background:var(--soft);color:var(--accent);font-weight:700}
 .quick-add-modal .quick-preview.has-choices{display:block!important}
+/* Верхняя кромка рамки расписания остаётся на месте при прокрутке. */
+@media(max-width:600px){
+  #dayView::before{
+    content:"";
+    display:block;
+    position:sticky;
+    top:55px;
+    z-index:21;
+    height:1px;
+    margin:-13px -13px -1px;
+    background:var(--line);
+    pointer-events:none;
+  }
+}
+
 /* Блок 4: закреплённая мобильная шапка планировщика */
 @media(max-width:600px){
   .top{
