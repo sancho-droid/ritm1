@@ -44,12 +44,18 @@ export function parseQuickTask(input, baseDate = new Date(), options = {}) {
     clean=clean.replace(textualDate[0],' ');
   }
 
+  const range=clean.match(/(?:^|\s)(?:с\s*)?(\d{1,2})[.:](\d{2})\s*(?:-|–|—|до|по)\s*(\d{1,2})[.:](\d{2})(?=\s|$)/i);
+  if(range){
+    const sh=Number(range[1]),sm=Number(range[2]),eh=Number(range[3]),em=Number(range[4]);
+    if(validClock(sh,sm)&&validClock(eh,em)){time=clock(sh,sm);endTime=clock(eh,em);duration=durationBetween(sh*60+sm,eh*60+em);clean=clean.replace(range[0],' ');}
+  }
+
   const explicitDate=clean.match(/(?:^|\s)(\d{1,2})[./](\d{1,2})[./](\d{2,4})(?=\s|$)/);
   if(explicitDate){
     let year=Number(explicitDate[3]);if(year<100)year+=2000;
     const month=Number(explicitDate[2])-1,day=Number(explicitDate[1]),date=validDate(year,month,day);
     if(date){target=date;clean=clean.replace(explicitDate[0],' ');}
-  } else {
+  } else if(!time) {
     const ambiguous=clean.match(/(?:^|\s)(\d{1,2})\.(\d{2})(?=\s|$)/);
     if(ambiguous){
       const hour=Number(ambiguous[1]),minute=Number(ambiguous[2]);
@@ -72,12 +78,6 @@ export function parseQuickTask(input, baseDate = new Date(), options = {}) {
 
   const weekday=clean.match(/(?:^|\s)(?:в\s+)?(понедельник|вторник|среду|среда|четверг|пятницу|пятница|субботу|суббота|воскресенье)(?=\s|$)/i);
   if(weekday){const wanted=weekdays[weekday[1].toLocaleLowerCase('ru-RU')],base=new Date(now.getFullYear(),now.getMonth(),now.getDate()),delta=(wanted-base.getDay()+7)%7;target=addDays(base,delta||7);clean=clean.replace(weekday[0],' ');}
-
-  const range=clean.match(/(?:^|\s)(?:с\s*)?(\d{1,2})[.:](\d{2})\s*(?:-|–|—|до|по)\s*(\d{1,2})[.:](\d{2})(?=\s|$)/i);
-  if(range){
-    const sh=Number(range[1]),sm=Number(range[2]),eh=Number(range[3]),em=Number(range[4]);
-    if(validClock(sh,sm)&&validClock(eh,em)){time=clock(sh,sm);endTime=clock(eh,em);duration=durationBetween(sh*60+sm,eh*60+em);clean=clean.replace(range[0],' ');}
-  }
 
   if(!time){
     const explicitClock=clean.match(/(?:^|\s)(?:в\s*)?(\d{1,2}):(\d{2})(?:\s*(утра|дня|вечера|ночи))?(?=\s|$)/i);
