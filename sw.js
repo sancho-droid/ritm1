@@ -1,4 +1,4 @@
-const CACHE = 'ritm-v1032-quick-add-parser';
+const CACHE = 'ritm-v1033-overlap-timeline';
 const FILES = ['./', './index.html', './manifest.webmanifest', './time-engine.js?v=20261123-7', './quick-add-parser.js?v=20261124-1', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
