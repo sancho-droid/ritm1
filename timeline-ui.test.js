@@ -198,3 +198,4 @@ assert.match(html, /id="quickAddExpand"[^>]*>Развернуть</, 'compact qu
 assert.match(html, /\$\('#quickFab'\)\.onclick=\(\)=>openQuickAdd\(/, 'plus consistently opens the compact quick-add flow');
 assert.match(html, /\$\('#quickAddExpand'\)\.onclick=\(\)=>\{const parsed=parseQuickTask/, 'expand transfers parsed task details to full form');
 console.log('bottom quick-add interface: assertions passed');
+assert.doesNotMatch(html, /\$\('#quickInlineForm'\)/, 'tab switching never touches the removed inline quick-add form');
