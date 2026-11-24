@@ -1125,13 +1125,11 @@ function renderQuickPreview(){
 function openQuickAdd(source='day',value='',baseDate=null,options={}){
   quickAddDate=baseDate?new Date(baseDate.getFullYear(),baseDate.getMonth(),baseDate.getDate()):(source==='day'?new Date(selected.getFullYear(),selected.getMonth(),selected.getDate()):new Date(today.getFullYear(),today.getMonth(),today.getDate()));
   quickAddGap=options.gap||null;quickAddShelfItemId=options.shelfItemId||null;
-  $('#quickAddToShelfBtn').classList.toggle('hidden',!!quickAddShelfItemId);
   $('#quickAddText').value=value;renderQuickPreview();showModal('quickAddModal');setTimeout(()=>$('#quickAddText').focus(),80);
 }
 $('#quickFab').onclick=()=>openQuickAdd(tab==='day'?'day':'other');
 $('#quickAddExpand').onclick=()=>{const parsed=parseQuickTask($('#quickAddText').value,quickAddDate||selected);if(!parsed?.name){$('#quickAddText').focus();return}closeModal('quickAddModal');openTask();$('#taskName').value=parsed.name;$('#taskDate').value=parsed.date||key(quickAddDate||selected);$('#taskTime').value=parsed.time||'';$('#taskEndTime').value=parsed.endTime||'';$('#taskDurationPicker').value=parsed.duration?minutesToClock(parsed.duration):'';renderCategoryOptions(parsed.category||'Личное');$('#taskRepeat').value=parsed.repeat?.type||'none';if(parsed.repeat?.weekdays)document.querySelectorAll('#repeatWeekdays input').forEach(c=>c.checked=parsed.repeat.weekdays.includes(+c.value));updateRepeatFields();};
 $('#quickAddText').addEventListener('input',renderQuickPreview);
-$('#quickAddToShelfBtn').onclick=()=>{const parsed=parseQuickTask($('#quickAddText').value,quickAddDate||selected);if(!parsed?.name){alert('Напиши название дела.');return}db.shelf=db.shelf||[];db.shelf.push({id:crypto.randomUUID(),name:parsed.name,category:parsed.category||'Личное',createdAt:new Date().toISOString()});quickAddGap=null;quickAddShelfItemId=null;closeModal('quickAddModal');$('#quickAddText').value='';persist()};
 
 $('#quickAddForm').onsubmit=e=>{
   e.preventDefault();const parsed=parseQuickTask($('#quickAddText').value,quickAddDate||selected);if(!parsed?.name){alert('Напиши название задачи.');return}
