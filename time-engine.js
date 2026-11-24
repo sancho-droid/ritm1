@@ -138,12 +138,19 @@ export function timeScaleTaskAnchors(startMinute,duration,top,bottom){
  * effective display time; parallel tasks remain visible and join visual groups.
  */
 export function timeScaleOverlapGroups(tasks,now=new Date()){
-  const groups=[];
+  const entries=[];
   (tasks||[]).forEach((task,index)=>{
     const start=parseClock(timelineTimeForTask(task,now)??task?.time);
     if(start===null)return;
     const duration=task?.done?0:durationOf(task);
-    const end=start+Math.max(1,duration);
+    entries.push({index,start,end:start+Math.max(1,duration)});
+  });
+  // A task completed early can be moved in the display list. Grouping must
+  // follow effective clock time, not the order in which cards were rendered.
+  entries.sort((a,b)=>a.start-b.start||a.index-b.index);
+  const groups=[];
+  for(const entry of entries){
+    const {index,start,end}=entry;
     const last=groups[groups.length-1];
     if(last&&start<last.end){
       let lane=last.laneEnds.findIndex(laneEnd=>laneEnd<=start);
@@ -155,7 +162,7 @@ export function timeScaleOverlapGroups(tasks,now=new Date()){
       last.lanes.push(lane);
       last.laneCount=last.laneEnds.length;
     }else groups.push({start,end,indices:[index],lanes:[0],laneCount:1,laneEnds:[end]});
-  });
+  }
   return groups.map(({laneEnds,...group})=>group);
 }
 
