@@ -200,3 +200,9 @@ assert.match(html, /\$\('#quickAddExpand'\)\.onclick=\(\)=>\{const parsed=parseQ
 console.log('bottom quick-add interface: assertions passed');
 assert.doesNotMatch(html, /\$\('#quickInlineForm'\)/, 'tab switching never touches the removed inline quick-add form');
 assert.doesNotMatch(html, /quickAddToShelfBtn/, 'quick-add markup and handlers contain no references to the removed shelf button');
+assert.match(html, /import \\{ parseQuickTask as parseQuickTaskText \\} from '\\.\\/quick-add-parser\\.js\\?v=20261124-1'/, 'quick-add parser is loaded as a versioned module');
+assert.match(html, /quick-add-expand-head/, 'expand action is placed in the quick-add header');
+assert.doesNotMatch(html, /id="quickAddModal"[^]*?aria-label="Закрыть"/, 'quick-add modal no longer has a close-cross control');
+assert.match(html, /document\\.activeElement\\?\\.blur\\?\\.\\(\\)/, 'expanding quick-add blurs the text field before opening the full task form');
+assert.match(html, /quick-parse-choices/, 'ambiguous dotted date/time values show explicit choices');
+
