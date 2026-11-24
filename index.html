@@ -572,7 +572,7 @@ body.keyboard-open .mobile-dock,body.keyboard-open .quick-fab{display:none!impor
 #datePickerGrid{touch-action:pan-y;will-change:transform;transition:transform .22s cubic-bezier(.22,.61,.36,1),opacity .22s;}
 .swipe-preview{transition:none!important;}
 
-.quick-add-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.quick-add-expand-head{min-height:42px;min-width:104px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:12px;background:var(--panel2);color:var(--text);font-size:14px;font-weight:600;padding:0 14px;white-space:nowrap}.quick-parse-choices{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.quick-parse-choice{border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--text);padding:7px 10px;font-size:12px;min-height:34px}.quick-parse-choice.active{border-color:var(--accent);background:var(--soft);color:var(--accent);font-weight:700}
+.quick-add-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.quick-add-expand-head{min-height:0;min-width:0;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:0;background:transparent;color:var(--muted);font-size:13px;font-weight:500;padding:0;white-space:nowrap;-webkit-appearance:none;appearance:none}.quick-add-expand-head:hover{background:transparent;color:var(--accent);text-decoration:underline;text-underline-offset:3px}.quick-parse-choices{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.quick-parse-choice{border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--text);padding:7px 10px;font-size:12px;min-height:34px}.quick-parse-choice.active{border-color:var(--accent);background:var(--soft);color:var(--accent);font-weight:700}
 .quick-add-modal .quick-preview.has-choices{display:block!important}</style></head>
 <body><div class="app">
 <header class="top"><div class="brand"><button class="logo" id="appMenuBtn" type="button" aria-label="Открыть меню">Р</button><div><h1>РИТМ</h1><small>Твой день. Твой темп.</small></div></div><div class="actions"><button class="btn" id="todayBtn">Сегодня</button><button class="primary" id="addBtn">＋ <span class="word">Задача</span></button></div></header>
@@ -603,7 +603,7 @@ body.keyboard-open .mobile-dock,body.keyboard-open .quick-fab{display:none!impor
 <div class="modalback" id="quickAddModal"><div class="modal quick-add-modal"><div class="quick-add-head"><h3>Быстрое добавление</h3><button type="button" class="quick-add-expand quick-add-expand-head" id="quickAddExpand" aria-label="Развернуть форму" title="Развернуть форму">Развернуть</button></div><form id="quickAddForm"><div class="field"><label for="quickAddText">Напиши задачу обычными словами</label><input id="quickAddText" type="text" maxlength="180" autocomplete="off" placeholder="Например: завтра в 18:30 купить продукты" required></div><div id="quickAddPreview" class="quick-preview"><span class="muted">Дата, время и продолжительность появятся здесь</span></div><div class="modalfoot"><button type="button" class="btn" data-close="quickAddModal">Отмена</button><button type="submit" class="primary">Добавить</button></div></form></div></div>
 <nav class="mobile-dock" id="mobileDock"><button class="active" data-tab="day"><span>⌂</span>День</button><button data-tab="family"><span>♡</span>Семья</button><button data-tab="lists"><span>☷</span>Списки</button><button data-tab="diary"><span>▤</span>Дневник</button><button data-tab="habits"><span>✓</span>Привычки</button><button data-tab="child"><span>☆</span>Ребёнок</button></nav>
 <script type="module">
-import * as TimeEngine from './time-engine.js?v=20261123-7';
+import * as TimeEngine from './time-engine.js?v=20261124-1';
 import { parseQuickTask as parseQuickTaskText } from './quick-add-parser.js?v=20261124-1';
 const $=s=>document.querySelector(s), pad=n=>String(n).padStart(2,'0'), key=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 let today=new Date();let selected=new Date(today.getFullYear(),today.getMonth(),today.getDate());let editing=null;let movingTask=null;let deletingTask=null;let tab='day';let theme=localStorage.getItem('ritm_theme')||'light';
@@ -980,10 +980,31 @@ function updateCurrentTimeBead(){
     }
   }
   const addAnchor=(time,y)=>{if(Number.isFinite(time)&&Number.isFinite(y))anchors.push({minute:time,y:y-rootRect.top})};
-  let previousPointTask=false;
+  const taskElements=[...list.children].filter(item=>item.classList.contains('task')&&item._task);
+  const overlapGroups=TimeEngine.timeScaleOverlapGroups(taskElements.map(item=>item._task),now);
+  const groupByIndex=new Map();
+  overlapGroups.forEach(group=>group.indices.forEach(index=>groupByIndex.set(index,group)));
+  const addedGroups=new Set();
+  let taskIndex=0,previousPointTask=false;
   for(const item of list.children){
     const rect=item.getBoundingClientRect();
     if(item.classList.contains('task')&&item._task){
+      const index=taskIndex++,group=groupByIndex.get(index);
+      if(group&&group.indices.length>1){
+        const groupKey=group.indices.join(',');
+        if(!addedGroups.has(groupKey)){
+          const cardRects=group.indices.map(i=>taskElements[i]).filter(Boolean)
+            .map(member=>(member.querySelector('.taskbody')||member).getBoundingClientRect())
+            .filter(cardRect=>cardRect.height>0);
+          if(cardRects.length){
+            addAnchor(group.start,Math.min(...cardRects.map(cardRect=>cardRect.top)));
+            addAnchor(group.end,Math.max(...cardRects.map(cardRect=>cardRect.bottom)));
+          }
+          addedGroups.add(groupKey);
+        }
+        previousPointTask=false;
+        continue;
+      }
       const task=item._task,planned=TimeEngine.parseClock(task.time);
       const display=TimeEngine.parseClock(TimeEngine.timelineTimeForTask(task,now)??task.time);
       if(display===null||rect.height<=0){previousPointTask=false;continue}
