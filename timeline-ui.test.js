@@ -205,7 +205,7 @@ assert.match(html, /quick-add-expand-head/, 'expand action is placed in the quic
 assert.doesNotMatch(html, /id="quickAddModal"[^]*?aria-label="Закрыть"/, 'quick-add modal no longer has a close-cross control');
 assert.ok(html.includes('document.activeElement?.blur?.()'), 'expanding quick-add blurs the text field before opening the full task form');
 assert.match(html, /quick-parse-choices/, 'ambiguous dotted date/time values show explicit choices');
-assert.match(html, /quick-add-modal \\.quick-preview\\.has-choices\\{display:block!important\\}/, 'quick-add preview becomes visible only when date/time clarification is needed');
-assert.match(html, /box\\.classList\\.toggle\\('has-choices',!!quickParsed\\.ambiguity\\)/, 'ambiguity controls the clarification preview visibility');
+assert.ok(html.includes('.quick-add-modal .quick-preview.has-choices{display:block!important}'), 'quick-add preview becomes visible only when date/time clarification is needed');
+assert.ok(html.includes("box.classList.toggle('has-choices',!!quickParsed.ambiguity)"), 'ambiguity controls the clarification preview visibility');
 assert.ok(serviceWorker.includes("'./quick-add-parser.js?v=20261124-1'"), 'service worker precaches the versioned quick-add parser module');
 
