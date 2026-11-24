@@ -132,6 +132,31 @@ export function timeScaleTaskAnchors(startMinute,duration,top,bottom){
   return [{minute:startMinute,y:(top+bottom)/2},{minute:startMinute+1,y:bottom}];
 }
 
+/** Group visually overlapping timed tasks into one continuous time interval.
+ * The indices refer to the original input order so the UI can map each group
+ * back to its rendered cards. Completed tasks are point events at their
+ * effective display time; parallel tasks remain visible and join visual groups.
+ */
+export function timeScaleOverlapGroups(tasks,now=new Date()){
+  const entries=[];
+  (tasks||[]).forEach((task,index)=>{
+    const start=parseClock(timelineTimeForTask(task,now)??task?.time);
+    if(start===null)return;
+    const duration=task?.done?0:durationOf(task);
+    entries.push({index,start,end:start+Math.max(1,duration)});
+  });
+  entries.sort((a,b)=>a.start-b.start||a.index-b.index);
+  const groups=[];
+  for(const entry of entries){
+    const last=groups[groups.length-1];
+    if(last&&entry.start<last.end){
+      last.end=Math.max(last.end,entry.end);
+      last.indices.push(entry.index);
+    }else groups.push({start:entry.start,end:entry.end,indices:[entry.index]});
+  }
+  return groups;
+}
+
 /** Interpolate a vertical position from real schedule anchors.
  * Equal-time anchors can represent two different card edges: the previous
  * card's bottom and the next card's top. Keep both instead of flattening the
