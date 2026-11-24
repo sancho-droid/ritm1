@@ -153,29 +153,13 @@ input,select,textarea{font-size:16px}
 #taskModal .task-modal-form .repeatbox{margin-top:3px;padding:13px;border:1px solid var(--line);border-radius:15px;background:var(--panel)}
 #taskModal .task-modal-form .repeatbox>.field{margin:0}
 #taskModal .task-modal-form .repeatbox>.field>select{width:100%}
-#taskModal .task-modal-form #repeatEndWrap{width:100%;max-width:100%;box-sizing:border-box}
-#taskModal .task-modal-form #repeatEnd{width:100%;max-width:100%;box-sizing:border-box}
-/* Align the conditional repeat-end field with the other controls inside the repeat section. */
-#taskModal .task-modal-form .repeatbox #repeatEndWrap{
-  display:flex;
-  flex-direction:column;
-  gap:7px;
-  width:calc(100% + 28px);
-  max-width:none;
-  min-width:0;
-  margin:8px -14px 0;
-  padding:0;
-  box-sizing:border-box;
-}
-#taskModal .task-modal-form .repeatbox #repeatEndWrap>input,
-#taskModal .task-modal-form .repeatbox #repeatEndWrap>#repeatEnd{
+/* The end-date input uses the same sizing as the repeat selector above. */
+#taskModal .task-modal-form #repeatEnd{
   display:block;
   width:100%;
   max-width:100%;
   min-width:0;
   min-inline-size:0;
-  margin:0;
-  align-self:stretch;
   box-sizing:border-box;
 }
 #taskModal .task-mode-value{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
