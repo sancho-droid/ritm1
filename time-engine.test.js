@@ -222,6 +222,7 @@ assert.deepEqual(
   'dynamic bounds use first displayed time and final scheduled end'
 );
 assert.deepEqual(timeScaleBounds([{time:'23:00',duration:120}],railNow),{start:1380,end:1500},'overnight task extends the dynamic end boundary past midnight');
+assert.deepEqual(timeScaleBounds([{time:'12:00',duration:180,scheduleMode:'parallel'}],railNow),{start:720,end:721},'parallel tasks do not extend the occupied time scale');
 assert.equal(timeScaleBounds([{name:'no time',time:''}],railNow),null,'no timed tasks means no visible scale range');
 console.log('left time rail labels and dynamic bounds: assertions passed');
 
@@ -311,6 +312,12 @@ assert.deepEqual(timeScaleOverlapGroups([
 ],overlapNow),[
   {start:730,end:790,indices:[1,0],lanes:[0,1],laneCount:2}
 ],'completed tasks use their effective completion clock as a point event');
+assert.deepEqual(timeScaleOverlapGroups([
+  {id:'fixed-short',time:'12:00',duration:60},
+  {id:'parallel-long',time:'12:30',duration:180,scheduleMode:'parallel'}
+],overlapNow),[
+  {start:720,end:780,indices:[0,1],lanes:[0,1],laneCount:2}
+],'parallel task duration does not extend the occupied time group');
 console.log('overlapping timeline groups: regression assertions passed');
 
 // Free-time boundaries must use the union of all overlapping occupied intervals.
