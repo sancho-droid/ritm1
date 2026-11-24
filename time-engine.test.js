@@ -339,4 +339,12 @@ assert.deepEqual(timeScaleOverlapGroups([
 ],overlapNow),[
   {start:720,end:840,indices:[0,1,2],lanes:[0,1,1],laneCount:2}
 ],'a lane is reused as soon as its previous task ends');
+
+assert.deepEqual(timeScaleOverlapGroups([
+  {id:'later',time:'13:30',duration:30},
+  {id:'long',time:'12:00',duration:120},
+  {id:'short',time:'12:15',duration:30}
+],overlapNow),[
+  {start:720,end:840,indices:[1,2,0],lanes:[0,1,1],laneCount:2}
+],'groups are ordered by effective clock time even when early-completed cards were reordered in the display list');
 console.log('overlap timeline lane assignment: assertions passed');
