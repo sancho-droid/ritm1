@@ -46,6 +46,7 @@ assert.match(html, /completionKind:r\?\.completionKind\?\?t\.completionKind/);
 assert.match(html, /completionKind:r\.completionKind\?\?t\.completionKind/);
 assert.match(html, /\.current-time-bead\{position:absolute/);
 assert.match(html, /TimeEngine\.timeScalePosition\(anchors,minute\)/, 'bead position follows actual schedule anchors');
+assert.match(html, /if\(!task\.done&&task\.scheduleMode!=='parallel'\)/, 'a standalone parallel task is a point event for the current-time bead');
 assert.match(html, /if\(!list\.querySelector\('\.task'\)\)\{bead\.style\.display='none'/, 'bead stays hidden when the timed schedule is empty');
 assert.match(html, /item\.classList\.contains\('task'\)&&item\._task/);
 assert.match(html, /TimeEngine\.timeScaleOverlapGroups\(timed,now\)/,
