@@ -58,6 +58,10 @@ assert.match(html, /card\.style\.marginTop=offset\+'px'/,
   'later-starting overlapping tasks are offset to their actual start within the group');
 assert.match(html, /card\.style\.height=height\+'px'/,
   'each lane card height reflects its own task duration');
+assert.match(html, /groupEl\.style\.gridTemplateRows=groupHeight\+'px'/,
+  'the overlap group height follows the latest ending task');
+assert.match(html, /if\(item\.height<56\)item\.card\.classList\.add\('compact-overlap-task'\)/,
+  'very short overlapping tasks use a compact card treatment');
 assert.match(html, /item\.classList\.contains\('overlap-task-group'\)/,
   'the current-time bead uses the shared overlap-group boundaries');
 assert.match(html, /state\.source\.closest\('\.overlap-task-group'\)/,
