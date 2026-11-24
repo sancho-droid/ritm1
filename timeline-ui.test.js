@@ -53,16 +53,13 @@ assert.match(html, /TimeEngine\.timeScaleOverlapGroups\(timed,now\)/,
   'overlapping tasks are grouped before they are rendered');
 assert.match(html, /groupEl\.className='overlap-task-group'/,
   'overlapping tasks are rendered in a shared visual group');
-assert.match(html, /item\.card\.style\.gridColumn=String\(\(group\.lanes\[item\.memberIndex\]\?\?item\.memberIndex\)\+2\)/,
-  'each overlapping task is placed in its own horizontal lane');
-assert.match(html, /item\.card\.style\.marginTop=item\.offset\+'px'/,
-  'later-starting overlapping tasks are offset to their actual start within the group');
-assert.match(html, /item\.card\.style\.height=Math\.max\(1,item\.height\)\+'px'/,
-  'each lane card height reflects its own task duration');
-assert.match(html, /groupEl\.style\.gridTemplateRows=groupHeight\+'px'/,
-  'the overlap group height follows the latest ending task');
-assert.match(html, /if\(item\.height<56\)item\.card\.classList\.add\('compact-overlap-task'\)/,
-  'very short overlapping tasks use a compact card treatment');
+assert.match(html, /groupEl\.style\.setProperty\('--overlap-count',String\(group\.indices\.length\)\)/,
+  'the shared start-time rail spans every naturally stacked overlap card');
+assert.match(html, /card\.style\.removeProperty\('height'\)/,
+  'overlap cards retain their intrinsic compact height');
+assert.doesNotMatch(html.slice(html.indexOf('const appendOverlapGroup='),html.indexOf('};timed\.forEach')),
+  /item\.card\.style\.gridColumn|marginTop|style\.height|gridTemplateRows|baseHeight|groupHeight/,
+  'overlap rendering never creates empty duration-sized card areas or side-by-side lanes');
 assert.match(html, /item\.classList\.contains\('overlap-task-group'\)/,
   'the current-time bead uses the shared overlap-group boundaries');
 assert.match(html, /state\.source\.closest\('\.overlap-task-group'\)/,
