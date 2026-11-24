@@ -1048,7 +1048,7 @@ function renderDay(){renderCalendar();renderWeekStrip();const now=new Date(),k=k
   const span=Math.max(1,group.end-group.start),baseHeight=Math.max(96,Math.min(240,span*2)),scale=baseHeight/span;
   const layouts=group.indices.map((taskIndex,memberIndex)=>{
     const task=timed[taskIndex],card=taskCard(task);card.classList.add('schedule-task','overlap-task-card');if(task.done)card.classList.add('completed-schedule-task');
-    const display=TimeEngine.parseClock(TimeEngine.timelineTimeForTask(task,now)??task.time)??group.start,duration=task.done?1:Math.max(1,TimeEngine.durationOf(task)),offset=Math.max(0,display-group.start)*scale,height=Math.max(36,duration*scale);
+    const display=TimeEngine.parseClock(TimeEngine.timelineTimeForTask(task,now)??task.time)??group.start,duration=task.done||task.scheduleMode==='parallel'?1:Math.max(1,TimeEngine.durationOf(task)),offset=Math.max(0,display-group.start)*scale,height=Math.max(36,duration*scale);
     return{task,card,memberIndex,offset,height,end:display+duration};
   });
   const groupHeight=Math.max(baseHeight,...layouts.map(item=>item.offset+item.height));groupEl.style.gridTemplateRows=groupHeight+'px';
