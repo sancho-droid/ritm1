@@ -604,12 +604,12 @@ body.keyboard-open .mobile-dock,body.keyboard-open .quick-fab{display:none!impor
 /* Блок 4: закреплённая мобильная шапка планировщика */
 @media(max-width:600px){
   .top{
-    top:env(safe-area-inset-top);
+    top:0;
     z-index:20;
   }
   #weekStrip{
     position:sticky;
-    top:calc(env(safe-area-inset-top) + 63px);
+    top:55px;
     z-index:19;
     background:var(--panel);
     padding:6px 0 8px;
