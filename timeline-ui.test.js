@@ -194,7 +194,7 @@ console.log('fixed full-day drag ruler: assertions passed');
 // Bottom quick-add menu replaces the old inline field and offers expansion to the full form.
 assert.doesNotMatch(html, /id="quickInlineForm"/, 'top inline quick-add form is removed');
 assert.match(html, /id="quickFab"[^>]*aria-label="Быстро добавить задачу"/, 'bottom plus opens quick-add');
-assert.match(html, /id="quickAddExpand"[^>]*>Развернуть</, 'compact quick-add provides expansion control');
+assert.match(html, /id="quickAddExpand"[^>]*>↗</, 'compact quick-add provides a header expansion control');
 assert.match(html, /\$\('#quickFab'\)\.onclick=\(\)=>openQuickAdd\(/, 'plus consistently opens the compact quick-add flow');
 assert.match(html, /\$\('#quickAddExpand'\)\.onclick=\(\)=>\{const parsed=parseQuickTask/, 'expand transfers parsed task details to full form');
 console.log('bottom quick-add interface: assertions passed');
