@@ -355,3 +355,16 @@ assert.deepEqual(timeScaleOverlapGroups([
   {start:720,end:840,indices:[1,2,0],lanes:[0,1,1],laneCount:2}
 ],'groups are ordered by effective clock time even when early-completed cards were reordered in the display list');
 console.log('overlap timeline lane assignment: assertions passed');
+
+// The bead remains inside the longer same-start task after the shorter task ends.
+const sameStartLong=120,sameStartShort=60,groupSpan=120;
+const sameStartGroupHeight=Math.max(96,Math.min(240,groupSpan*2));
+const sameStartScale=sameStartGroupHeight/groupSpan;
+const sameStartTop=100,shortCardBottom=sameStartTop+sameStartShort*sameStartScale,longCardBottom=sameStartTop+sameStartLong*sameStartScale;
+const sameStartBeadY=timeScalePosition([
+  {minute:720,y:sameStartTop},
+  {minute:840,y:longCardBottom}
+],810);
+assert.ok(sameStartBeadY>shortCardBottom&&sameStartBeadY<longCardBottom,
+  'at 13:30 the bead remains inside the 12:00–14:00 task after the 12:00–13:00 task has ended');
+console.log('same-start overlap bead alignment: regression assertion passed');
