@@ -117,7 +117,7 @@ export function timeScaleBounds(tasks,now=new Date()){
     if(planned===null)continue;
     const label=parseClock(timelineTimeForTask(task,now)??task.time);
     if(label!==null)start=Math.min(start,label);
-    end=Math.max(end,planned+durationOf(task));
+    end=Math.max(end,planned+(task?.scheduleMode==='parallel'?1:durationOf(task)));
   }
   return Number.isFinite(start)&&Number.isFinite(end)?{start,end}:null;
 }
@@ -142,7 +142,7 @@ export function timeScaleOverlapGroups(tasks,now=new Date()){
   (tasks||[]).forEach((task,index)=>{
     const start=parseClock(timelineTimeForTask(task,now)??task?.time);
     if(start===null)return;
-    const duration=task?.done?0:durationOf(task);
+    const duration=task?.done||task?.scheduleMode==='parallel'?0:durationOf(task);
     entries.push({index,start,end:start+Math.max(1,duration)});
   });
   // A task completed early can be moved in the display list. Grouping must
