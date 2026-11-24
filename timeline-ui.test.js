@@ -247,6 +247,6 @@ assert.deepEqual(TimeEngine.timeScaleOverlapGroups([
   {id:'short',time:'12:00',duration:60},
   {id:'later',time:'13:30',duration:30}
 ],uiOverlapNow),[
-  {start:720,end:840,indices:[0,1,2]}
+  {start:720,end:840,indices:[0,1,2],lanes:[0,1,1],laneCount:2}
 ],'the current-time bead uses the full interval of a same-start overlap group');
 console.log('overlap group UI integration: assertions passed');
