@@ -39,7 +39,7 @@ assert.match(html, /range\.className='task-time-range'/, 'task card still render
 assert.match(html, /range\.textContent=end&&end!==t\.time\?t\.time\+' – '\+end:t\.time/, 'task card shows start and end for timed tasks with a range');
 assert.match(html, /rail\.className='task-time-rail'/);
 assert.match(html, /TimeEngine\.timelineTimeForTask\(t,new Date\(\)\)/);
-assert.match(html, /TimeEngine\.timeScaleBounds\(timed,new Date\(\)\)/);
+assert.match(html, /TimeEngine\.timeScaleBounds\(timed,now\)/, 'the visible timeline bounds use one consistent render timestamp');
 assert.match(html, /dayStartBoundary\.dataset\.minute=timeScale\?String\(timeScale\.start\):''/);
 assert.match(html, /dayEndBoundary\.dataset\.minute=timeScale\?String\(timeScale\.end\):''/);
 assert.match(html, /completionKind:r\?\.completionKind\?\?t\.completionKind/);
