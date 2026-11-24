@@ -53,16 +53,13 @@ assert.match(html, /TimeEngine\.timeScaleOverlapGroups\(timed,now\)/,
   'overlapping tasks are grouped before they are rendered');
 assert.match(html, /groupEl\.className='overlap-task-group'/,
   'overlapping tasks are rendered in a shared visual group');
-assert.match(html, /item\.card\.style\.gridColumn=String\(\(group\.lanes\[item\.memberIndex\]\?\?item\.memberIndex\)\+2\)/,
-  'each overlapping task is placed in its own horizontal lane');
-assert.match(html, /item\.card\.style\.marginTop=item\.offset\+'px'/,
-  'later-starting overlapping tasks are offset to their actual start within the group');
-assert.match(html, /item\.card\.style\.height=Math\.max\(1,item\.height\)\+'px'/,
-  'each lane card height reflects its own task duration');
-assert.match(html, /groupEl\.style\.gridTemplateRows=groupHeight\+'px'/,
-  'the overlap group height follows the latest ending task');
-assert.match(html, /if\(item\.height<56\)item\.card\.classList\.add\('compact-overlap-task'\)/,
-  'very short overlapping tasks use a compact card treatment');
+assert.match(html, /groupEl\.style\.setProperty\('--overlap-count',String\(group\.indices\.length\)\)/,
+  'the shared start-time rail spans every naturally stacked overlap card');
+assert.match(html, /card\.style\.removeProperty\('height'\)/,
+  'overlap cards retain their intrinsic compact height');
+assert.doesNotMatch(html.slice(html.indexOf('const appendOverlapGroup='),html.indexOf('};timed\.forEach')),
+  /item\.card\.style\.gridColumn|marginTop|style\.height|gridTemplateRows|baseHeight|groupHeight/,
+  'overlap rendering never creates empty duration-sized card areas or side-by-side lanes');
 assert.match(html, /item\.classList\.contains\('overlap-task-group'\)/,
   'the current-time bead uses the shared overlap-group boundaries');
 assert.match(html, /state\.source\.closest\('\.overlap-task-group'\)/,
@@ -223,10 +220,15 @@ assert.match(html, /\.quick-add-expand-head\{min-height:0;min-width:0;[^}]*borde
   'the expand action is styled as plain text without a button frame or fill');
 assert.match(html, /\.quick-add-expand-head:hover\{background:transparent/,
   'hover does not restore a button background');
-assert.match(html, /\.overlap-task-group\{display:grid;grid-template-columns:52px repeat\(var\(--overlap-lanes,2\),minmax\(0,1fr\)\)/,
-  'overlapping tasks use separate desktop lanes');
-assert.match(html, /\.overlap-task-group\{grid-template-columns:43px repeat\(var\(--overlap-lanes,2\),minmax\(0,1fr\)\)/,
-  'overlapping task lanes keep the compact mobile time rail');
+assert.match(html, /\.overlap-task-group\{display:grid;grid-template-columns:52px minmax\(0,1fr\);grid-auto-rows:auto/,
+  'overlapping tasks keep a dedicated time rail and a single full-width card column');
+assert.match(html, /\.overlap-task-group\{grid-template-columns:43px minmax\(0,1fr\);column-gap:5px/,
+  'mobile overlap groups preserve the time rail without squeezing cards into side-by-side lanes');
+assert.match(html, /groupEl\.style\.setProperty\('--overlap-count',String\(group\.indices\.length\)\)/,
+  'the shared start-time rail spans the naturally stacked overlap cards');
+assert.doesNotMatch(html.slice(html.indexOf('const appendOverlapGroup='),html.indexOf('};timed\.forEach')),
+  /baseHeight|groupHeight|marginTop|style\.height|gridTemplateRows|overlap-lanes/,
+  'overlap rendering never scales card height or positions cards in empty duration-sized lanes');
 console.log('bottom quick-add interface: assertions passed');
 assert.doesNotMatch(html, /\$\('#quickInlineForm'\)/, 'tab switching never touches the removed inline quick-add form');
 assert.doesNotMatch(html, /quickAddToShelfBtn/, 'quick-add markup and handlers contain no references to the removed shelf button');
