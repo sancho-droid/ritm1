@@ -333,9 +333,9 @@ console.log('overlapping free-time intervals: regression assertions passed');
 
 // Non-overlapping tasks can reuse a lane inside one transitive overlap group.
 assert.deepEqual(timeScaleOverlapGroups([
-  {id:'first',time:'12:00',duration:60},
+  {id:'first',time:'12:00',duration:120},
   {id:'middle',time:'12:30',duration:30},
-  {id:'last',time:'13:00',duration:60}
+  {id:'last',time:'13:00',duration:30}
 ],overlapNow),[
   {start:720,end:840,indices:[0,1,2],lanes:[0,1,1],laneCount:2}
 ],'a lane is reused as soon as its previous task ends');
