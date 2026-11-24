@@ -59,7 +59,7 @@ export function parseQuickTask(input, baseDate = new Date(), options = {}) {
     const ambiguous=clean.match(/(?:^|\s)(\d{1,2})\.(\d{2})(?=\s|$)/);
     if(ambiguous){
       const hour=Number(ambiguous[1]),minute=Number(ambiguous[2]);
-      const date=validDate(target.getFullYear(),hour-1,minute);
+      const date=validDate(target.getFullYear(),minute-1,hour);
       if(validClock(hour,minute)&&date){
         ambiguity={token:ambiguous[0].trim(),time:clock(hour,minute),date:dateKey(date)};
         if(choice==='date'){target=date;clean=clean.replace(ambiguous[0],' ');}
