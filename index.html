@@ -1007,7 +1007,7 @@ function updateCurrentTimeBead(){
       const display=TimeEngine.parseClock(TimeEngine.timelineTimeForTask(task,now)??task.time);
       if(display===null||rect.height<=0){previousPointTask=false;continue}
       let duration=0;
-      if(!task.done){
+      if(!task.done&&task.scheduleMode!=='parallel'){
         const raw=Number(task.duration);
         if(Number.isFinite(raw)&&raw>0)duration=Math.round(raw);
         else if(task.endTime){
