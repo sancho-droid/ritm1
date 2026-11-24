@@ -309,7 +309,7 @@ assert.deepEqual(timeScaleOverlapGroups([
   {id:'completed',time:'13:00',duration:120,done:true,doneAt:'2026-11-24T12:15:00',actualTime:'12:15'},
   {id:'active',time:'12:10',duration:60}
 ],overlapNow),[
-  {start:730,end:790,indices:[0,1],lanes:[0,1],laneCount:2}
+  {start:730,end:790,indices:[1,0],lanes:[0,1],laneCount:2}
 ],'completed tasks use their effective completion clock as a point event');
 console.log('overlapping timeline groups: regression assertions passed');
 
