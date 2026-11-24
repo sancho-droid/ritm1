@@ -199,4 +199,4 @@ assert.match(html, /\$\('#quickFab'\)\.onclick=\(\)=>openQuickAdd\(/, 'plus cons
 assert.match(html, /\$\('#quickAddExpand'\)\.onclick=\(\)=>\{const parsed=parseQuickTask/, 'expand transfers parsed task details to full form');
 console.log('bottom quick-add interface: assertions passed');
 assert.doesNotMatch(html, /\$\('#quickInlineForm'\)/, 'tab switching never touches the removed inline quick-add form');
-assert.doesNotMatch(html, /\$\('#quickAddToShelfBtn'\)/, 'quick-add setup never binds to the removed shelf button');
+assert.doesNotMatch(html, /quickAddToShelfBtn/, 'quick-add markup and handlers contain no references to the removed shelf button');
