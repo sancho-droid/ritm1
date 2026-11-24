@@ -294,19 +294,19 @@ export function freeGapsForDay(tasks,dateKey,{todayKey,nowMinutes=0,previousDayT
   const occupied=[];
   const localKey=d=>String(d.getFullYear()).padStart(4,'0')+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   const dateOffset=(key,days)=>{const [y,m,d]=key.split('-').map(Number);const date=new Date(y,m-1,d,12);date.setDate(date.getDate()+days);return localKey(date)};
-  const prevKey=dateOffset(dateKey,-1),nextKey=dateOffset(dateKey,1);
+  const prevKey=dateOffset(dateKey,-1);
   const crosses=(t)=>{const start=parseClock(t?.time);return start!==null&&start+durationOf(t)>DAY_MINUTES;};
   for(const task of [...current,...prior.filter(t=>crosses(t)||t?.dayBoundary==='end').map(t=>({...t,_priorDate:true}))]){
     if(!task?.time||task.scheduleMode==='parallel')continue;
     const s=parseClock(task.time);if(s===null)continue;
     let start=s,duration=durationOf(task);
     if(task._priorDate){const spill=Math.max(0,s+duration-DAY_MINUTES);if(!spill)continue;start=0;duration=spill;
-      if(task.done){const stamp=Date.parse(task.doneAt||'');if(Number.isFinite(stamp)){const completed=localKey(new Date(stamp)),minute=new Date(stamp).getHours()*60+new Date(stamp).getMinutes();if(completed===prevKey)duration=0;else if(completed===dateKey)duration=Math.min(duration,Math.max(0,minute));}
+      if(task.done){const stamp=Date.parse(task.doneAt||'');if(Number.isFinite(stamp)){const completed=localKey(new Date(stamp)),minute=new Date(stamp).getHours()*60+new Date(stamp).getMinutes();if(completed<dateKey)duration=0;else if(completed===dateKey)duration=Math.min(duration,minute);}
         else {const actual=parseClock(task.actualTime);if(actual!==null)duration=Math.min(duration,Math.max(0,actual));}}
     }else{
       const crossesMidnight=s+duration>DAY_MINUTES;
       if(crossesMidnight)duration=DAY_MINUTES-s;
-      if(task.done){const stamp=Date.parse(task.doneAt||'');if(Number.isFinite(stamp)){const completed=new Date(stamp),completedKey=localKey(completed),minute=completed.getHours()*60+completed.getMinutes();if(completedKey===dateKey)duration=Math.max(0,minute-s);}
+      if(task.done){const stamp=Date.parse(task.doneAt||'');if(Number.isFinite(stamp)){const completed=new Date(stamp),completedKey=localKey(completed),minute=completed.getHours()*60+completed.getMinutes();if(completedKey<dateKey)duration=0;else if(completedKey===dateKey)duration=Math.max(0,Math.min(duration,minute-s));}
         else {const actual=parseClock(task.actualTime);if(actual!==null){const elapsed=crossesMidnight&&actual<12*60?actual+DAY_MINUTES-s:actual-s;duration=Math.max(0,Math.min(crossesMidnight?DAY_MINUTES-s:duration,elapsed));}}}
     }
     if(duration>0)occupied.push({start,end:Math.min(DAY_MINUTES,start+duration),index:task._priorDate?-1:current.indexOf(task)});
