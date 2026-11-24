@@ -52,11 +52,11 @@ assert.match(html, /TimeEngine\.timeScaleOverlapGroups\(timed,new Date\(\)\)/,
   'overlapping tasks are grouped before they are rendered');
 assert.match(html, /groupEl\.className='overlap-task-group'/,
   'overlapping tasks are rendered in a shared visual group');
-assert.match(html, /card\.style\.gridColumn=String\(\(group\.lanes\[memberIndex\]\?\?memberIndex\)\+2\)/,
+assert.match(html, /item\.card\.style\.gridColumn=String\(\(group\.lanes\[item\.memberIndex\]\?\?item\.memberIndex\)\+2\)/,
   'each overlapping task is placed in its own horizontal lane');
-assert.match(html, /card\.style\.marginTop=offset\+'px'/,
+assert.match(html, /item\.card\.style\.marginTop=item\.offset\+'px'/,
   'later-starting overlapping tasks are offset to their actual start within the group');
-assert.match(html, /card\.style\.height=height\+'px'/,
+assert.match(html, /item\.card\.style\.height=Math\.max\(1,item\.height\)\+'px'/,
   'each lane card height reflects its own task duration');
 assert.match(html, /groupEl\.style\.gridTemplateRows=groupHeight\+'px'/,
   'the overlap group height follows the latest ending task');
