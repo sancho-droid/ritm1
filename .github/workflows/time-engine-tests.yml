@@ -19,5 +19,7 @@ jobs:
         run: node --experimental-default-type=module quick-add-parser.test.js
       - name: Check planner module syntax
         run: sed -n '/<script type="module">/,/<\/script>/p' index.html | sed '1d;$d' | node --input-type=module --check
-      - name: Verify offline engine precache
-        run: grep -Fq "'./time-engine.js?v=20261123-7'" sw.js
+      - name: Verify offline module precache
+        run: |
+          grep -Fq "'./time-engine.js?v=20261123-7'" sw.js
+          grep -Fq "'./quick-add-parser.js?v=20261124-1'" sw.js
