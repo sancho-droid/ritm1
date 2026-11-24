@@ -223,10 +223,15 @@ assert.match(html, /\.quick-add-expand-head\{min-height:0;min-width:0;[^}]*borde
   'the expand action is styled as plain text without a button frame or fill');
 assert.match(html, /\.quick-add-expand-head:hover\{background:transparent/,
   'hover does not restore a button background');
-assert.match(html, /\.overlap-task-group\{display:grid;grid-template-columns:52px repeat\(var\(--overlap-lanes,2\),minmax\(0,1fr\)\)/,
-  'overlapping tasks use separate desktop lanes');
-assert.match(html, /\.overlap-task-group\{grid-template-columns:43px repeat\(var\(--overlap-lanes,2\),minmax\(0,1fr\)\)/,
-  'overlapping task lanes keep the compact mobile time rail');
+assert.match(html, /\.overlap-task-group\{display:grid;grid-template-columns:52px minmax\(0,1fr\);grid-auto-rows:auto/,
+  'overlapping tasks keep a dedicated time rail and a single full-width card column');
+assert.match(html, /\.overlap-task-group\{grid-template-columns:43px minmax\(0,1fr\);column-gap:5px/,
+  'mobile overlap groups preserve the time rail without squeezing cards into side-by-side lanes');
+assert.match(html, /groupEl\.style\.setProperty\('--overlap-count',String\(group\.indices\.length\)\)/,
+  'the shared start-time rail spans the naturally stacked overlap cards');
+assert.doesNotMatch(html.slice(html.indexOf('const appendOverlapGroup='),html.indexOf('};timed\.forEach')),
+  /baseHeight|groupHeight|marginTop|style\.height|gridTemplateRows|overlap-lanes/,
+  'overlap rendering never scales card height or positions cards in empty duration-sized lanes');
 console.log('bottom quick-add interface: assertions passed');
 assert.doesNotMatch(html, /\$\('#quickInlineForm'\)/, 'tab switching never touches the removed inline quick-add form');
 assert.doesNotMatch(html, /quickAddToShelfBtn/, 'quick-add markup and handlers contain no references to the removed shelf button');
