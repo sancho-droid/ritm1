@@ -368,3 +368,14 @@ const sameStartBeadY=timeScalePosition([
 assert.ok(sameStartBeadY>shortCardBottom&&sameStartBeadY<longCardBottom,
   'at 13:30 the bead remains inside the 12:00–14:00 task after the 12:00–13:00 task has ended');
 console.log('same-start overlap bead alignment: regression assertion passed');
+
+ // Completion timestamps are date-aware and must release occupancy when completion precedes the day.
+ assert.deepEqual(gapCalc([{time:'23:00',duration:120,done:true,doneAt:'2026-11-23T23:30:00'}], '2026-11-24'),
+ [{start:'00:00',end:'24:00',duration:1440,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}],
+ 'completion on the prior date releases next-day spillover');
+ assert.deepEqual(gapCalc([{time:'08:00',duration:120,done:true,doneAt:'2026-11-23T07:30:00'}], '2026-11-24'),
+ [{start:'00:00',end:'24:00',duration:1440,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}],
+ 'a completion before the target day must not block the target day');
+ assert.deepEqual(gapCalc([{time:'08:00',duration:120,done:true,doneAt:'2026-11-24T07:30:00'}], '2026-11-24'),
+ [{start:'00:00',end:'24:00',duration:1440,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}],
+ 'completion before the scheduled start releases the whole interval');
