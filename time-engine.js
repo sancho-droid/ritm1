@@ -138,23 +138,25 @@ export function timeScaleTaskAnchors(startMinute,duration,top,bottom){
  * effective display time; parallel tasks remain visible and join visual groups.
  */
 export function timeScaleOverlapGroups(tasks,now=new Date()){
-  const entries=[];
+  const groups=[];
   (tasks||[]).forEach((task,index)=>{
     const start=parseClock(timelineTimeForTask(task,now)??task?.time);
     if(start===null)return;
     const duration=task?.done?0:durationOf(task);
-    entries.push({index,start,end:start+Math.max(1,duration)});
-  });
-  entries.sort((a,b)=>a.start-b.start||a.index-b.index);
-  const groups=[];
-  for(const entry of entries){
+    const end=start+Math.max(1,duration);
     const last=groups[groups.length-1];
-    if(last&&entry.start<last.end){
-      last.end=Math.max(last.end,entry.end);
-      last.indices.push(entry.index);
-    }else groups.push({start:entry.start,end:entry.end,indices:[entry.index]});
-  }
-  return groups;
+    if(last&&start<last.end){
+      let lane=last.laneEnds.findIndex(laneEnd=>laneEnd<=start);
+      if(lane<0){lane=last.laneEnds.length;last.laneEnds.push(end);}
+      else last.laneEnds[lane]=end;
+      last.start=Math.min(last.start,start);
+      last.end=Math.max(last.end,end);
+      last.indices.push(index);
+      last.lanes.push(lane);
+      last.laneCount=last.laneEnds.length;
+    }else groups.push({start,end,indices:[index],lanes:[0],laneCount:1,laneEnds:[end]});
+  });
+  return groups.map(({laneEnds,...group})=>group);
 }
 
 /** Interpolate a vertical position from real schedule anchors.
