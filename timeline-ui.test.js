@@ -48,7 +48,7 @@ assert.match(html, /\.current-time-bead\{position:absolute/);
 assert.match(html, /TimeEngine\.timeScalePosition\(anchors,minute\)/, 'bead position follows actual schedule anchors');
 assert.match(html, /if\(!list\.querySelector\('\.task'\)\)\{bead\.style\.display='none'/, 'bead stays hidden when the timed schedule is empty');
 assert.match(html, /item\.classList\.contains\('task'\)&&item\._task/);
-assert.match(html, /TimeEngine\.timeScaleOverlapGroups\(timed,new Date\(\)\)/,
+assert.match(html, /TimeEngine\.timeScaleOverlapGroups\(timed,now\)/,
   'overlapping tasks are grouped before they are rendered');
 assert.match(html, /groupEl\.className='overlap-task-group'/,
   'overlapping tasks are rendered in a shared visual group');
