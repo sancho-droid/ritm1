@@ -48,12 +48,20 @@ assert.match(html, /\.current-time-bead\{position:absolute/);
 assert.match(html, /TimeEngine\.timeScalePosition\(anchors,minute\)/, 'bead position follows actual schedule anchors');
 assert.match(html, /if\(!list\.querySelector\('\.task'\)\)\{bead\.style\.display='none'/, 'bead stays hidden when the timed schedule is empty');
 assert.match(html, /item\.classList\.contains\('task'\)&&item\._task/);
-assert.match(html, /TimeEngine\.timeScaleOverlapGroups\(taskElements\.map\(item=>item\._task\),now\)/,
-  'overlapping tasks are grouped before current-time bead geometry is calculated');
-assert.match(html, /addAnchor\(group\.start,Math\.min\(\.\.\.cardRects\.map\(cardRect=>cardRect\.top\)\)\)/,
-  'a visual overlap group starts at the upper edge of its first rendered card');
-assert.match(html, /addAnchor\(group\.end,Math\.max\(\.\.\.cardRects\.map\(cardRect=>cardRect\.bottom\)\)\)/,
-  'a visual overlap group ends at the lower edge of its last rendered card');
+assert.match(html, /TimeEngine\.timeScaleOverlapGroups\(timed,new Date\(\)\)/,
+  'overlapping tasks are grouped before they are rendered');
+assert.match(html, /groupEl\.className='overlap-task-group'/,
+  'overlapping tasks are rendered in a shared visual group');
+assert.match(html, /card\.style\.gridColumn=String\(\(group\.lanes\[memberIndex\]\?\?memberIndex\)\+2\)/,
+  'each overlapping task is placed in its own horizontal lane');
+assert.match(html, /card\.style\.marginTop=offset\+'px'/,
+  'later-starting overlapping tasks are offset to their actual start within the group');
+assert.match(html, /card\.style\.height=height\+'px'/,
+  'each lane card height reflects its own task duration');
+assert.match(html, /item\.classList\.contains\('overlap-task-group'\)/,
+  'the current-time bead uses the shared overlap-group boundaries');
+assert.match(html, /state\.source\.closest\('\.overlap-task-group'\)/,
+  'drag displacement treats an overlap group as one timeline row');
 assert.match(html, /item\.dataset\.startMinute/);
 assert.match(html, /const card=item\.querySelector\('\.taskbody'\)\|\|item/);
 assert.match(html, /TimeEngine\.timeScaleTaskAnchors\(display,duration,cardRect\.top-rootRect\.top,cardRect\.bottom-rootRect\.top\)/, 'task anchors use the visible bordered card, not the outer task row');
@@ -210,6 +218,10 @@ assert.match(html, /\.quick-add-expand-head\{min-height:0;min-width:0;[^}]*borde
   'the expand action is styled as plain text without a button frame or fill');
 assert.match(html, /\.quick-add-expand-head:hover\{background:transparent/,
   'hover does not restore a button background');
+assert.match(html, /\.overlap-task-group\{display:grid;grid-template-columns:52px repeat\(var\(--overlap-lanes,2\),minmax\(0,1fr\)\)/,
+  'overlapping tasks use separate desktop lanes');
+assert.match(html, /\.overlap-task-group\{grid-template-columns:43px repeat\(var\(--overlap-lanes,2\),minmax\(0,1fr\)\)/,
+  'overlapping task lanes keep the compact mobile time rail');
 console.log('bottom quick-add interface: assertions passed');
 assert.doesNotMatch(html, /\$\('#quickInlineForm'\)/, 'tab switching never touches the removed inline quick-add form');
 assert.doesNotMatch(html, /quickAddToShelfBtn/, 'quick-add markup and handlers contain no references to the removed shelf button');
