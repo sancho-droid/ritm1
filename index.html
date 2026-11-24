@@ -1103,7 +1103,27 @@ function openQuickAdd(source='day',value='',baseDate=null,options={}){
   $('#quickAddText').value=value;renderQuickPreview();showModal('quickAddModal');setTimeout(()=>$('#quickAddText').focus(),80);
 }
 $('#quickFab').onclick=()=>openQuickAdd(tab==='day'?'day':'other');
-$('#quickAddExpand').onclick=()=>{const parsed=parseQuickTask($('#quickAddText').value,quickAddDate||selected);if(!parsed?.name){$('#quickAddText').focus();return}document.activeElement?.blur?.();closeModal('quickAddModal');openTask();$('#taskName').value=parsed.name;$('#taskDate').value=parsed.date||key(quickAddDate||selected);$('#taskTime').value=parsed.time||'';$('#taskEndTime').value=parsed.endTime||'';$('#taskDurationPicker').value=parsed.duration?minutesToClock(parsed.duration):'';renderCategoryOptions(parsed.category||'Личное');$('#taskRepeat').value=parsed.repeat?.type||'none';if(parsed.repeat?.weekdays)document.querySelectorAll('#repeatWeekdays input').forEach(c=>c.checked=parsed.repeat.weekdays.includes(+c.value));updateRepeatFields();};
+$('#quickAddExpand').onclick=()=>{
+  const raw=$('#quickAddText').value.trim();
+  const parsed=raw?parseQuickTask(raw,quickAddDate||selected):null;
+  document.activeElement?.blur?.();
+  closeModal('quickAddModal');
+  openTask();
+  if(!parsed?.name){
+    $('#taskDate').value=key(quickAddDate||selected);
+    setTimeout(()=>$('#taskName').focus(),80);
+    return;
+  }
+  $('#taskName').value=parsed.name;
+  $('#taskDate').value=parsed.date||key(quickAddDate||selected);
+  $('#taskTime').value=parsed.time||'';
+  $('#taskEndTime').value=parsed.endTime||'';
+  $('#taskDurationPicker').value=parsed.duration?minutesToClock(parsed.duration):'';
+  renderCategoryOptions(parsed.category||'Личное');
+  $('#taskRepeat').value=parsed.repeat?.type||'none';
+  if(parsed.repeat?.weekdays)document.querySelectorAll('#repeatWeekdays input').forEach(c=>c.checked=parsed.repeat.weekdays.includes(+c.value));
+  updateRepeatFields();
+};
 $('#quickAddText').addEventListener('input',()=>{quickParseChoice='time';renderQuickPreview()});
 
 $('#quickAddForm').onsubmit=e=>{
