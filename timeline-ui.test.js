@@ -254,3 +254,10 @@ assert.deepEqual(TimeEngine.timeScaleOverlapGroups([
   {start:720,end:840,indices:[0,1,2],lanes:[0,1,1],laneCount:2}
 ],'the current-time bead uses the full interval of a same-start overlap group');
 console.log('overlap group UI integration: assertions passed');
+
+
+// Delete scope is offered only when the referenced parent task is genuinely recurring.
+assert.match(html, /function askDelete\(t\)\{deletingTask=t;const series=t\.seriesId\?db\.tasks\.find\(x=>x\.id===t\.seriesId\):null;if\(series\?\.repeat&&series\.repeat\.type!=='none'\)/,
+  'delete period chooser is restricted to tasks with an actual repeat rule');
+assert.doesNotMatch(html, /if\(t\.seriesId&&db\.tasks\.find\(x=>x\.id===t\.seriesId\)\?\.repeat\?\.type!=='none'\)/,
+  'a seriesId alone never triggers the recurring delete scope chooser');
