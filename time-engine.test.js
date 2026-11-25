@@ -383,3 +383,17 @@ console.log('same-start overlap bead alignment: regression assertion passed');
 // Previous-day spillover legacy actualTime: distinguish an early same-day completion from post-midnight completion.
 assert.deepEqual(gapCalc([], '2026-11-24',{previous:[{time:'23:00',duration:120,done:true,actualTime:'22:30'}]}),[{start:'01:00',end:'24:00',duration:1380,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}],'completion before the scheduled start on the prior evening releases overnight spillover');
 assert.deepEqual(gapCalc([], '2026-11-24',{previous:[{time:'23:00',duration:120,done:true,actualTime:'00:30'}]}),[{start:'00:30',end:'24:00',duration:1410,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}],'post-midnight legacy completion truncates spillover at its actual clock');
+
+// Free time is bounded by wake/bed tasks when both exist, otherwise by the
+// first and last timed task. No free-time blocks are shown outside that span.
+assert.deepEqual(gapCalc([{name:'Подъём',dayBoundary:'start',time:'06:00',duration:15},{name:'Работа',time:'09:00',duration:480},{name:'Отбой',dayBoundary:'end',time:'22:00',duration:480,endTime:'06:00'}], '2026-11-24'),[
+ {start:'06:15',end:'09:00',duration:165,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'},
+ {start:'17:00',end:'22:00',duration:300,date:'2026-11-24',afterIndex:1,id:'2026-11-24-gap-1'}
+],'wake and bedtime establish the free-time window');
+assert.deepEqual(gapCalc([{time:'08:00',duration:60},{time:'12:00',duration:30}], '2026-11-24'),[
+ {start:'09:00',end:'12:00',duration:180,date:'2026-11-24',afterIndex:0,id:'2026-11-24-gap-0'}
+],'without wake/bed markers, gaps are limited to the first task through the last task end');
+assert.deepEqual(gapCalc([{time:'08:00',duration:60,scheduleMode:'parallel'},{time:'12:00',duration:30}], '2026-11-24'),[
+ {start:'12:00',end:'12:30',duration:30,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}
+],'parallel tasks do not define the fallback window');
+console.log('wake/bed and first/last task free-time bounds: assertions passed');
