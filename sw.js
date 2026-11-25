@@ -23,8 +23,10 @@ self.addEventListener('fetch', event => {
     event.respondWith((async () => {
       try {
         const fresh = await fetch(request, { cache: 'no-store' });
-        const cache = await caches.open(CACHE);
-        cache.put('./index.html', fresh.clone());
+        if (fresh.ok) {
+          const cache = await caches.open(CACHE);
+          await cache.put('./index.html', fresh.clone());
+        }
         return fresh;
       } catch (error) {
         return (await caches.match('./index.html')) || (await caches.match('./'));
@@ -41,7 +43,7 @@ self.addEventListener('fetch', event => {
       if (fresh.ok) (await caches.open(CACHE)).put(request, fresh.clone());
       return fresh;
     } catch (error) {
-      return caches.match('./index.html');
+      return Response.error();
     }
   })());
 });
