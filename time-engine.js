@@ -302,7 +302,7 @@ export function freeGapsForDay(tasks,dateKey,{todayKey,nowMinutes=0,previousDayT
     let start=s,duration=durationOf(task);
     if(task._priorDate){const spill=Math.max(0,s+duration-DAY_MINUTES);if(!spill)continue;start=0;duration=spill;
       if(task.done){const stamp=Date.parse(task.doneAt||'');if(Number.isFinite(stamp)){const completed=localKey(new Date(stamp)),minute=new Date(stamp).getHours()*60+new Date(stamp).getMinutes();if(completed<dateKey)duration=0;else if(completed===dateKey)duration=Math.min(duration,minute);}
-        else {const actual=parseClock(task.actualTime);if(actual!==null)duration=Math.min(duration,Math.max(0,actual));}}
+        else {const actual=parseClock(task.actualTime);if(actual!==null){if(actual>=s)duration=0;else duration=Math.min(duration,Math.max(0,actual));}}}
     }else{
       const crossesMidnight=s+duration>DAY_MINUTES;
       if(crossesMidnight)duration=DAY_MINUTES-s;
