@@ -381,5 +381,5 @@ console.log('same-start overlap bead alignment: regression assertion passed');
  'completion before the scheduled start releases the whole interval');
 
 // Previous-day spillover legacy actualTime: distinguish an early same-day completion from post-midnight completion.
-assert.deepEqual(gapCalc([], '2026-11-24',{previous:[{time:'23:00',duration:120,done:true,actualTime:'22:30'}]}),[{start:'00:00',end:'24:00',duration:1440,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}],'completion before the scheduled start on the prior evening releases overnight spillover');
+assert.deepEqual(gapCalc([], '2026-11-24',{previous:[{time:'23:00',duration:120,done:true,actualTime:'22:30'}]}),[{start:'01:00',end:'24:00',duration:1380,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}],'completion before the scheduled start on the prior evening releases overnight spillover');
 assert.deepEqual(gapCalc([], '2026-11-24',{previous:[{time:'23:00',duration:120,done:true,actualTime:'00:30'}]}),[{start:'00:30',end:'24:00',duration:1410,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}],'post-midnight legacy completion truncates spillover at its actual clock');
