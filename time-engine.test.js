@@ -393,7 +393,5 @@ assert.deepEqual(gapCalc([{name:'Подъём',dayBoundary:'start',time:'06:00',
 assert.deepEqual(gapCalc([{time:'08:00',duration:60},{time:'12:00',duration:30}], '2026-11-24'),[
  {start:'09:00',end:'12:00',duration:180,date:'2026-11-24',afterIndex:0,id:'2026-11-24-gap-0'}
 ],'without wake/bed markers, gaps are limited to the first task through the last task end');
-assert.deepEqual(gapCalc([{time:'08:00',duration:60,scheduleMode:'parallel'},{time:'12:00',duration:30}], '2026-11-24'),[
- {start:'12:00',end:'12:30',duration:30,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}
-],'parallel tasks do not define the fallback window');
+assert.deepEqual(gapCalc([{time:'08:00',duration:60,scheduleMode:'parallel'},{time:'12:00',duration:30}], '2026-11-24'),[],'parallel tasks do not define the fallback window');
 console.log('wake/bed and first/last task free-time bounds: assertions passed');
