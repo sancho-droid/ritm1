@@ -26,6 +26,7 @@ console.log('hidden one-second conflict interval: assertions passed');
 
 const html = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
 const serviceWorker = readFileSync(new URL('./sw.js', import.meta.url), 'utf8');
+assert.match(html, /const seed=\{tasks:\[\],family:\[\],lists:\[\]\}/, 'a fresh install starts with empty personal and family lists, not demo records');
 assert.match(html, /import \* as TimeEngine from '\.\/time-engine\.js\?v=20261124-1'/);
 assert.match(serviceWorker, /'\.\/time-engine\.js\?v=20261124-1'/, 'service worker precaches the versioned module URL used by the app');
 assert.match(html, /\.timed-schedule-list \.task\{grid-template-columns:52px minmax\(0,1fr\) auto\}/);
