@@ -1163,7 +1163,6 @@ $('#taskRepeat').onchange=updateRepeatFields;function syncTaskModeButtons(){cons
 
 let quickAddDate=null,quickParsed=null,quickAddGap=null,quickAddShelfItemId=null;
 let quickParseChoice='time';
-function quickDateISO(d){return key(new Date(d.getFullYear(),d.getMonth(),d.getDate()))}
 function parseQuickTask(input,baseDate){return parseQuickTaskText(input,baseDate,{categories:db.categories,choice:quickParseChoice});}
 function renderQuickPreview(){
   const box=$('#quickAddPreview');if(!box)return;
