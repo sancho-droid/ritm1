@@ -291,7 +291,7 @@ export function freeGapsForDay(tasks,dateKey,{todayKey,nowMinutes=0,previousDayT
   if(!dateKey||!todayKey||dateKey<todayKey)return[];
   const current=Array.isArray(tasks)?tasks:[],prior=Array.isArray(previousDayTasks)?previousDayTasks:[];
   const boundaryWindow=dayBoundaryWindow(current);
-  const timedRange=[...current,...prior].filter(t=>parseClock(t?.time)!==null&&t?.scheduleMode!=='parallel');
+  const timedRange=current.filter(t=>parseClock(t?.time)!==null&&t?.scheduleMode!=='parallel');
   const inferredStart=timedRange.length?Math.min(...timedRange.map(t=>parseClock(t.time))):0;
   const inferredEnd=timedRange.length?Math.max(...timedRange.map(t=>parseClock(t.time)+durationOf(t))):DAY_MINUTES;
   const rangeStart=boundaryWindow?boundaryWindow.startMinute:inferredStart;
