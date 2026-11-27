@@ -251,7 +251,9 @@ input,select,textarea{font-size:16px}
 .schedule-list .overlap-task-group>.task .tasktools{grid-column:2;grid-row:1;align-self:center;gap:3px}
 .schedule-list .overlap-task-group>.task .tasktools button{min-width:30px;min-height:34px;padding:4px}
 .schedule-list .overlap-task-group>.task .taskmeta{margin-left:0;overflow:visible}
-.schedule-list .overlap-task-group>.task .taskhead{gap:8px;flex-wrap:wrap}
+.schedule-list .overlap-task-group>.task .taskhead{gap:8px;flex-wrap:nowrap}
+.schedule-list .taskhead{flex-wrap:nowrap;min-width:0}
+.schedule-list .tasktitle{flex:1 1 0;min-width:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 .schedule-list .overlap-task-group>.task .tasktitle{min-width:0}
 .schedule-list .overlap-task-group>.task-time-rail{grid-column:1;grid-row:1 / span var(--overlap-count,2);align-self:start;padding-top:10px}
 .schedule-list .overlap-task-group>.task .taskbody.done{opacity:.55}
