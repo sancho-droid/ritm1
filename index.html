@@ -601,41 +601,14 @@ body.keyboard-open .mobile-dock,body.keyboard-open .quick-fab{display:none!impor
 
 .quick-add-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.quick-add-expand-head{min-height:0;min-width:0;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:0;background:transparent;color:var(--muted);font-size:13px;font-weight:500;padding:0;white-space:nowrap;-webkit-appearance:none;appearance:none}.quick-add-expand-head:hover{background:transparent;color:var(--accent);text-decoration:underline;text-underline-offset:3px}.quick-parse-choices{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.quick-parse-choice{border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--text);padding:7px 10px;font-size:12px;min-height:34px}.quick-parse-choice.active{border-color:var(--accent);background:var(--soft);color:var(--accent);font-weight:700}
 .quick-add-modal .quick-preview.has-choices{display:block!important}
-/* Верхняя кромка рамки расписания остаётся на месте при прокрутке. */
+/* Fixed mobile schedule frame: scroll only the interior, not the frame */
 @media(max-width:600px){
-  #dayView::before{
-    content:"";
-    display:block;
-    position:sticky;
-    top:var(--ritm-mobile-top-height,55px);
-    z-index:21;
-    height:1px;
-    margin:-13px -13px -1px;
-    background:var(--line);
-    opacity:1;
-    pointer-events:none;
-  }
-}
-
-/* Блок 4: закреплённая мобильная шапка планировщика */
-@media(max-width:600px){
-  .top{
-    top:0;
-    z-index:20;
-  }
-  .planner-date-sticky{
-    position:sticky;
-    top:55px;
-    z-index:19;
-    background:var(--panel);
-    padding-top:7px;
-  }
-  .planner-date-sticky #weekStrip{
-    position:static;
-    background:transparent;
-    padding:6px 0 8px;
-    margin:0 0 16px;
-  }
+  #dayView::before{content:none!important;display:none!important;}
+  .planner-date-sticky{position:static!important;top:auto!important;border-bottom:0!important;background:var(--panel);padding-top:7px;flex:none;}
+  .planner-date-sticky #weekStrip{position:static;background:transparent;padding:6px 0 8px;margin:0 0 8px;}
+  main.panel:has(#dayView:not(.hidden)){height:var(--ritm-day-panel-height,auto);max-height:var(--ritm-day-panel-height,none);overflow:hidden;}
+  #dayView:not(.hidden){height:100%;min-height:0;display:flex;flex-direction:column;}
+  #dayContent{min-height:0;flex:1 1 auto;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;}
 }
 /* Block 5: quick duration selection */
 #durationField .duration-presets{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}
@@ -1282,7 +1255,7 @@ $('#addFamilyBtn').onclick=()=>{ $('#familyDate').value=key(selected);showModal(
 $('#addListBtn').onclick=()=>showModal('listModal');$('#listForm').onsubmit=e=>{e.preventDefault();db.lists.push({id:crypto.randomUUID(),name:$('#listName').value.trim(),type:$('#listType').value,items:[]});closeModal('listModal');e.target.reset();persist()};
 $('#todayBtn').onclick=()=>{selected=new Date(today.getFullYear(),today.getMonth(),today.getDate());setTab('day')};$('#jumpDate').onchange=()=>{if($('#jumpDate').value){selected=dateObj($('#jumpDate').value);render()}};$('#dateTitle').onclick=openDatePicker;$('#themeBtn').onclick=()=>setTheme(theme==='light'?'dark':'light');
 $('#appMenuBtn').onclick=()=>showModal('appMenuModal');$('#openSettingsBtn').onclick=()=>{closeModal('appMenuModal');showModal('settingsModal')};$('#exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify({version:4,exportedAt:new Date().toISOString(),...db},null,2)],{type:'application/json'}),a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download='ritm-backup-v2.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};$('#importBtn').onclick=()=>$('#fileInput').click();$('#fileInput').onchange=async e=>{try{let v=JSON.parse(await e.target.files[0].text());if(!Array.isArray(v.tasks)||!Array.isArray(v.family)||!Array.isArray(v.lists))throw Error();if(confirm('Заменить текущие данные резервной копией?')){db=normalizeState(v);persist()}}catch{alert('Файл не похож на резервную копию Ритма v2.')}e.target.value=''};
-function syncMobileKeyboardUi(){const mobile=window.matchMedia('(max-width: 600px)').matches;const active=document.activeElement;const editable=!!active&&(active.matches('input,textarea,select')||active.isContentEditable)&&!active.disabled&&!active.readOnly;document.body.classList.toggle('keyboard-open',mobile&&editable);const top=document.querySelector('.top'),planner=document.querySelector('.planner-date-sticky');if(mobile&&top&&planner){document.documentElement.style.setProperty('--ritm-mobile-top-height',Math.ceil(top.getBoundingClientRect().height)+'px')}else document.documentElement.style.removeProperty('--ritm-mobile-top-height');const modal=$('#taskModal'),form=modal?.querySelector('.task-modal-form');if(mobile&&form&&modal?.classList.contains('show')){const vv=window.visualViewport,height=vv?vv.height:window.innerHeight;document.documentElement.style.setProperty('--ritm-task-modal-max-height',Math.max(180,Math.floor(height-4))+'px');if(editable&&modal.contains(active)){requestAnimationFrame(()=>{const rect=active.getBoundingClientRect(),visibleBottom=vv?vv.height:window.innerHeight;if(rect.bottom>visibleBottom-12)active.scrollIntoView({block:'nearest',behavior:'smooth'})})}}else document.documentElement.style.removeProperty('--ritm-task-modal-max-height')}
+function syncMobileKeyboardUi(){const mobile=window.matchMedia('(max-width: 600px)').matches;const active=document.activeElement;const editable=!!active&&(active.matches('input,textarea,select')||active.isContentEditable)&&!active.disabled&&!active.readOnly;document.body.classList.toggle('keyboard-open',mobile&&editable);const top=document.querySelector('.top'),tabs=document.querySelector('#mainTabs'),dock=document.querySelector('#mobileDock'),panel=document.querySelector('main.panel');if(mobile&&top&&tabs&&panel){const panelTop=Math.ceil(panel.getBoundingClientRect().top),dockHeight=dock&&getComputedStyle(dock).display!=='none'?Math.ceil(dock.getBoundingClientRect().height):0;document.documentElement.style.setProperty('--ritm-day-panel-height',Math.max(180,Math.floor((window.visualViewport?window.visualViewport.height:window.innerHeight)-panelTop-dockHeight-8))+'px')}else document.documentElement.style.removeProperty('--ritm-day-panel-height');const modal=$('#taskModal'),form=modal?.querySelector('.task-modal-form');if(mobile&&form&&modal?.classList.contains('show')){const vv=window.visualViewport,height=vv?vv.height:window.innerHeight;document.documentElement.style.setProperty('--ritm-task-modal-max-height',Math.max(180,Math.floor(height-4))+'px');if(editable&&modal.contains(active)){requestAnimationFrame(()=>{const rect=active.getBoundingClientRect(),visibleBottom=vv?vv.height:window.innerHeight;if(rect.bottom>visibleBottom-12)active.scrollIntoView({block:'nearest',behavior:'smooth'})})}}else document.documentElement.style.removeProperty('--ritm-task-modal-max-height')}
 document.addEventListener('focusin',syncMobileKeyboardUi);document.addEventListener('focusout',()=>setTimeout(syncMobileKeyboardUi,100));window.addEventListener('resize',syncMobileKeyboardUi);if(window.visualViewport){window.visualViewport.addEventListener('resize',syncMobileKeyboardUi);window.visualViewport.addEventListener('scroll',syncMobileKeyboardUi)}window.addEventListener('orientationchange',syncMobileKeyboardUi);syncMobileKeyboardUi();
 setTheme(theme);bootStorage();setInterval(()=>{updateCurrentTimeBead();const now=new Date(),nowKey=key(now),previousKey=key(today);if(nowKey!==previousKey){if(key(selected)===previousKey)selected=new Date(now.getFullYear(),now.getMonth(),now.getDate());today=new Date(now.getFullYear(),now.getMonth(),now.getDate());render()}},1000);
 function openToday(){const now=new Date();today=new Date(now.getFullYear(),now.getMonth(),now.getDate());selected=new Date(today);render()}
