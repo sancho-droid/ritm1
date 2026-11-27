@@ -606,7 +606,7 @@ body.keyboard-open .mobile-dock,body.keyboard-open .quick-fab{display:none!impor
   #dayView::before{content:none!important;display:none!important;}
   .planner-date-sticky{position:static!important;top:auto!important;border-bottom:0!important;background:var(--panel);padding-top:7px;flex:none;}
   .planner-date-sticky #weekStrip{position:static;background:transparent;padding:6px 0 8px;margin:0 0 8px;}
-  main.panel:has(#dayView){height:var(--ritm-day-panel-height,auto);max-height:var(--ritm-day-panel-height,none);overflow:hidden;}
+  main.panel:has(#dayView:not(.hidden)){height:var(--ritm-day-panel-height,auto);max-height:var(--ritm-day-panel-height,none);overflow:hidden;}
   #dayView:not(.hidden){height:100%;min-height:0;display:flex;flex-direction:column;}
   #dayContent{min-height:0;flex:1 1 auto;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;}
 }
