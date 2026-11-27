@@ -607,12 +607,12 @@ body.keyboard-open .mobile-dock,body.keyboard-open .quick-fab{display:none!impor
     content:"";
     display:block;
     position:sticky;
-    top:55px;
+    top:var(--ritm-mobile-top-height,55px);
     z-index:21;
     height:1px;
     margin:-13px -13px -1px;
     background:var(--line);
-    opacity:0;
+    opacity:1;
     pointer-events:none;
   }
 }
@@ -1283,7 +1283,7 @@ $('#addListBtn').onclick=()=>showModal('listModal');$('#listForm').onsubmit=e=>{
 $('#todayBtn').onclick=()=>{selected=new Date(today.getFullYear(),today.getMonth(),today.getDate());setTab('day')};$('#jumpDate').onchange=()=>{if($('#jumpDate').value){selected=dateObj($('#jumpDate').value);render()}};$('#dateTitle').onclick=openDatePicker;$('#themeBtn').onclick=()=>setTheme(theme==='light'?'dark':'light');
 $('#appMenuBtn').onclick=()=>showModal('appMenuModal');$('#openSettingsBtn').onclick=()=>{closeModal('appMenuModal');showModal('settingsModal')};$('#exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify({version:4,exportedAt:new Date().toISOString(),...db},null,2)],{type:'application/json'}),a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download='ritm-backup-v2.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};$('#importBtn').onclick=()=>$('#fileInput').click();$('#fileInput').onchange=async e=>{try{let v=JSON.parse(await e.target.files[0].text());if(!Array.isArray(v.tasks)||!Array.isArray(v.family)||!Array.isArray(v.lists))throw Error();if(confirm('Заменить текущие данные резервной копией?')){db=normalizeState(v);persist()}}catch{alert('Файл не похож на резервную копию Ритма v2.')}e.target.value=''};
 function syncMobileKeyboardUi(){const mobile=window.matchMedia('(max-width: 600px)').matches;const active=document.activeElement;const editable=!!active&&(active.matches('input,textarea,select')||active.isContentEditable)&&!active.disabled&&!active.readOnly;document.body.classList.toggle('keyboard-open',mobile&&editable);const top=document.querySelector('.top'),planner=document.querySelector('.planner-date-sticky');if(mobile&&top&&planner){document.documentElement.style.setProperty('--ritm-mobile-top-height',Math.ceil(top.getBoundingClientRect().height)+'px')}else document.documentElement.style.removeProperty('--ritm-mobile-top-height');const modal=$('#taskModal'),form=modal?.querySelector('.task-modal-form');if(mobile&&form&&modal?.classList.contains('show')){const vv=window.visualViewport,height=vv?vv.height:window.innerHeight;document.documentElement.style.setProperty('--ritm-task-modal-max-height',Math.max(180,Math.floor(height-4))+'px');if(editable&&modal.contains(active)){requestAnimationFrame(()=>{const rect=active.getBoundingClientRect(),visibleBottom=vv?vv.height:window.innerHeight;if(rect.bottom>visibleBottom-12)active.scrollIntoView({block:'nearest',behavior:'smooth'})})}}else document.documentElement.style.removeProperty('--ritm-task-modal-max-height')}
-document.addEventListener('focusin',syncMobileKeyboardUi);document.addEventListener('focusout',()=>setTimeout(syncMobileKeyboardUi,100));window.addEventListener('resize',syncMobileKeyboardUi);if(window.visualViewport){window.visualViewport.addEventListener('resize',syncMobileKeyboardUi);window.visualViewport.addEventListener('scroll',syncMobileKeyboardUi)}window.addEventListener('orientationchange',syncMobileKeyboardUi);
+document.addEventListener('focusin',syncMobileKeyboardUi);document.addEventListener('focusout',()=>setTimeout(syncMobileKeyboardUi,100));window.addEventListener('resize',syncMobileKeyboardUi);if(window.visualViewport){window.visualViewport.addEventListener('resize',syncMobileKeyboardUi);window.visualViewport.addEventListener('scroll',syncMobileKeyboardUi)}window.addEventListener('orientationchange',syncMobileKeyboardUi);syncMobileKeyboardUi();
 setTheme(theme);bootStorage();setInterval(()=>{updateCurrentTimeBead();const now=new Date(),nowKey=key(now),previousKey=key(today);if(nowKey!==previousKey){if(key(selected)===previousKey)selected=new Date(now.getFullYear(),now.getMonth(),now.getDate());today=new Date(now.getFullYear(),now.getMonth(),now.getDate());render()}},1000);
 function openToday(){const now=new Date();today=new Date(now.getFullYear(),now.getMonth(),now.getDate());selected=new Date(today);render()}
 addEventListener('pageshow',openToday);
