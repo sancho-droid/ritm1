@@ -265,3 +265,5 @@ assert.match(html, /function deleteSingleTask\(item\)\{[^}]*db\.tasks=db\.tasks\
   'a non-recurring task is deleted immediately without opening a confirmation dialog');
 assert.doesNotMatch(html, /id="deleteConfirmModal"|\$\('#confirmDeleteBtn'\)/,
   'the obsolete single-task delete confirmation UI is removed');
+assert.match(html, /function deleteRepeatScope\(item,scope\)\{[^]*?if\(item\.fromEditor\)closeModal\('taskModal'\);persist\(\)\}/,
+  'deleting a recurring occurrence from the editor closes the editor after the scope is applied');
