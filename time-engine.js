@@ -1,5 +1,16 @@
 /** Ритм: pure time calculations, independent from DOM/CSS. */
 export const DAY_MINUTES=1440, DAY_START_MINUTES=0, DAY_END_MINUTES=23*60+59;
+export function parseDurationInput(value){
+  const text=String(value??'').trim().toLocaleLowerCase('ru-RU').replace(/\s+/g,' ');
+  if(!text)return null;
+  let match=text.match(/^(\d{1,2}):([0-5]\d)$/);
+  if(match){const total=Number(match[1])*60+Number(match[2]);return total>0&&total<=5999?total:NaN;}
+  match=text.match(/^(\d+)\s*ч(?:ас(?:а|ов)?)?(?:\s*(\d+)\s*мин(?:ут(?:а|ы|у)?)?)?$/);
+  if(match){const total=Number(match[1])*60+Number(match[2]||0);return total>0&&total<=5999?total:NaN;}
+  match=text.match(/^(\d+)\s*мин(?:ут(?:а|ы|у)?)?$/);
+  if(match){const total=Number(match[1]);return total>0&&total<=5999?total:NaN;}
+  return NaN;
+}
 export function parseClock(value){if(typeof value!=='string'||!/^([01]\d|2[0-3]):([0-5]\d)$/.test(value))return null;const [,h,m]=value.match(/^([01]\d|2[0-3]):([0-5]\d)$/);return Number(h)*60+Number(m)}
 export function formatClock(minutes){const n=Math.max(0,Math.min(DAY_MINUTES-1,Math.round(minutes)));return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')}
 const DAY_START_NAMES=new Set(['подъём','подъем','проснуться','встать','пробуждение','утренний подъём','утренний подъем']);
