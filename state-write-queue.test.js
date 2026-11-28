@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import {createSerializedStateWriter} from './state-write-queue.js';
 const deferred=()=>{let resolve,reject;const promise=new Promise((res,rej)=>{resolve=res;reject=rej});return {promise,resolve,reject}};
-const first=deferred(),calls=[];
-const writer=createSerializedStateWriter(async snapshot=>{calls.push(snapshot.version);if(snapshot.version===1)return first.promise});
+const first=deferred(),calls=[],snapshots=[];
+const writer=createSerializedStateWriter(async snapshot=>{calls.push(snapshot.version);snapshots.push(snapshot);if(snapshot.version===1)return first.promise});
 const oldState={version:1,nested:{value:'old'}};
 const oldWrite=writer(oldState);
 oldState.nested.value='mutated-after-enqueue';
@@ -13,6 +13,7 @@ assert.equal(await Promise.race([newWrite.then(()=>true),Promise.resolve(false)]
 first.resolve();
 await Promise.all([oldWrite,newWrite]);
 assert.deepEqual(calls,[1,2],'writes run in enqueue order');
+assert.equal(snapshots[0].nested.value,'old','each queued write captures an immutable snapshot immediately');
 let attempt=0;
 const resilient=createSerializedStateWriter(async value=>{attempt++;if(attempt===1)throw new Error('simulated IndexedDB failure');return value.version});
 await assert.rejects(resilient({version:1}),/simulated IndexedDB failure/);
