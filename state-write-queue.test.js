@@ -7,7 +7,7 @@ const oldState={version:1,nested:{value:'old'}};
 const oldWrite=writer(oldState);
 oldState.nested.value='mutated-after-enqueue';
 const newWrite=writer({version:2});
-await Promise.resolve();
+await new Promise(resolve=>setImmediate(resolve));
 assert.deepEqual(calls,[1],'first write begins immediately');
 assert.equal(await Promise.race([newWrite.then(()=>true),Promise.resolve(false)]),false,'new write waits for first transaction');
 first.resolve();
