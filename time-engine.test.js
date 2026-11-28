@@ -146,6 +146,34 @@ console.log('day-boundary per-task migration, rename persistence and same-day am
 // Sleep end and duration follow wake-time task; crossing midnight is supported.
 const sleepSync={name:'Сон',time:'23:00',endTime:'06:00',duration:420};syncSleepToWake(sleepSync,{name:'Подъём',time:'08:00'});assert.deepEqual(sleepSync,{name:'Сон',time:'23:00',endTime:'08:00',duration:540});const sleepCross={name:'Сон',time:'22:00',endTime:'06:00',duration:480};syncSleepToWake(sleepCross,{name:'Подъём',time:'07:00'});assert.deepEqual(sleepCross,{name:'Сон',time:'22:00',endTime:'07:00',duration:540});const sameClockSleep={name:'Сон',time:'23:00',endTime:'07:00',duration:480};syncSleepToWake(sameClockSleep,{name:'Подъём',time:'23:00'});assert.deepEqual(sameClockSleep,{name:'Сон',time:'23:00',endTime:'07:00',duration:480});assert.deepEqual(overnightContinuation({id:'sleep',name:'Сон',time:'23:00',duration:540,endTime:'08:00',dayBoundary:'end'},'2026-11-23'),{id:'sleep@continuation-2026-11-23',name:'Сон (продолжение)',time:'00:00',endTime:'08:00',duration:480,dayBoundary:'continuation',overnightContinuation:true,date:'2026-11-23',displayDate:'2026-11-23'});assert.equal(overnightContinuation({name:'Тренировка',time:'08:00',duration:60},'2026-11-23'),null);console.log('sleep auto-sync and overnight continuation: assertions passed');
 
+
+// The app's agreed daily free-time window is 06:00–23:00.
+// Empty days, single tasks and edge tasks must stay inside those boundaries.
+const boundedGapCalc=(tasks,date,{today='2026-11-23',minute=360,previous=[]}={})=>
+  freeGapsForDay(tasks,date,{todayKey:today,nowMinutes:minute,previousDayTasks:previous,dayStartMinutes:360,dayEndMinutes:1380});
+assert.deepEqual(boundedGapCalc([], '2026-11-24'),[
+ {start:'06:00',end:'23:00',duration:1020,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}
+],'an empty future day is bounded to 06:00–23:00');
+assert.deepEqual(boundedGapCalc([], '2026-11-23',{minute:600}),[
+ {start:'10:00',end:'23:00',duration:780,date:'2026-11-23',afterIndex:-1,id:'2026-11-23-gap-0'}
+],'today starts no earlier than the current time and ends at 23:00');
+assert.deepEqual(boundedGapCalc([{time:'08:00',duration:60}], '2026-11-24'),[
+ {start:'06:00',end:'08:00',duration:120,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'},
+ {start:'09:00',end:'23:00',duration:840,date:'2026-11-24',afterIndex:0,id:'2026-11-24-gap-1'}
+],'a single task leaves bounded free intervals before and after it');
+assert.deepEqual(boundedGapCalc([{time:'22:30',duration:120}], '2026-11-24'),[
+ {start:'06:00',end:'22:30',duration:990,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}
+],'a task extending beyond 23:00 does not create free time after the day boundary');
+assert.deepEqual(boundedGapCalc([{time:'05:00',duration:120}], '2026-11-24'),[
+ {start:'07:00',end:'23:00',duration:960,date:'2026-11-24',afterIndex:0,id:'2026-11-24-gap-0'}
+],'a task crossing the 06:00 boundary occupies the beginning of the free-time window');
+assert.deepEqual(boundedGapCalc([{time:'08:00',duration:60},{time:'12:00',duration:30}], '2026-11-24'),[
+ {start:'06:00',end:'08:00',duration:120,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'},
+ {start:'09:00',end:'12:00',duration:180,date:'2026-11-24',afterIndex:0,id:'2026-11-24-gap-1'},
+ {start:'12:30',end:'23:00',duration:630,date:'2026-11-24',afterIndex:1,id:'2026-11-24-gap-2'}
+],'all gaps, including the ones before the first and after the last task, respect the day window');
+console.log('06:00–23:00 free-time window: regression assertions passed');
+
 // New independent free-time calculation: direct coverage with deterministic date/time inputs.
 const gapCalc=(tasks,date,{today='2026-11-23',minute=360,previous=[]}={})=>freeGapsForDay(tasks,date,{todayKey:today,nowMinutes:minute,previousDayTasks:previous});
 assert.deepEqual(gapCalc([], '2026-11-22',{today:'2026-11-23'}),[],'past dates must not show free time');
