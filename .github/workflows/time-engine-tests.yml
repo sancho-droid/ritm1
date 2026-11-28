@@ -13,6 +13,8 @@ jobs:
         with:
           node-version: 22
       - run: node --experimental-default-type=module time-engine.test.js
+      - name: Check serialized state writes
+        run: node --experimental-default-type=module state-write-queue.test.js
       - name: Check time rail UI integration
         run: node timeline-ui.test.js
       - name: Check quick-add parser
@@ -25,5 +27,6 @@ jobs:
         run: node -e "JSON.parse(require('node:fs').readFileSync('manifest.webmanifest', 'utf8'))"
       - name: Verify offline module precache
         run: |
-          grep -Fq "'./time-engine.js?v=20261128-2'" sw.js
-          grep -Fq "'./quick-add-parser.js?v=20261128-2'" sw.js
+          grep -Fq "'./time-engine.js?v=20261128-3'" sw.js
+          grep -Fq "'./quick-add-parser.js?v=20261128-3'" sw.js
+          grep -Fq "'./state-write-queue.js?v=20261128-3'" sw.js
