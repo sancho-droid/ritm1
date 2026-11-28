@@ -261,3 +261,7 @@ assert.match(html, /function askDelete\(t\)\{deletingTask=t;const series=t\.seri
   'delete period chooser is restricted to tasks with an actual repeat rule');
 assert.doesNotMatch(html, /if\(t\.seriesId&&db\.tasks\.find\(x=>x\.id===t\.seriesId\)\?\.repeat\?\.type!=='none'\)/,
   'a seriesId alone never triggers the recurring delete scope chooser');
+assert.match(html, /function deleteSingleTask\(item\)\{[^}]*db\.tasks=db\.tasks\.filter\(x=>x\.id!==id\)/,
+  'a non-recurring task is deleted immediately without opening a confirmation dialog');
+assert.doesNotMatch(html, /id="deleteConfirmModal"|\$\('#confirmDeleteBtn'\)/,
+  'the obsolete single-task delete confirmation UI is removed');
