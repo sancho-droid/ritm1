@@ -25,5 +25,5 @@ jobs:
         run: node -e "JSON.parse(require('node:fs').readFileSync('manifest.webmanifest', 'utf8'))"
       - name: Verify offline module precache
         run: |
-          grep -Fq "'./time-engine.js?v=20261124-1'" sw.js
-          grep -Fq "'./quick-add-parser.js?v=20261124-1'" sw.js
+          grep -Fq "'./time-engine.js?v=20261128-1'" sw.js
+          grep -Fq "'./quick-add-parser.js?v=20261128-1'" sw.js
