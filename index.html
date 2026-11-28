@@ -192,7 +192,8 @@ input,select,textarea{font-size:16px}
 #taskModal .task-modal-form #taskDate,
 #taskModal .task-modal-form #taskTime,
 #taskModal .task-modal-form #taskEndTime,
-#taskModal .task-modal-form #taskDurationPicker{
+#taskModal .task-modal-form #taskDurationPicker,
+#taskModal .task-modal-form #repeatEnd{
   display:flex!important;
   align-items:center!important;
   justify-content:center!important;
@@ -206,9 +207,11 @@ input,select,textarea{font-size:16px}
   box-sizing:border-box!important;
   font-variant-numeric:tabular-nums;
 }
-#taskModal .task-modal-form #taskDate{
-  text-align:center!important;
-  text-align-last:center!important;
+#taskModal .task-modal-form #taskDate,
+#taskModal .task-modal-form #repeatEnd{
+   text-align:center!important;
+   text-align-last:center!important;
+   margin-inline:auto;
   -webkit-appearance:none;
   appearance:none;
 }
@@ -220,6 +223,7 @@ input,select,textarea{font-size:16px}
   inline-size:100%!important;
 }
 #taskModal .task-modal-form #taskDate::-webkit-date-and-time-value,
+#taskModal .task-modal-form #repeatEnd::-webkit-date-and-time-value,
 #taskModal .task-modal-form #taskTime::-webkit-date-and-time-value,
 #taskModal .task-modal-form #taskEndTime::-webkit-date-and-time-value,
 #taskModal .task-modal-form #taskDurationPicker::-webkit-date-and-time-value{
@@ -627,6 +631,21 @@ body.keyboard-open .mobile-dock,body.keyboard-open .quick-fab{display:none!impor
   #taskModal{align-items:flex-end;}
   #taskModal .task-modal-form{max-height:var(--ritm-task-modal-max-height,calc(100dvh - env(safe-area-inset-top) - 2px));}
   body.keyboard-open #taskModal{padding-top:0;}
+}
+
+/* Keep every modal inside the iOS visual viewport while any keyboard field is active. */
+@media(max-width:600px){
+  body.keyboard-open .modalback.show{
+    top:var(--ritm-visual-viewport-top,0px);bottom:auto;
+    height:var(--ritm-visual-viewport-height,100dvh);
+    max-height:var(--ritm-visual-viewport-height,100dvh);
+    align-items:flex-start;justify-content:center;padding:8px 0;overflow:hidden;
+  }
+  body.keyboard-open .modalback.show>.modal{
+    max-height:var(--ritm-modal-max-height,calc(100dvh - 16px))!important;
+    margin:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;scroll-padding-block:16px;
+  }
 }
 </style></head>
 <body><div class="app">
@@ -1257,7 +1276,7 @@ $('#addFamilyBtn').onclick=()=>{ $('#familyDate').value=key(selected);showModal(
 $('#addListBtn').onclick=()=>showModal('listModal');$('#listForm').onsubmit=e=>{e.preventDefault();db.lists.push({id:crypto.randomUUID(),name:$('#listName').value.trim(),type:$('#listType').value,items:[]});closeModal('listModal');e.target.reset();persist()};
 $('#todayBtn').onclick=()=>{selected=new Date(today.getFullYear(),today.getMonth(),today.getDate());setTab('day')};$('#jumpDate').onchange=()=>{if($('#jumpDate').value){selected=dateObj($('#jumpDate').value);render()}};$('#dateTitle').onclick=openDatePicker;$('#themeBtn').onclick=()=>setTheme(theme==='light'?'dark':'light');
 $('#appMenuBtn').onclick=()=>showModal('appMenuModal');$('#openSettingsBtn').onclick=()=>{closeModal('appMenuModal');showModal('settingsModal')};$('#exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify({version:4,exportedAt:new Date().toISOString(),...db},null,2)],{type:'application/json'}),a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download='ritm-backup-v2.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};$('#importBtn').onclick=()=>$('#fileInput').click();$('#fileInput').onchange=async e=>{try{let v=JSON.parse(await e.target.files[0].text());if(!Array.isArray(v.tasks)||!Array.isArray(v.family)||!Array.isArray(v.lists))throw Error();if(confirm('Заменить текущие данные резервной копией?')){db=normalizeState(v);persist()}}catch{alert('Файл не похож на резервную копию Ритма v2.')}e.target.value=''};
-function syncMobileKeyboardUi(){const mobile=window.matchMedia('(max-width: 600px)').matches;const active=document.activeElement;const editable=!!active&&(active.matches('input,textarea,select')||active.isContentEditable)&&!active.disabled&&!active.readOnly;document.body.classList.toggle('keyboard-open',mobile&&editable);const top=document.querySelector('.top'),tabs=document.querySelector('#mainTabs'),dock=document.querySelector('#mobileDock'),panel=document.querySelector('main.panel');if(mobile&&top&&tabs&&panel){const panelTop=Math.ceil(panel.getBoundingClientRect().top),dockHeight=dock&&getComputedStyle(dock).display!=='none'?Math.ceil(dock.getBoundingClientRect().height):0;document.documentElement.style.setProperty('--ritm-day-panel-height',Math.max(180,Math.floor((window.visualViewport?window.visualViewport.height:window.innerHeight)-panelTop-dockHeight-8))+'px')}else document.documentElement.style.removeProperty('--ritm-day-panel-height');const modal=$('#taskModal'),form=modal?.querySelector('.task-modal-form');if(mobile&&form&&modal?.classList.contains('show')){const vv=window.visualViewport,height=vv?vv.height:window.innerHeight;document.documentElement.style.setProperty('--ritm-task-modal-max-height',Math.max(180,Math.floor(height-4))+'px');if(editable&&modal.contains(active)){requestAnimationFrame(()=>{const rect=active.getBoundingClientRect(),visibleBottom=vv?vv.height:window.innerHeight;if(rect.bottom>visibleBottom-12)active.scrollIntoView({block:'nearest',behavior:'smooth'})})}}else document.documentElement.style.removeProperty('--ritm-task-modal-max-height')}
+function syncMobileKeyboardUi(){const mobile=window.matchMedia('(max-width: 600px)').matches;const active=document.activeElement;const editable=!!active&&(active.matches('input,textarea,select')||active.isContentEditable)&&!active.disabled&&!active.readOnly;const keyboardOpen=mobile&&editable;document.body.classList.toggle('keyboard-open',keyboardOpen);const root=document.documentElement,vv=window.visualViewport,viewportHeight=vv?vv.height:window.innerHeight,viewportTop=vv?vv.offsetTop:0;const top=document.querySelector('.top'),tabs=document.querySelector('#mainTabs'),dock=document.querySelector('#mobileDock'),panel=document.querySelector('main.panel');if(mobile&&top&&tabs&&panel){const panelTop=Math.ceil(panel.getBoundingClientRect().top),dockHeight=dock&&getComputedStyle(dock).display!=='none'?Math.ceil(dock.getBoundingClientRect().height):0;root.style.setProperty('--ritm-day-panel-height',Math.max(180,Math.floor(viewportHeight-panelTop-dockHeight-8))+'px')}else root.style.removeProperty('--ritm-day-panel-height');if(keyboardOpen){const modal=active.closest('.modalback.show'),modalHeight=Math.max(160,Math.floor(viewportHeight-16));root.style.setProperty('--ritm-visual-viewport-height',Math.floor(viewportHeight)+'px');root.style.setProperty('--ritm-visual-viewport-top',Math.floor(viewportTop)+'px');root.style.setProperty('--ritm-modal-max-height',modalHeight+'px');root.style.setProperty('--ritm-task-modal-max-height',modalHeight+'px');const ensureVisible=()=>{if(!document.body.classList.contains('keyboard-open')||(modal&&!modal.classList.contains('show'))||!editable)return;const field=document.activeElement,rect=field.getBoundingClientRect(),visibleTop=viewportTop+8,visibleBottom=viewportTop+viewportHeight-16;if(rect.bottom>visibleBottom||rect.top<visibleTop)field.scrollIntoView({block:'center',inline:'nearest',behavior:'smooth'})};requestAnimationFrame(()=>requestAnimationFrame(ensureVisible))}else{root.style.removeProperty('--ritm-visual-viewport-height');root.style.removeProperty('--ritm-visual-viewport-top');root.style.removeProperty('--ritm-modal-max-height');root.style.removeProperty('--ritm-task-modal-max-height')}}
 document.addEventListener('focusin',syncMobileKeyboardUi);document.addEventListener('focusout',()=>setTimeout(syncMobileKeyboardUi,100));window.addEventListener('resize',syncMobileKeyboardUi);if(window.visualViewport){window.visualViewport.addEventListener('resize',syncMobileKeyboardUi);window.visualViewport.addEventListener('scroll',syncMobileKeyboardUi)}window.addEventListener('orientationchange',syncMobileKeyboardUi);syncMobileKeyboardUi();
 setTheme(theme);bootStorage();setInterval(()=>{updateCurrentTimeBead();const now=new Date(),nowKey=key(now),previousKey=key(today);if(nowKey!==previousKey){if(key(selected)===previousKey)selected=new Date(now.getFullYear(),now.getMonth(),now.getDate());today=new Date(now.getFullYear(),now.getMonth(),now.getDate());render()}},1000);
 function openToday(){const now=new Date();today=new Date(now.getFullYear(),now.getMonth(),now.getDate());selected=new Date(today);render()}
