@@ -287,9 +287,11 @@ export function overnightContinuation(task,dateKey){const start=parseClock(task?
 /** Calculate date-specific free gaps, including spillover from the previous day.
  * now is injectable for deterministic tests; previousDayTasks must be occurrences for that date.
  */
-export function freeGapsForDay(tasks,dateKey,{todayKey,nowMinutes=0,previousDayTasks=[],minGap=15}={}){
+export function freeGapsForDay(tasks,dateKey,{todayKey,nowMinutes=0,previousDayTasks=[],minGap=15,dayStartMinutes=0,dayEndMinutes=DAY_MINUTES}={}){
   if(!dateKey||!todayKey||dateKey<todayKey)return[];
-  const dayStart=dateKey===todayKey?Math.max(0,Math.min(1439,Math.floor(nowMinutes))):0;
+  const boundedStart=Math.max(0,Math.min(DAY_MINUTES,Math.floor(dayStartMinutes)));
+  const boundedEnd=Math.max(boundedStart,Math.min(DAY_MINUTES,Math.floor(dayEndMinutes)));
+  const dayStart=dateKey===todayKey?Math.max(boundedStart,Math.max(0,Math.min(1439,Math.floor(nowMinutes)))):boundedStart;
   const current=Array.isArray(tasks)?tasks:[],prior=Array.isArray(previousDayTasks)?previousDayTasks:[];
   const occupied=[];
   const localKey=d=>String(d.getFullYear()).padStart(4,'0')+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -315,6 +317,6 @@ export function freeGapsForDay(tasks,dateKey,{todayKey,nowMinutes=0,previousDayT
   const merged=[];for(const x of occupied){const last=merged.at(-1);if(last&&x.start<=last.end){last.end=Math.max(last.end,x.end);last.indices.push(x.index);}else merged.push({...x,indices:[x.index]});}
   let cursor=dayStart,afterIndex=dateKey===todayKey?freeTimeAnchorIndex(current,dateKey,dayStart):-1;const gaps=[];
   const add=(s,e)=>{if(e-s>=minGap)gaps.push({start:s===1440?'24:00':formatClock(s),end:e===1440?'24:00':formatClock(e),duration:e-s,date:dateKey,afterIndex,id:dateKey+'-gap-'+gaps.length});};
-  for(const block of merged){if(block.end<=cursor){afterIndex=Math.max(afterIndex,...block.indices);continue;}if(block.start>=DAY_MINUTES)break;if(block.start>cursor)add(cursor,block.start);cursor=Math.max(cursor,block.end);afterIndex=Math.max(afterIndex,...block.indices);if(cursor>=DAY_MINUTES)break;}
-  if(cursor<DAY_MINUTES)add(cursor,DAY_MINUTES);return gaps;
+  for(const block of merged){if(block.end<=cursor){afterIndex=Math.max(afterIndex,...block.indices);continue;}if(block.start>=boundedEnd)break;if(block.start>cursor)add(cursor,Math.min(block.start,boundedEnd));cursor=Math.max(cursor,block.end);afterIndex=Math.max(afterIndex,...block.indices);if(cursor>=boundedEnd)break;}
+  if(cursor<boundedEnd)add(cursor,boundedEnd);return gaps;
 }
