@@ -1,5 +1,5 @@
-const CACHE = 'ritm-v1038-duration-and-free-time';
-const FILES = ['./', './index.html', './manifest.webmanifest', './time-engine.js?v=20261128-2', './quick-add-parser.js?v=20261128-2', './icons/icon-192.svg', './icons/icon-512.svg'];
+const CACHE = 'ritm-v1039-serialized-state-writes';
+const FILES = ['./', './index.html', './manifest.webmanifest', './time-engine.js?v=20261128-3', './quick-add-parser.js?v=20261128-3', './state-write-queue.js?v=20261128-3', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
   // Новая версия кеша принудительно загружает актуальный HTML при каждом релизе.
