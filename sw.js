@@ -1,7 +1,8 @@
-const CACHE = 'ritm-v1035-save-conflict-choice';
+const CACHE = 'ritm-v1036-moved-occurrence-refresh';
 const FILES = ['./', './index.html', './manifest.webmanifest', './time-engine.js?v=20261124-1', './quick-add-parser.js?v=20261124-1', './icons/icon-192.svg', './icons/icon-512.svg'];
 
 self.addEventListener('install', event => {
+  // Новая версия кеша принудительно загружает актуальный HTML при каждом релизе.
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES.map(file => new Request(file, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
