@@ -27,8 +27,8 @@ console.log('hidden one-second conflict interval: assertions passed');
 const html = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
 const serviceWorker = readFileSync(new URL('./sw.js', import.meta.url), 'utf8');
 assert.match(html, /const seed=\{tasks:\[\],family:\[\],lists:\[\]\}/, 'a fresh install starts with empty personal and family lists, not demo records');
-assert.match(html, /import \* as TimeEngine from '\.\/time-engine\.js\?v=20261128-2'/);
-assert.match(serviceWorker, /'\.\/time-engine\.js\?v=20261128-2'/, 'service worker precaches the versioned module URL used by the app');
+assert.match(html, /import \* as TimeEngine from '\.\/time-engine\.js\?v=20261128-3'/);
+assert.match(serviceWorker, /'\.\/time-engine\.js\?v=20261128-3'/, 'service worker precaches the versioned module URL used by the app');
 assert.match(html, /\.timed-schedule-list \.task\{grid-template-columns:52px minmax\(0,1fr\) auto\}/);
 assert.match(html, /\.timed-schedule-list \.taskbody\{grid-column:2\}/);
 assert.match(html, /\.timed-schedule-list \.tasktools\{grid-column:3\}/);
@@ -233,14 +233,14 @@ assert.doesNotMatch(html.slice(html.indexOf('const appendOverlapGroup='),html.in
 console.log('bottom quick-add interface: assertions passed');
 assert.doesNotMatch(html, /\$\('#quickInlineForm'\)/, 'tab switching never touches the removed inline quick-add form');
 assert.doesNotMatch(html, /quickAddToShelfBtn/, 'quick-add markup and handlers contain no references to the removed shelf button');
-assert.ok(html.includes("import { parseQuickTask as parseQuickTaskText } from './quick-add-parser.js?v=20261128-2';"), 'quick-add parser is loaded as a versioned module');
+assert.ok(html.includes("import { parseQuickTask as parseQuickTaskText } from './quick-add-parser.js?v=20261128-3';"), 'quick-add parser is loaded as a versioned module');
 assert.match(html, /quick-add-expand-head/, 'expand action is placed in the quick-add header');
 assert.doesNotMatch(html, /id="quickAddModal"[^]*?aria-label="Закрыть"/, 'quick-add modal no longer has a close-cross control');
 assert.ok(html.includes('document.activeElement?.blur?.()'), 'expanding quick-add blurs the text field before opening the full task form');
 assert.match(html, /quick-parse-choices/, 'ambiguous dotted date/time values show explicit choices');
 assert.ok(html.includes('.quick-add-modal .quick-preview.has-choices{display:block!important}'), 'quick-add preview becomes visible only when date/time clarification is needed');
 assert.ok(html.includes("box.classList.toggle('has-choices',!!quickParsed.ambiguity)"), 'ambiguity controls the clarification preview visibility');
-assert.ok(serviceWorker.includes("'./quick-add-parser.js?v=20261128-2'"), 'service worker precaches the versioned quick-add parser module');
+assert.ok(serviceWorker.includes("'./quick-add-parser.js?v=20261128-3'"), 'service worker precaches the versioned quick-add parser module');
 
 
 
