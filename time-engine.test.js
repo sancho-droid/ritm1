@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {DAY_START_MINUTES,DAY_END_MINUTES,parseClock,formatClock,durationOf,syncSleepToWake,overnightContinuation,sortChronologically,intervalsFor,freeIntervals,findNextFreeGap,freeTimeAnchorIndex,conflicts,orderTimedTasksForDisplay,inferDayBoundary,assignDayBoundaryRoles,dayBoundaryIssue,dayBoundaryWindow,freeGapsForDay,timelineTimeForTask,timeScaleBounds,timeScaleRatio,timeScalePosition,timeScaleTaskAnchors,timeScaleOverlapGroups,timeScaleMinuteAtPosition,} from './time-engine.js';
+import {DAY_START_MINUTES,DAY_END_MINUTES,parseClock,parseDurationInput,formatClock,durationOf,syncSleepToWake,overnightContinuation,sortChronologically,intervalsFor,freeIntervals,findNextFreeGap,freeTimeAnchorIndex,conflicts,orderTimedTasksForDisplay,inferDayBoundary,assignDayBoundaryRoles,dayBoundaryIssue,dayBoundaryWindow,freeGapsForDay,timelineTimeForTask,timeScaleBounds,timeScaleRatio,timeScalePosition,timeScaleTaskAnchors,timeScaleOverlapGroups,timeScaleMinuteAtPosition,} from './time-engine.js';
 assert.equal(parseClock('00:00'),0);assert.equal(parseClock('19:09'),1149);assert.equal(parseClock('23:59'),1439);assert.equal(parseClock('24:00'),null);assert.equal(parseClock('9:00'),null);assert.equal(parseClock('bad'),null);assert.equal(formatClock(1149),'19:09');assert.equal(formatClock(1440),'23:59');
 assert.deepEqual(sortChronologically([{id:'a',time:'20:15'},{id:'b',time:'17:20'},{id:'c',time:'19:00'},{id:'d',time:''}]).map(x=>x.time),['17:20','19:00','20:15','']);assert.deepEqual(sortChronologically([{id:'z',time:'09:00'},{id:'a',time:'09:00'}]).map(x=>x.id),['z','a']);
 assert.equal(durationOf({time:'23:30',endTime:'00:15'}),45);assert.deepEqual(intervalsFor([{time:'17:20',duration:30},{time:'17:45',duration:30},{time:'18:15',duration:15,done:true},{time:'19:00',duration:20}]).map(x=>[x.start,x.end]),[[1040,1095],[1140,1160]]);
@@ -145,6 +145,39 @@ console.log('day-boundary per-task migration, rename persistence and same-day am
 
 // Sleep end and duration follow wake-time task; crossing midnight is supported.
 const sleepSync={name:'Сон',time:'23:00',endTime:'06:00',duration:420};syncSleepToWake(sleepSync,{name:'Подъём',time:'08:00'});assert.deepEqual(sleepSync,{name:'Сон',time:'23:00',endTime:'08:00',duration:540});const sleepCross={name:'Сон',time:'22:00',endTime:'06:00',duration:480};syncSleepToWake(sleepCross,{name:'Подъём',time:'07:00'});assert.deepEqual(sleepCross,{name:'Сон',time:'22:00',endTime:'07:00',duration:540});const sameClockSleep={name:'Сон',time:'23:00',endTime:'07:00',duration:480};syncSleepToWake(sameClockSleep,{name:'Подъём',time:'23:00'});assert.deepEqual(sameClockSleep,{name:'Сон',time:'23:00',endTime:'07:00',duration:480});assert.deepEqual(overnightContinuation({id:'sleep',name:'Сон',time:'23:00',duration:540,endTime:'08:00',dayBoundary:'end'},'2026-11-23'),{id:'sleep@continuation-2026-11-23',name:'Сон (продолжение)',time:'00:00',endTime:'08:00',duration:480,dayBoundary:'continuation',overnightContinuation:true,date:'2026-11-23',displayDate:'2026-11-23'});assert.equal(overnightContinuation({name:'Тренировка',time:'08:00',duration:60},'2026-11-23'),null);console.log('sleep auto-sync and overnight continuation: assertions passed');
+
+
+// Manual duration input accepts clock notation and natural Russian units.
+for(const [input,expected] of [['35 минут',35],['35 мин',35],['4 часа',240],['4 ч',240],['4 ч 30 мин',270],['03:00',180],['1:15',75]])assert.equal(parseDurationInput(input),expected,input);
+for(const input of ['', '0 минут', '4:75', '100:00', 'долго'])assert.ok(parseDurationInput(input)===null||Number.isNaN(parseDurationInput(input)),input+' must not become a valid duration');
+console.log('manual duration input: assertions passed');
+
+// The app's agreed daily free-time window is 06:00–23:00.
+// Empty days, single tasks and edge tasks must stay inside those boundaries.
+const boundedGapCalc=(tasks,date,{today='2026-11-23',minute=360,previous=[]}={})=>
+  freeGapsForDay(tasks,date,{todayKey:today,nowMinutes:minute,previousDayTasks:previous,dayStartMinutes:360,dayEndMinutes:1380});
+assert.deepEqual(boundedGapCalc([], '2026-11-24'),[
+ {start:'06:00',end:'23:00',duration:1020,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}
+],'an empty future day is bounded to 06:00–23:00');
+assert.deepEqual(boundedGapCalc([], '2026-11-23',{minute:600}),[
+ {start:'10:00',end:'23:00',duration:780,date:'2026-11-23',afterIndex:-1,id:'2026-11-23-gap-0'}
+],'today starts no earlier than the current time and ends at 23:00');
+assert.deepEqual(boundedGapCalc([{time:'08:00',duration:60}], '2026-11-24'),[
+ {start:'06:00',end:'08:00',duration:120,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'},
+ {start:'09:00',end:'23:00',duration:840,date:'2026-11-24',afterIndex:0,id:'2026-11-24-gap-1'}
+],'a single task leaves bounded free intervals before and after it');
+assert.deepEqual(boundedGapCalc([{time:'22:30',duration:120}], '2026-11-24'),[
+ {start:'06:00',end:'22:30',duration:990,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'}
+],'a task extending beyond 23:00 does not create free time after the day boundary');
+assert.deepEqual(boundedGapCalc([{time:'05:00',duration:120}], '2026-11-24'),[
+ {start:'07:00',end:'23:00',duration:960,date:'2026-11-24',afterIndex:0,id:'2026-11-24-gap-0'}
+],'a task crossing the 06:00 boundary occupies the beginning of the free-time window');
+assert.deepEqual(boundedGapCalc([{time:'08:00',duration:60},{time:'12:00',duration:30}], '2026-11-24'),[
+ {start:'06:00',end:'08:00',duration:120,date:'2026-11-24',afterIndex:-1,id:'2026-11-24-gap-0'},
+ {start:'09:00',end:'12:00',duration:180,date:'2026-11-24',afterIndex:0,id:'2026-11-24-gap-1'},
+ {start:'12:30',end:'23:00',duration:630,date:'2026-11-24',afterIndex:1,id:'2026-11-24-gap-2'}
+],'all gaps, including the ones before the first and after the last task, respect the day window');
+console.log('06:00–23:00 free-time window: regression assertions passed');
 
 // New independent free-time calculation: direct coverage with deterministic date/time inputs.
 const gapCalc=(tasks,date,{today='2026-11-23',minute=360,previous=[]}={})=>freeGapsForDay(tasks,date,{todayKey:today,nowMinutes:minute,previousDayTasks:previous});
